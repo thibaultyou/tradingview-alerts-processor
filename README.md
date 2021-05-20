@@ -1,6 +1,6 @@
 # TradingView alerts processor
 
-Minimalist service desgined to execute TradingView webhooks and process them to [FTX](https://ftx.com/) and [Binance](https://www.binance.com/fr/futures) exchanges.
+Minimalist service designed to execute TradingView webhooks and process them to [FTX](https://ftx.com/) and [Binance](https://www.binance.com/fr/futures) exchanges.
 
 ## Motivations
 
@@ -12,18 +12,18 @@ I was using [frostybot-js](https://github.com/CryptoMF/frostybot-js) for a long 
 - [ ] Command processor
 - [ ] Webhooks processor
 - [ ] Accounts handler
-- [ ] Exchange
+- [ ] FTX integration
+- [ ] Binance integration
 - [ ] IP filtering
 - [x] DB for storing API keys / secrets
+- [ ] Usage
 
-## Requirements
+## Installation
 
-- [Node & NPM](https://nodejs.org/en/)
-
-## Usage
-
-    npm i
-    npm start
+- [ ] AWS lightsail instance - Node version
+- [ ] Static IP
+- [ ] Bitnami routing
+- [ ] TradingView setup
 
 ## Credits
 
