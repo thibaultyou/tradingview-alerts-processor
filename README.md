@@ -14,7 +14,7 @@ I was using [frostybot-js](https://github.com/CryptoMF/frostybot-js) for a long 
 - [ ] Accounts handler
 - [ ] Exchange
 - [ ] IP filtering
-- [ ] DB for storing API keys / secrets
+- [x] DB for storing API keys / secrets
 
 ## Requirements
 
