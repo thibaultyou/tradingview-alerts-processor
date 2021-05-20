@@ -8,11 +8,22 @@ I was using [frostybot-js](https://github.com/CryptoMF/frostybot-js) for a long 
 
 ## TODO list
 
-- [ ] Basic server
+- [x] Basic server
 - [ ] Command processor
 - [ ] Webhooks processor
 - [ ] Accounts handler
 - [ ] Exchange
+- [ ] IP filtering
+- [ ] DB for storing API keys / secrets
+
+## Requirements
+
+- [Node & NPM](https://nodejs.org/en/)
+
+## Usage
+
+    npm i
+    npm start
 
 ## Credits
 

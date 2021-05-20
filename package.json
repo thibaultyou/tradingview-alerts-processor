@@ -1,0 +1,41 @@
+{
+  "name": "tradingview-alerts-processor",
+  "version": "1.0.0",
+  "description": "Minimalist service desgined to execute TradingView webhooks and process them to [FTX](https://ftx.com/) and [Binance](https://www.binance.com/fr/futures) exchanges.",
+  "main": "server.js",
+  "scripts": {
+    "dev": "concurrently \"npm run lint\" \"npm run prettier:watch\" \"npm run start\"",
+    "lint": "eslint . --ext .ts",
+    "lint:fix": "eslint . --ext .ts --fix",
+    "prettier:watch": "onchange 'src/**/*.ts' 'server.ts' -- prettier --write {{changed}}",
+    "prettier:format": "prettier --config .prettierrc 'src/**/*.ts' 'server.ts' --write",
+    "start": "nodemon server.ts",
+    "build": "tsc --project ./"
+  },
+  "pre-commit": [
+    "lint:fix",
+    "prettier:format"
+  ],
+  "keywords": [],
+  "author": "Thibault YOU",
+  "license": "WTFPL",
+  "dependencies": {
+    "express": "^4.17.1",
+    "typescript": "^4.2.4"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.11",
+    "@types/node": "^15.3.1",
+    "@typescript-eslint/eslint-plugin": "^4.24.0",
+    "@typescript-eslint/parser": "^4.24.0",
+    "concurrently": "^6.1.0",
+    "eslint": "^7.26.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-prettier": "^3.4.0",
+    "nodemon": "^2.0.7",
+    "onchange": "^7.1.0",
+    "pre-commit": "^1.2.2",
+    "prettier": "^2.3.0",
+    "ts-node": "^9.1.1"
+  }
+}
