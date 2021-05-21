@@ -9,7 +9,7 @@ export const validateClass = async (
 ): Promise<void> => {
   try {
     await transformAndValidate(classType, req.body, {
-      validator: { enableDebugMessages: false, forbidUnknownValues: true }
+      validator: { forbidUnknownValues: true }
     });
     next();
   } catch (err) {

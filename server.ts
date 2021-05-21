@@ -6,6 +6,7 @@ import {
   deleteAccount
 } from './src/routes/account.routes';
 import { getBalances, postTrade } from './src/routes/exchange.routes';
+import { info } from './src/services/logger.service';
 import { TradingService } from './src/services/trade.service';
 import {
   validateAccount,
@@ -25,11 +26,11 @@ app.post('/accounts', validateAccount, postAccount);
 app.get('/accounts', validateAccountStub, getAccount);
 app.delete('/accounts', validateAccountStub, deleteAccount);
 
-app.get('/exchanges/balances', validateAccountStub, getBalances);
-app.post('/exchanges/trade', validateTrade, postTrade);
+app.get('/balances', validateAccountStub, getBalances);
+app.post('/trades', validateTrade, postTrade);
 
 app.listen(PORT, () => {
   getDatabase();
   tradingService.start();
-  console.log(`⚡ Server is running here 👉 http://localhost:${PORT}`);
+  info(`⚡ Server is running here 👉 http://localhost:${PORT} ⚡`);
 });

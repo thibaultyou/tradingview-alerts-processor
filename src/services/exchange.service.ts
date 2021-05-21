@@ -1,9 +1,10 @@
-import { Order, Ticker, Exchange } from 'ccxt';
+import { Ticker, Exchange } from 'ccxt';
 import ccxt = require('ccxt');
 import { Account } from '../entities/account.entities';
 import { Trade } from '../entities/trade.entities';
 import { IBalances } from '../interfaces/exchange.interfaces';
 import { getAccountId } from '../utils/account.utils';
+import { error, info } from './logger.service';
 import { TradingService } from './trade.service';
 
 const exchanges = new Map<string, Exchange>();
@@ -18,10 +19,14 @@ export const refreshExchange = (account: Account): Exchange => {
       if (subaccount) {
         options['headers'] = { 'FTX-SUBACCOUNT': subaccount.toUpperCase() };
       }
-      exchanges.set(accountId, new ccxt.ftx(options));
-      console.info(
-        `${exchange.toUpperCase()} instance for "${accountId}" loaded.`
-      );
+      try {
+        exchanges.set(accountId, new ccxt.ftx(options));
+        info(`${exchange.toUpperCase()} instance for "${accountId}" loaded.`);
+      } catch (err) {
+        const message = `Unable to init exchange instance for "${accountId}".`;
+        error(message);
+        throw new Error(message);
+      }
     }
   }
   return exchanges.get(accountId);
@@ -33,10 +38,11 @@ export const getAccountBalances = async (
   const accountId = getAccountId(account);
   try {
     const balances: IBalances = await refreshExchange(account).fetch_balance();
-    console.info(`"${accountId}" account balance successfully fetched.`);
+    info(`"${accountId}" account balance successfully fetched.`);
     return balances;
   } catch (err) {
-    throw new Error(`Failed to check "${accountId}" account balance : ${err}.`);
+    error(`Failed to check "${accountId}" account balance : ${err}.`);
+    throw err;
   }
 };
 
@@ -46,15 +52,22 @@ export const fetchTickerPrice = async (
 ): Promise<Ticker> => {
   try {
     const ticker: Ticker = await refreshExchange(account).fetchTicker(symbol);
-    console.info(`${symbol} ticker successfully fetched.`);
+    info(`${symbol} ticker successfully fetched.`);
     return ticker;
   } catch (err) {
-    throw new Error(`Failed to check "${symbol}" ticker : ${err}.`);
+    const message = `Failed to check "${symbol}" ticker : ${err}.`;
+    error(message);
+    throw new Error(message);
   }
 };
 
 export const executeTrade = (account: Account, trade: Trade): boolean => {
-  const exchange = refreshExchange(account);
-  tradingService.addTrade({ exchange, account, trade });
+  try {
+    const exchange = refreshExchange(account);
+    tradingService.addTrade({ exchange, account, trade });
+  } catch (err) {
+    error(`Failed to execute trade  : ${err}.`);
+    throw err;
+  }
   return true;
 };

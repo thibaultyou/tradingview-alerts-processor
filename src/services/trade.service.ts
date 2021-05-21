@@ -10,6 +10,7 @@ import {
   getTradeSide
 } from '../utils/trade.utils';
 import { fetchTickerPrice } from './exchange.service';
+import { info, error, close, long, short } from './logger.service';
 
 export class TradingService {
   private static instance: TradingService;
@@ -28,7 +29,7 @@ export class TradingService {
   };
 
   start = (): void => {
-    console.info(`Trading service started.`);
+    info(`Trading service started.`);
     setInterval(() => {
       if (this.trades.length) {
         this.processTrade(this.trades.shift());
@@ -60,7 +61,7 @@ export class TradingService {
       const positions: IPosition[] = await exchange.fetchPositions();
       const position = positions.filter((p) => p.future === symbol).pop();
       if (!position) {
-        console.error(`No open position found for ${symbol}.`);
+        error(`No open position found for ${symbol}.`);
         return;
       }
       const { side, size } = position;
@@ -70,10 +71,10 @@ export class TradingService {
         invertedSide,
         Number(size)
       );
-      console.info(`Closing trade on ${symbol} for "${accountId}" account.`);
+      close(`Closing trade on ${symbol} for "${accountId}" account.`);
       return order;
     } catch (err) {
-      console.error(`Failed to close ${symbol} trade : ${err}.`);
+      error(`Failed to close ${symbol} trade : ${err}.`);
     }
   };
 
@@ -93,12 +94,11 @@ export class TradingService {
         side,
         tradeSize
       );
-      console.info(
-        `Opening trade on ${symbol} (${size} $US) for "${accountId}" account.`
-      );
+      const message = `Opening ${side} trade on ${symbol} (${size} $US) for "${accountId}" account.`;
+      side === 'buy' ? long(message) : short(message);
       return order;
     } catch (err) {
-      console.error(
+      error(
         `Failed to open ${side} trade on ${symbol} for "${accountId}" account : ${err}.`
       );
     }

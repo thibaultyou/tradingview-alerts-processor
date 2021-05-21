@@ -10,53 +10,42 @@ export const getBalances = async (
   res: Response
 ): Promise<void> => {
   const { stub }: AccountStub = req.body;
-  const account = readAccount(stub);
-  const balances = await getAccountBalances(account);
-  if (!account) {
-    res.writeHead(404);
-    res.write(
-      JSON.stringify({ message: `"${stub}" account does not exists.` })
-    );
-    res.end();
-  } else if (!balances) {
+  try {
+    const account = readAccount(stub);
+    const balances = await getAccountBalances(account);
+    res.write(JSON.stringify({ balances: balances.info.result }));
+  } catch (err) {
     res.writeHead(500);
     res.write(
       JSON.stringify({
-        message: `Unable to fetch balances for "${stub}" account.`
+        message: `Unable to fetch balances for "${stub}" account.`,
+        error: err.message
       })
     );
-    res.end();
-  } else {
-    res.write(JSON.stringify({ balances: balances.info.result }));
-    res.end();
   }
+  res.end();
 };
 
 export const postTrade = async (req: Request, res: Response): Promise<void> => {
   const { direction, stub, symbol }: Trade = req.body;
   const side = getTradeSide(direction);
-  const account = readAccount(stub);
-  const success = await executeTrade(account, req.body);
-  if (!account) {
-    res.writeHead(404);
-    res.write(
-      JSON.stringify({ message: `"${stub}" account does not exists.` })
-    );
-    res.end();
-  } else if (!success) {
-    res.writeHead(500);
-    res.write(
-      JSON.stringify({
-        message: `Unable to execute ${symbol} ${side} trade for "${stub}" account.`
-      })
-    );
-    res.end();
-  } else {
+  let account;
+  try {
+    account = readAccount(stub);
+    executeTrade(account, req.body);
     res.write(
       JSON.stringify({
         message: `${symbol} ${side} trade executed for "${stub}" account.`
       })
     );
-    res.end();
+  } catch (err) {
+    res.writeHead(500);
+    res.write(
+      JSON.stringify({
+        message: `Unable to execute ${symbol} ${side} trade for "${stub}" account.`,
+        error: err.message
+      })
+    );
   }
+  res.end();
 };
