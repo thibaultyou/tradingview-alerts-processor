@@ -27,7 +27,7 @@ export const readAccount = (accountId: string): Account => {
     const db = getDatabase();
     try {
       const accountEntry = db.getData(`/${id}`);
-      accounts.set(accountId, accountEntry);
+      accounts.set(id, accountEntry);
       info(`"${id}" account successfully readed.`);
       return accountEntry;
     } catch (err) {
@@ -36,7 +36,7 @@ export const readAccount = (accountId: string): Account => {
       throw new Error(message);
     }
   }
-  return accounts.get(accountId);
+  return accounts.get(id);
 };
 
 export const removeAccount = (accountId: string): boolean => {
