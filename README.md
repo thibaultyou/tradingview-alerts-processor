@@ -135,10 +135,10 @@ As this tool is designed for my own usage, I will not provide any form of suppor
 - To update the app from the source directory :
 
     ```
-    pm2 stop
+    pm2 stop server
     git pull
     npm i
-    pm2 start
+    pm2 start server
     ```
 
 ### Step 4 - Exchanges API keys
