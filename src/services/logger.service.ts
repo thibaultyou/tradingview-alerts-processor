@@ -15,7 +15,7 @@ const logger = createLogger({
 
 const tradesLogger = createLogger({
   level: 'info',
-  format: combine(json(), timestamp()),
+  format: combine(timestamp(), json()),
   transports: [new transports.File({ filename: 'logs/trades.log' })]
 });
 

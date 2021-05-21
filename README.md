@@ -126,6 +126,21 @@ As this tool is designed for my own usage, I will not provide any form of suppor
     pm2 logs server
     ```
 
+- If you want to check trades only :
+
+    ```
+    tail -f logs/trades.log
+    ```
+
+- To update the app from the source directory :
+
+    ```
+    pm2 stop
+    git pull
+    npm i
+    pm2 start
+    ```
+
 ### Step 4 - Exchanges API keys
 
 - Register API keys in the app
