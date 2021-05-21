@@ -59,11 +59,10 @@ const closeTrade = async (account: Account, trade: Trade): Promise<Order> => {
   const { symbol } = trade;
   const accountId = getAccountId(account);
   try {
-    const position: IPosition = await exchanges
+    const positions: IPosition[] = await exchanges
       .get(accountId)
-      .fetchPositions()
-      .filter((p) => p.future === symbol)
-      .pop();
+      .fetchPositions();
+    const position = positions.filter((p) => p.future === symbol).pop();
     const { side, size } = position;
     if (!position || size === '0.0') {
       console.error(`No position found for ${symbol}.`);
