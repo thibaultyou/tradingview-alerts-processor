@@ -4,25 +4,27 @@ import {
   readAccount,
   addAccount,
   removeAccount
-} from '../models/account.model';
+} from '../services/account.service';
+import { getAccountId } from '../utils/account.utils';
 
 export const postAccount = (req: Request, res: Response): void => {
-  const { apiKey, exchange, secret, stub, subaccount }: Account = req.body;
-  const id = subaccount ? subaccount : stub;
+  const account: Account = req.body;
+  const { apiKey, exchange, secret, stub, subaccount } = account;
+  const accountId = getAccountId(account);
   const result = addAccount({
     apiKey: apiKey,
     exchange: exchange,
     secret: secret,
-    stub: stub,
-    subaccount: subaccount
+    stub: stub.toUpperCase(),
+    subaccount: subaccount.toUpperCase()
   });
   res.write(
     result
       ? JSON.stringify({
-          message: `"${id}" account successfully registered.`
+          message: `"${accountId}" account successfully registered.`
         })
       : JSON.stringify({
-          message: `"${id}" account already exists.`
+          message: `"${accountId}" account already exists.`
         })
   );
   res.end();

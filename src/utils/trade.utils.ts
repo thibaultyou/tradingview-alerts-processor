@@ -1,14 +1,10 @@
 import { Ticker } from 'ccxt';
 import { Side } from '../types/trade.types';
 
-export const getTradeSide = (side: Side): Side => {
-  return side === ('cancel' || 'close')
-    ? 'cancel'
-    : side === ('short' || 'sell')
-    ? 'sell'
-    : 'buy';
-};
-export const getInvertedTradeSide = (side: Side): Side =>
+export const getTradeSide = (side: Side): 'buy' | 'sell' =>
+  side === ('short' || 'sell') ? 'sell' : 'buy';
+
+export const getInvertedTradeSide = (side: Side): 'buy' | 'sell' =>
   side === ('short' || 'sell') ? 'buy' : 'sell';
 
 // provided size is in US$

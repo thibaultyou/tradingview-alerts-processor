@@ -1,6 +1,6 @@
 # TradingView alerts processor
 
-Minimalist service designed to execute TradingView webhooks and process them to [FTX](https://ftx.com/) and [Binance](https://www.binance.com/fr/futures) exchanges.
+Minimalist service designed to execute [TradingView](https://www.tradingview.com/) webhooks and process them to [FTX](https://ftx.com/) and [Binance](https://www.binance.com/fr/futures) exchanges.
 
 ## Motivations
 
@@ -13,7 +13,7 @@ As this tool is designed for my own usage, I will not provide any form of suppor
 - [x] Basic server
 - [ ] Command processor
 - [x] Webhooks processor
-- [ ] Accounts handler
+- [x] Accounts handler
 - [x] FTX integration
 - [ ] Binance integration
 - [ ] IP filtering

@@ -5,7 +5,8 @@ import {
   getAccount,
   deleteAccount
 } from './src/routes/account.routes';
-import { getBalances, postTrade } from './src/routes/exchanges.routes';
+import { getBalances, postTrade } from './src/routes/exchange.routes';
+import { TradingService } from './src/services/trade.service';
 import {
   validateAccount,
   validateAccountStub
@@ -13,6 +14,7 @@ import {
 import { validateTrade } from './src/validators/trade.validators';
 
 const app = express();
+const tradingService = TradingService.getInstance();
 
 const PORT = process.env.PORT || 3000;
 
@@ -28,5 +30,6 @@ app.post('/exchanges/trade', validateTrade, postTrade);
 
 app.listen(PORT, () => {
   getDatabase();
+  tradingService.start();
   console.log(`⚡ Server is running here 👉 http://localhost:${PORT}`);
 });
