@@ -154,10 +154,23 @@ As this tool is designed for my own usage, I will not provide any form of suppor
     - Setup your condition
     - Webhook url : `http://YOUR.STATIC.IP.ADDRESS/trades`
     - Message should have this structure :
-    
-    ```json
-    { "stub": "dev", "direction": "long", "symbol": "ETH-PERP", "size": "50" }
-    ```
+        - Long position :
+        
+        ```json
+        { "stub": "dev", "direction": "long", "symbol": "ETH-PERP", "size": "50" }
+        ```
+
+        - Short position :
+        
+        ```json
+        { "stub": "dev", "direction": "short", "symbol": "ETH-PERP", "size": "50" }
+        ```
+
+        - Close position :
+        
+        ```json
+        { "stub": "dev", "direction": "close", "symbol": "ETH-PERP" }
+        ```
 
 ## Optional commands
 
