@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { IAccount, IAccountStub } from '../interfaces/account.interface';
+import { Account, AccountStub } from '../entities/account.entities';
 import {
   readAccount,
   addAccount,
@@ -7,7 +7,8 @@ import {
 } from '../models/account.model';
 
 export const postAccount = (req: Request, res: Response): void => {
-  const { apiKey, exchange, secret, stub, subaccount }: IAccount = req.body;
+  const { apiKey, exchange, secret, stub, subaccount }: Account = req.body;
+  const id = subaccount ? subaccount : stub;
   const result = addAccount({
     apiKey: apiKey,
     exchange: exchange,
@@ -18,15 +19,17 @@ export const postAccount = (req: Request, res: Response): void => {
   res.write(
     result
       ? JSON.stringify({
-          message: `"${stub}" account successfully registered.`
+          message: `"${id}" account successfully registered.`
         })
-      : JSON.stringify({ message: `"${stub}" account already exists.` })
+      : JSON.stringify({
+          message: `"${id}" account already exists.`
+        })
   );
   res.end();
 };
 
 export const getAccount = (req: Request, res: Response): void => {
-  const { stub }: IAccountStub = req.body;
+  const { stub }: AccountStub = req.body;
   const result = readAccount(stub);
   res.write(
     result
@@ -37,7 +40,7 @@ export const getAccount = (req: Request, res: Response): void => {
 };
 
 export const deleteAccount = (req: Request, res: Response): void => {
-  const { stub }: IAccountStub = req.body;
+  const { stub }: AccountStub = req.body;
   const result = removeAccount(stub);
   res.write(
     result

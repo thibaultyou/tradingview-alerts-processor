@@ -2,26 +2,26 @@ import { Account } from '../entities/account.entities';
 import { getDatabase } from '../db/store.db';
 
 export const addAccount = (account: Account): boolean => {
+  const { stub, subaccount } = account;
+  const id = subaccount ? subaccount : stub;
   const db = getDatabase();
-  const { stub } = account;
   try {
-    db.getData(`/${stub}`);
+    db.getData(`/${id}`);
   } catch (err) {
-    db.push(`/${account.stub}`, account);
+    db.push(`/${id}`, account);
     return true;
   }
-  console.error(`${stub} account already exists.`);
+  console.error(`"${id}" ${subaccount ? 'sub' : ''}account already exists.`);
   return false;
 };
 
-export const readAccount = (stub: string): Account | boolean => {
+export const readAccount = (stub: string): Account => {
   const db = getDatabase();
   try {
     return db.getData(`/${stub}`);
   } catch (err) {
     console.error(`${stub} account does not exists.`);
   }
-  return false;
 };
 
 export const removeAccount = (stub: string): boolean => {

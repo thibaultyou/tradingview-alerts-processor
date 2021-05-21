@@ -1,4 +1,6 @@
 import { IsString, IsIn, IsOptional } from 'class-validator';
+import { EXCHANGES } from '../constants/exchanges.constants';
+import { Exchange } from '../types/exchange.types';
 
 export class Account {
   @IsString()
@@ -7,9 +9,9 @@ export class Account {
   @IsString()
   secret: string;
 
-  @IsIn(['ftx', 'binance'])
+  @IsIn(EXCHANGES)
   @IsString()
-  exchange: string;
+  exchange: Exchange;
 
   @IsString()
   stub: string;
