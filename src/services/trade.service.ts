@@ -91,7 +91,7 @@ export class TradingService {
       const tradeSize = getAverageTradeSize(ticker, size);
       const order: Order = await exchange.createMarketOrder(
         symbol,
-        side,
+        side as 'buy' | 'sell',
         tradeSize
       );
       const message = `Opening ${side} trade on ${symbol} (${size} $US) for "${accountId}" account.`;

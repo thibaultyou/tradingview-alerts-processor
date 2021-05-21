@@ -1,4 +1,4 @@
-import { IsIn, IsString } from 'class-validator';
+import { IsIn, IsOptional, IsString } from 'class-validator';
 import { SIDES } from '../constants/trade.constants';
 
 export class Trade {
@@ -6,6 +6,7 @@ export class Trade {
   stub: string;
 
   @IsString()
+  @IsOptional()
   size: string;
 
   @IsString()
