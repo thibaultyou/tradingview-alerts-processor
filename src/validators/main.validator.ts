@@ -5,6 +5,7 @@ export const validateClass = async (
   req: Request,
   res: Response,
   next: NextFunction,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   classType: ClassType<any>
 ): Promise<void> => {
   try {

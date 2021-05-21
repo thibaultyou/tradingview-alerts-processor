@@ -1,5 +1,5 @@
 import * as chalk from 'chalk';
-import { Logger, createLogger, format, transports } from 'winston';
+import { createLogger, format, transports } from 'winston';
 const { combine, json, timestamp } = format;
 // eslint-disable-next-line no-console
 const log = console.log;
@@ -26,7 +26,7 @@ export const debug = (message: string): void => {
 
 export const info = (message: string): void => {
   logger.info(message);
-  log(chalk.blue(message));
+  log(chalk.green(message));
 };
 
 export const warning = (message: string): void => {

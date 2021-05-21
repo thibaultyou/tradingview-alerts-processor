@@ -45,7 +45,7 @@ export class TradingService {
   processTrade = async (info: ITradeInfo): Promise<Order> => {
     const { account, exchange, trade } = info;
     const { direction } = trade;
-    return direction === ('cancel' || 'close')
+    return direction === 'cancel' || direction === 'close'
       ? await this.closeTrade(exchange, account, trade)
       : await this.openTrade(exchange, account, trade);
   };
