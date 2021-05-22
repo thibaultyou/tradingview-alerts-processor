@@ -25,7 +25,7 @@ Minimalist service designed to execute [TradingView](https://www.tradingview.com
 
 ## Motivations
 
-I was using [frostybot-js](https://github.com/CryptoMF/frostybot-js) for a long time but sometimes the service is crashing or not performing well if multiples alerts are received at the same time, this tool does not pretend to be better than forstybot but it fixes those issues. I need for my personnal use something fast and reliable for trading or I will lose money and opportunities.
+I was using [frostybot-js](https://github.com/CryptoMF/frostybot-js) for a long time but sometimes the service was crashing or not performing well if multiples alerts were received at the same time, this tool does not pretend to be better than frostybot but it fixes those issues. I need for my personnal use something fast and reliable for trading or I will lose money and opportunities.
 
 As this tool is designed for my own usage, I will not provide any form of support to improve it.
 
