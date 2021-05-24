@@ -103,6 +103,20 @@ Feel free to submit [Github issues](https://github.com/thibaultyou/tradingview-a
     sudo sh install.sh
     ```
 
+- Check your app status :
+
+    ```
+    pm2 status npm
+    ```
+
+You should see npm entry with `online` status, if this is not the case reconfigure PM2 and check again with :
+
+    ```
+    pm2 start npm -- start --watch
+    pm2 save
+    pm2 status npm
+    ```
+
 ### Step 4 - Exchanges API keys
 
 - Register API keys in the app
