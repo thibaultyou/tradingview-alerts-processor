@@ -18,7 +18,7 @@
   ],
   "keywords": [],
   "author": "Thibault YOU",
-  "license": "WTFPL",
+  "license": "MIT",
   "dependencies": {
     "ccxt": "1.50.18",
     "chalk": "4.1.1",
