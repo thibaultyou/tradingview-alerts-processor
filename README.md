@@ -18,6 +18,7 @@ Minimalist service designed to execute [TradingView](https://www.tradingview.com
   - [Step 3 - Install and configure app](#step-3---install-and-configure-app)
   - [Step 4 - Exchanges API keys](#step-4---exchanges-api-keys)
   - [Step 5 - Setup TradingView alerts](#step-5---setup-tradingview-alerts)
+  - [Optional steps](#optional-steps)
 - [Available API commands](#available-api-commands)
 - [TODO list](#todo-list)
 - [Motivations](#motivations)
@@ -29,7 +30,7 @@ Minimalist service designed to execute [TradingView](https://www.tradingview.com
 
 - FTX support
   - Add/Read/Delete account/subaccount configuration
-  - Open a position Long/Short in dollars
+  - Open a Long/Short position in dollars
   - Close 100% of an open position
   - List available balances
 
@@ -72,27 +73,14 @@ Feel free to submit [Github issues](https://github.com/thibaultyou/tradingview-a
     chmod 400 ~/Downloads/key.pem
     ```
 
-  - SSH to your instance using the downloaded key like this (you can find the
-    username/ip by selecting your instance [here](https://lightsail.aws.amazon.com/ls/webapp/home/instances)) :
-
-    ```sh
-    ssh USERNAME@YOUR.STATIC.IP.ADDRESS -i ~/Downloads/key.pem
-    ```
-
-  - If everything is ok at this point you should successfully log into your instance
-  - Update packages and restart your instance with this :
-
-    ```sh
-    sudo apt update -y && sudo apt upgrade -y && sudo reboot
-    ```
-
 ### Step 3 - Install and configure app
 
 >
 > Your Node.js instance must be a [Bitnami one](https://aws.amazon.com/marketplace/pp/B00NNZUAKO)
 >
 
-- Log back in your instance with :
+- SSH to your instance using the downloaded key like this (you can find the
+    username/ip by selecting your instance [here](https://lightsail.aws.amazon.com/ls/webapp/home/instances)) :
 
     ```sh
     ssh USERNAME@YOUR.STATIC.IP.ADDRESS -i ~/Downloads/key.pem
@@ -104,51 +92,11 @@ Feel free to submit [Github issues](https://github.com/thibaultyou/tradingview-a
     git clone https://github.com/thibaultyou/tradingview-alerts-processor.git
     ```
 
-- Install dependencies :
+- Install app and configure the server :
 
     ```sh
     cd tradingview-alerts-processor/
-    npm i
-    sudo npm i -g pm2
-    sudo pm2 install typescript
-    ```
-
-- Configure Apache :
-
-    ```sh
-    sudo cp /opt/bitnami/apache/conf/vhosts/sample-vhost.conf.disabled /opt/bitnami/apache/conf/vhosts/sample-vhost.conf
-    sudo cp /opt/bitnami/apache/conf/vhosts/sample-https-vhost.conf.disabled /opt/bitnami/apache/conf/vhosts/sample-https-vhost.conf
-    sudo /opt/bitnami/ctlscript.sh restart apache
-    ```
-
-- Configure and launch app with [pm2](https://pm2.keymetrics.io/) and save process :
-
-    ```sh
-    pm2 startup
-    sudo env PATH=$PATH:/opt/bitnami/node/bin /opt/bitnami/node/lib/node_modules/pm2/bin/pm2 startup systemd -u bitnami --hp /home/bitnami
-    pm2 start server.ts --watch
-    pm2 save
-    ```
-
-- If you want to check logs :
-
-    ```sh
-    pm2 logs server
-    ```
-
-- If you want to check trades only :
-
-    ```sh
-    tail -f logs/trades.log
-    ```
-
-- To update the app from the source directory :
-
-    ```sh
-    pm2 stop server
-    git pull
-    npm i
-    pm2 start server
+    sudo sh install.sh
     ```
 
 ### Step 4 - Exchanges API keys
@@ -196,6 +144,31 @@ Feel free to submit [Github issues](https://github.com/thibaultyou/tradingview-a
         ```json
         { "stub": "dev", "direction": "close", "symbol": "ETH-PERP" }
         ```
+
+### Optional steps
+
+>
+> For those steps you need to be logged in your instance, see the first command in [Step 3 - Install and configure app](#step-3---install-and-configure-app)
+>
+
+- If you want to check logs :
+
+    ```sh
+    pm2 logs server
+    ```
+
+- If you want to check trades only :
+
+    ```sh
+    tail -f logs/trades.log
+    ```
+
+- To update the app :
+
+    ```sh
+    cd tradingview-alerts-processor/
+    sudo sh update.sh
+    ```
 
 ## Available API commands
 
