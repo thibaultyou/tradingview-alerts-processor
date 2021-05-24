@@ -5,14 +5,19 @@ import {
   getAccount,
   deleteAccount
 } from './src/routes/account.routes';
-import { getBalances, postTrade } from './src/routes/exchange.routes';
+import {
+  getBalances,
+  getMarkets,
+  postTrade
+} from './src/routes/exchange.routes';
 import { info } from './src/services/logger.service';
 import { TradingService } from './src/services/trade.service';
 import {
   validateAccount,
   validateAccountStub
 } from './src/validators/account.validators';
-import { validateTrade } from './src/validators/trade.validators';
+import { validateMarket } from './src/validators/market.validator';
+import { validateTrade } from './src/validators/trade.validator';
 
 const app = express();
 const tradingService = TradingService.getInstance();
@@ -27,6 +32,7 @@ app.get('/accounts', validateAccountStub, getAccount);
 app.delete('/accounts', validateAccountStub, deleteAccount);
 
 app.get('/balances', validateAccountStub, getBalances);
+app.get('/markets', validateMarket, getMarkets);
 app.post('/trades', validateTrade, postTrade);
 
 app.listen(PORT, () => {

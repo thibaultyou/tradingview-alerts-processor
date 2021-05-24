@@ -33,6 +33,7 @@ Minimalist service designed to execute [TradingView](https://www.tradingview.com
   - Open a Long/Short position in dollars
   - Close an open position or a fraction of it
   - List available balances
+  - List available markets
 
 ## Contributions
 
@@ -130,7 +131,7 @@ Feel free to submit [Github issues](https://github.com/thibaultyou/tradingview-a
     curl -H 'Content-Type: application/json; charset=utf-8' -d '{"stub": "MAIN", "exchange":"ftx", "apiKey": "YOUR_API_KEY", "secret": "YOUR_SECRET_KEY" }' -X POST http://YOUR.STATIC.IP.ADDRESS/accounts
     ```
 
-- Register subaccount named "testing" under the stub `sub` :
+- Register subaccount named `testing` under the stub `sub` :
 
     ```sh
     curl -H 'Content-Type: application/json; charset=utf-8' -d '{"stub": "sub", "subaccount":"testing", "exchange":"ftx", "apiKey": "YOUR_API_KEY", "secret": "YOUR_SECRET_KEY" }' -X POST http://YOUR.STATIC.IP.ADDRESS/accounts
@@ -222,6 +223,12 @@ Feel free to submit [Github issues](https://github.com/thibaultyou/tradingview-a
 
     ```sh
     curl -H 'Content-Type: application/json; charset=utf-8' -d '{"stub": "sub" }' -X GET http://YOUR.STATIC.IP.ADDRESS/balances
+    ```
+
+- __List available markets__ on a specific exchange  :
+
+    ```sh
+    curl -H 'Content-Type: application/json; charset=utf-8' -d '{"exchange": "ftx" }' -X GET http://YOUR.STATIC.IP.ADDRESS/markets
     ```
 
 - __Open a long position__ of 11$ on ETH-PERP using `test` account :
