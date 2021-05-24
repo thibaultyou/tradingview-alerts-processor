@@ -1,5 +1,4 @@
 import { Request, Response } from 'express';
-import ccxt = require('ccxt');
 import {
   executeTrade,
   fetchAvailableMarkets,
