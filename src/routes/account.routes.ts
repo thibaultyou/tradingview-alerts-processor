@@ -11,13 +11,16 @@ export const postAccount = (req: Request, res: Response): void => {
   const account: Account = req.body;
   const { apiKey, exchange, secret, stub, subaccount } = account;
   const accountId = getAccountId(account);
-  const result = addAccount({
+  const entry: Account = {
     apiKey: apiKey,
     exchange: exchange,
     secret: secret,
-    stub: stub.toUpperCase(),
-    subaccount: subaccount ? subaccount.toUpperCase() : undefined
-  });
+    stub: stub.toUpperCase()
+  };
+  if (subaccount) {
+    entry['subaccount'] = subaccount.toUpperCase();
+  }
+  const result = addAccount(entry);
   res.write(
     result
       ? JSON.stringify({

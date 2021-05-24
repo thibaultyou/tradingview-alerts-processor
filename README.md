@@ -4,7 +4,7 @@
 > This project is under construction 🚧
 >
 
-Minimalist service designed to execute [TradingView](https://www.tradingview.com/) webhooks and process them to [FTX](https://ftx.com/) and [Binance](https://www.binance.com/fr/futures) exchanges.
+Minimalist service designed to execute [TradingView](https://www.tradingview.com/) webhooks and process them to [FTX](https://ftx.com/) and [Binance](https://www.binance.com/fr/futures) exchanges from [AWS lightsail](https://lightsail.aws.amazon.com/).
 
 ## Index
 
@@ -31,7 +31,7 @@ Minimalist service designed to execute [TradingView](https://www.tradingview.com
 - FTX support
   - Add/Read/Delete account/subaccount configuration
   - Open a Long/Short position in dollars
-  - Close 100% of an open position
+  - Close an open position or a fraction of it
   - List available balances
 
 ## Contributions
@@ -60,6 +60,10 @@ Feel free to submit [Github issues](https://github.com/thibaultyou/tradingview-a
 
 ### Step 2 - SSH access
 
+>
+> If you're not confident with SSH you can open a Terminal using your browser on AWS lightsail by clicking on your instance and skip this step
+>
+
 - Create SSH key pairs
   - Go to [AWS lightsail > SSH keys](https://lightsail.aws.amazon.com/ls/webapp/account/keys)
   - Select default key
@@ -73,18 +77,18 @@ Feel free to submit [Github issues](https://github.com/thibaultyou/tradingview-a
     chmod 400 ~/Downloads/key.pem
     ```
 
-### Step 3 - Install and configure app
-
->
-> Your Node.js instance must be a [Bitnami one](https://aws.amazon.com/marketplace/pp/B00NNZUAKO)
->
-
 - SSH to your instance using the downloaded key like this (you can find the
     username/ip by selecting your instance [here](https://lightsail.aws.amazon.com/ls/webapp/home/instances)) :
 
     ```sh
     ssh USERNAME@YOUR.STATIC.IP.ADDRESS -i ~/Downloads/key.pem
     ```
+
+### Step 3 - Install and configure app
+
+>
+> Your Node.js instance must be a [Bitnami one](https://aws.amazon.com/marketplace/pp/B00NNZUAKO)
+>
 
 - Clone the app sources :
 
@@ -139,10 +143,16 @@ Feel free to submit [Github issues](https://github.com/thibaultyou/tradingview-a
         { "stub": "dev", "direction": "short", "symbol": "ETH-PERP", "size": "50" }
         ```
 
-    - Close position :
+    - Close 100% of a position :
 
         ```json
         { "stub": "dev", "direction": "close", "symbol": "ETH-PERP" }
+        ```
+
+    - Close a fraction of a position in percent (⚠️ WATCH OUT, the fraction must be greater or equal than the minimum tradable amount set by the exchange for the pair ! Size must be between 1 and 100 with a percent sign, otherwise 100% will be closed) :
+
+        ```json
+        { "stub": "dev", "direction": "close", "symbol": "ETH-PERP", "size": "50%" }
         ```
 
 ### Optional steps
@@ -151,19 +161,19 @@ Feel free to submit [Github issues](https://github.com/thibaultyou/tradingview-a
 > For those steps you need to be logged in your instance, see the first command in [Step 3 - Install and configure app](#step-3---install-and-configure-app)
 >
 
-- If you want to check logs :
+- Check app logs :
 
     ```sh
-    pm2 logs server
+    pm2 logs npm
     ```
 
-- If you want to check trades only :
+- Check trading logs :
 
     ```sh
     tail -f logs/trades.log
     ```
 
-- To update the app :
+- Update the app :
 
     ```sh
     cd tradingview-alerts-processor/
@@ -171,6 +181,10 @@ Feel free to submit [Github issues](https://github.com/thibaultyou/tradingview-a
     ```
 
 ## Available API commands
+
+>
+> Since the trade executor is decoupled from the requests you can't know if the trade has been successfully processed without checking the logs, I strongly recommand to check those during your alerts setup/testing phase.
+>
 
 - __Add main account__ under the stub `main` :
 
@@ -214,6 +228,12 @@ Feel free to submit [Github issues](https://github.com/thibaultyou/tradingview-a
     curl -H 'Content-Type: application/json; charset=utf-8' -d '{"stub": "test", "symbol": "ETH-PERP", "direction": "close"}' -X POST http://YOUR.STATIC.IP.ADDRESS/trades
     ```
 
+- __Close XX% of a position__ (short or long) on ETH-PERP using `test` account :
+
+    ```sh
+    curl -H 'Content-Type: application/json; charset=utf-8' -d '{"stub": "test", "symbol": "ETH-PERP", "direction": "close", "size": "33%"}' -X POST http://YOUR.STATIC.IP.ADDRESS/trades
+    ```
+
 ## TODO list
 
 - [ ] Command processor
@@ -224,7 +244,6 @@ Feel free to submit [Github issues](https://github.com/thibaultyou/tradingview-a
 - [ ] Tests / coverage
 - [ ] Check if account is valid at save
 - [ ] List available markets route
-- [ ] Add partial position close
 - [ ] Improve validators
 
 ## Motivations

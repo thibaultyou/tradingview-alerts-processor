@@ -4,12 +4,12 @@
   "description": "Minimalist service desgined to execute TradingView webhooks and process them to [FTX](https://ftx.com/) and [Binance](https://www.binance.com/fr/futures) exchanges.",
   "main": "server.js",
   "scripts": {
-    "dev": "concurrently \"npm run lint\" \"npm run prettier:watch\" \"npm run start\"",
+    "dev": "concurrently \"npm run lint\" \"npm run prettier:watch\" \"nodemon server.ts\"",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
     "prettier:watch": "onchange 'src/**/*.ts' 'server.ts' -- prettier --write {{changed}}",
     "prettier:format": "prettier --config .prettierrc 'src/**/*.ts' 'server.ts' --write",
-    "start": "nodemon server.ts",
+    "start": "ts-node server.ts",
     "build": "tsc --project ./"
   },
   "pre-commit": [

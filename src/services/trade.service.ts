@@ -31,8 +31,9 @@ export class TradingService {
   start = (): void => {
     info(`Trading service started.`);
     setInterval(() => {
-      if (this.trades.length) {
-        this.processTrade(this.trades.shift());
+      const trade = this.trades.shift();
+      if (trade) {
+        this.processTrade(trade);
       }
       // we add a 500ms timer between each trade to avoid FTX RateLimitExceeded
     }, 500);
@@ -45,9 +46,13 @@ export class TradingService {
   processTrade = async (info: ITradeInfo): Promise<Order> => {
     const { account, exchange, trade } = info;
     const { direction } = trade;
-    return direction === 'cancel' || direction === 'close'
-      ? await this.closeTrade(exchange, account, trade)
-      : await this.openTrade(exchange, account, trade);
+    try {
+      return direction === 'cancel' || direction === 'close'
+        ? await this.closeTrade(exchange, account, trade)
+        : await this.openTrade(exchange, account, trade);
+    } catch (err) {
+      error(`Failed to process trade : ${err}.`);
+    }
   };
 
   closeTrade = async (
@@ -55,26 +60,38 @@ export class TradingService {
     account: Account,
     trade: Trade
   ): Promise<Order> => {
-    const { symbol } = trade;
+    const { symbol, size } = trade;
     const accountId = getAccountId(account);
     try {
       const positions: IPosition[] = await exchange.fetchPositions();
       const position = positions.filter((p) => p.future === symbol).pop();
       if (!position) {
-        error(`No open position found for ${symbol}.`);
-        return;
+        const message = `No open position found for ${symbol}.`;
+        error(message);
+        throw new Error(message);
       }
-      const { side, size } = position;
-      const invertedSide = getInvertedTradeSide(side);
+
+      let orderSize = Number(position.size);
+      if (size && size.includes('%')) {
+        const percent = Number(size.replace(/\D/g, ''));
+        if (percent < 1 || percent > 100) {
+          throw new Error(
+            `Size percentage not valid, must be between 1 and 100 : ${size}.`
+          );
+        }
+        orderSize = (orderSize * percent) / 100;
+      }
+
+      const invertedSide = getInvertedTradeSide(position.side);
       const order: Order = await exchange.createMarketOrder(
         symbol,
         invertedSide,
-        Number(size)
+        orderSize
       );
       close(`Closing trade on ${symbol} for "${accountId}" account.`);
       return order;
     } catch (err) {
-      error(`Failed to close ${symbol} trade : ${err}.`);
+      throw new Error(`Failed to close ${symbol} trade : ${err}.`);
     }
   };
 
@@ -98,7 +115,7 @@ export class TradingService {
       side === 'buy' ? long(message) : short(message);
       return order;
     } catch (err) {
-      error(
+      throw new Error(
         `Failed to open ${side} trade on ${symbol} for "${accountId}" account : ${err}.`
       );
     }

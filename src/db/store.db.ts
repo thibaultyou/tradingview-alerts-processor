@@ -1,7 +1,7 @@
 import { JsonDB } from 'node-json-db';
 import { Config } from 'node-json-db/dist/lib/JsonDBConfig';
 
-let db;
+let db: JsonDB;
 
 export const getDatabase = (): JsonDB => {
   if (!db) {

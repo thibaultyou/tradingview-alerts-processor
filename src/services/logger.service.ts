@@ -21,7 +21,7 @@ const tradesLogger = createLogger({
 
 export const debug = (message: string): void => {
   logger.debug(message);
-  log(chalk(message));
+  log(message);
 };
 
 export const info = (message: string): void => {
@@ -31,12 +31,12 @@ export const info = (message: string): void => {
 
 export const warning = (message: string): void => {
   logger.warn(message);
-  log(chalk.bold.yellow(message));
+  log(chalk.bold.yellow(`⚠️ ${message}`));
 };
 
 export const error = (message: string): void => {
   logger.error(message);
-  log(chalk.bold.red(message));
+  log(chalk.bold.red(`❌ ${message}`));
 };
 
 export const long = (message: string): void => {

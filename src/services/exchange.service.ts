@@ -13,9 +13,10 @@ const tradingService = TradingService.getInstance();
 export const refreshExchange = (account: Account): Exchange => {
   const { exchange, subaccount, apiKey, secret } = account;
   const accountId = getAccountId(account);
-  if (!exchanges.has(accountId)) {
+  let exchangeInstance = exchanges.get(accountId);
+  if (!exchangeInstance) {
     if (exchange === 'ftx') {
-      const options = { apiKey: apiKey, secret: secret };
+      const options: Exchange['options'] = { apiKey: apiKey, secret: secret };
       if (subaccount) {
         options['headers'] = { 'FTX-SUBACCOUNT': subaccount.toUpperCase() };
       }
@@ -29,7 +30,14 @@ export const refreshExchange = (account: Account): Exchange => {
       }
     }
   }
-  return exchanges.get(accountId);
+
+  exchangeInstance = exchanges.get(accountId);
+  if (!exchangeInstance) {
+    const message = `Could not configure ${exchange} instance.`;
+    error(message);
+    throw new Error(message);
+  }
+  return exchangeInstance;
 };
 
 export const getAccountBalances = async (

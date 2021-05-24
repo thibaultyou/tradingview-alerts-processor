@@ -3,7 +3,7 @@
 echo ''
 echo 'Stopping PM2...'
 echo ''
-pm2 stop server
+pm2 stop npm
 
 echo ''
 echo 'Pulling updates...'
@@ -18,4 +18,4 @@ npm i
 echo ''
 echo 'Starting PM2...'
 echo ''
-pm2 start server
+pm2 start npm

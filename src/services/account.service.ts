@@ -22,7 +22,7 @@ export const addAccount = (account: Account): boolean => {
 
 export const readAccount = (accountId: string): Account => {
   const id = accountId.toUpperCase();
-  const account = accounts.has(id);
+  let account = accounts.get(id);
   if (!account) {
     const db = getDatabase();
     try {
@@ -36,7 +36,13 @@ export const readAccount = (accountId: string): Account => {
       throw new Error(message);
     }
   }
-  return accounts.get(id);
+  account = accounts.get(id);
+  if (!account) {
+    const message = `Could not read ${id} account.`;
+    error(message);
+    throw new Error(message);
+  }
+  return account;
 };
 
 export const removeAccount = (accountId: string): boolean => {

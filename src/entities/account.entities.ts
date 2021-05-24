@@ -18,7 +18,7 @@ export class Account {
 
   @IsString()
   @IsOptional()
-  subaccount: string;
+  subaccount?: string;
 }
 
 export class AccountStub {
