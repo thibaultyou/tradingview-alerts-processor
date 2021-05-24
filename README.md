@@ -10,24 +10,32 @@ Minimalist service designed to execute [TradingView](https://www.tradingview.com
 
 <!-- toc -->
 
-- [Motivations](#motivations)
+- [Features](#features)
+- [Contributions](#contributions)
 - [Installation](#installation)
-  * [Step 1 - AWS lightsail setup](#step-1---aws-lightsail-setup)
-  * [Step 2 - SSH access](#step-2---ssh-access)
-  * [Step 3 - Install and configure app](#step-3---install-and-configure-app)
-  * [Step 4 - Exchanges API keys](#step-4---exchanges-api-keys)
-  * [Step 5 - Setup TradingView alerts](#step-5---setup-tradingview-alerts)
-- [Optional commands](#optional-commands)
+  - [Step 1 - AWS lightsail setup](#step-1---aws-lightsail-setup)
+  - [Step 2 - SSH access](#step-2---ssh-access)
+  - [Step 3 - Install and configure app](#step-3---install-and-configure-app)
+  - [Step 4 - Exchanges API keys](#step-4---exchanges-api-keys)
+  - [Step 5 - Setup TradingView alerts](#step-5---setup-tradingview-alerts)
+- [Available API commands](#available-api-commands)
 - [TODO list](#todo-list)
+- [Motivations](#motivations)
 - [Credits](#credits)
 
 <!-- tocstop -->
 
-## Motivations
+## Features
 
-I was using [frostybot-js](https://github.com/CryptoMF/frostybot-js) for a long time but sometimes the service was crashing or not performing well if multiples alerts were received at the same time, this tool does not pretend to be better than frostybot but it fixes those issues. I need for my personnal use something fast and reliable for trading or I will lose money and opportunities.
+- FTX support
+  - Add/Read/Delete account/subaccount configuration
+  - Open a position Long/Short in dollars
+  - Close 100% of an open position
+  - List available balances
 
-Feel free to submit issues if you find anything you want me to fix or improve.
+## Contributions
+
+Feel free to submit [Github issues](https://github.com/thibaultyou/tradingview-alerts-processor/issues) if you find anything you want me to add, fix or improve.
 
 ## Installation
 
@@ -52,51 +60,53 @@ Feel free to submit issues if you find anything you want me to fix or improve.
 ### Step 2 - SSH access
 
 - Create SSH key pairs
-    - Go to [AWS lightsail > SSH keys](https://lightsail.aws.amazon.com/ls/webapp/account/keys)
-    - Select default key
-    - Download the `.pem` file (let's pretend that you saved it here `~/Downloads/key.pem`)
+  - Go to [AWS lightsail > SSH keys](https://lightsail.aws.amazon.com/ls/webapp/account/keys)
+  - Select default key
+  - Download the `.pem` file (let's pretend that you saved it here `~/Downloads/key.pem`)
 
 - Test your access
-    - Open a local terminal session
-    - Adjust your key rights with this :
-    
-    ```
+  - Open a local terminal session
+  - Adjust your key rights with this :
+
+    ```sh
     chmod 400 ~/Downloads/key.pem
     ```
-    
-    - SSH to your instance using the downloaded key like this (you can find the 
+
+  - SSH to your instance using the downloaded key like this (you can find the
     username/ip by selecting your instance [here](https://lightsail.aws.amazon.com/ls/webapp/home/instances)) :
-    
-    ```
+
+    ```sh
     ssh USERNAME@YOUR.STATIC.IP.ADDRESS -i ~/Downloads/key.pem
     ```
 
-    - If everything is ok at this point you should successfully log into your instance
-    - Update packages and restart your instance with this :
-    
-    ```
+  - If everything is ok at this point you should successfully log into your instance
+  - Update packages and restart your instance with this :
+
+    ```sh
     sudo apt update -y && sudo apt upgrade -y && sudo reboot
     ```
 
 ### Step 3 - Install and configure app
 
-> If your Node.js instance is a Bitnami this is fine
+>
+> Your Node.js instance must be a [Bitnami one](https://aws.amazon.com/marketplace/pp/B00NNZUAKO)
+>
 
 - Log back in your instance with :
 
-    ```
+    ```sh
     ssh USERNAME@YOUR.STATIC.IP.ADDRESS -i ~/Downloads/key.pem
     ```
 
 - Clone the app sources :
 
-    ```
+    ```sh
     git clone https://github.com/thibaultyou/tradingview-alerts-processor.git
     ```
 
 - Install dependencies :
 
-    ```
+    ```sh
     cd tradingview-alerts-processor/
     npm i
     sudo npm i -g pm2
@@ -105,7 +115,7 @@ Feel free to submit issues if you find anything you want me to fix or improve.
 
 - Configure Apache :
 
-    ```
+    ```sh
     sudo cp /opt/bitnami/apache/conf/vhosts/sample-vhost.conf.disabled /opt/bitnami/apache/conf/vhosts/sample-vhost.conf
     sudo cp /opt/bitnami/apache/conf/vhosts/sample-https-vhost.conf.disabled /opt/bitnami/apache/conf/vhosts/sample-https-vhost.conf
     sudo /opt/bitnami/ctlscript.sh restart apache
@@ -113,7 +123,7 @@ Feel free to submit issues if you find anything you want me to fix or improve.
 
 - Configure and launch app with [pm2](https://pm2.keymetrics.io/) and save process :
 
-    ```
+    ```sh
     pm2 startup
     sudo env PATH=$PATH:/opt/bitnami/node/bin /opt/bitnami/node/lib/node_modules/pm2/bin/pm2 startup systemd -u bitnami --hp /home/bitnami
     pm2 start server.ts --watch
@@ -122,19 +132,19 @@ Feel free to submit issues if you find anything you want me to fix or improve.
 
 - If you want to check logs :
 
-    ```
+    ```sh
     pm2 logs server
     ```
 
 - If you want to check trades only :
 
-    ```
+    ```sh
     tail -f logs/trades.log
     ```
 
 - To update the app from the source directory :
 
-    ```
+    ```sh
     pm2 stop server
     git pull
     npm i
@@ -150,94 +160,103 @@ Feel free to submit issues if you find anything you want me to fix or improve.
 
 - Register main account under the stub `main` :
 
-    ```
+    ```sh
     curl -H 'Content-Type: application/json; charset=utf-8' -d '{"stub": "MAIN", "exchange":"ftx", "apiKey": "YOUR_API_KEY", "secret": "YOUR_SECRET_KEY" }' -X POST http://YOUR.STATIC.IP.ADDRESS/accounts
     ```
 
 - Register subaccount named "testing" under the stub `sub` :
 
-    ```
+    ```sh
     curl -H 'Content-Type: application/json; charset=utf-8' -d '{"stub": "sub", "subaccount":"testing", "exchange":"ftx", "apiKey": "YOUR_API_KEY", "secret": "YOUR_SECRET_KEY" }' -X POST http://YOUR.STATIC.IP.ADDRESS/accounts
     ```
 
 ### Step 5 - Setup TradingView alerts
 
-- Create a TradingView account
-    - Go to a chart
-    - Add an alert
+- Create a [TradingView](https://www.tradingview.com/) account
+  - Go to a chart
+  - Add an alert
 - Configure alert
-    - Setup your condition
-    - Webhook url : `http://YOUR.STATIC.IP.ADDRESS/trades`
-    - Message should have this structure :
-        - Long position :
-        
+  - Setup your condition
+  - Webhook url : `http://YOUR.STATIC.IP.ADDRESS/trades`
+  - Message should have this structure :
+    - Long position :
+
         ```json
         { "stub": "dev", "direction": "long", "symbol": "ETH-PERP", "size": "50" }
         ```
 
-        - Short position :
-        
+    - Short position :
+
         ```json
         { "stub": "dev", "direction": "short", "symbol": "ETH-PERP", "size": "50" }
         ```
 
-        - Close position :
-        
+    - Close position :
+
         ```json
         { "stub": "dev", "direction": "close", "symbol": "ETH-PERP" }
         ```
 
-## Optional commands
+## Available API commands
 
-- __Remove an account__ under the stub `sub`:
+- __Add main account__ under the stub `main` :
 
+    ```sh
+    curl -H 'Content-Type: application/json; charset=utf-8' -d '{"stub": "MAIN", "exchange":"ftx", "apiKey": "YOUR_API_KEY", "secret": "YOUR_SECRET_KEY" }' -X POST http://YOUR.STATIC.IP.ADDRESS/accounts
     ```
+
+- __Add subaccount__ named `testing` under the stub `sub` :
+
+    ```sh
+    curl -H 'Content-Type: application/json; charset=utf-8' -d '{"stub": "sub", "subaccount":"testing", "exchange":"ftx", "apiKey": "YOUR_API_KEY", "secret": "YOUR_SECRET_KEY" }' -X POST http://YOUR.STATIC.IP.ADDRESS/accounts
+    ```
+
+- __Remove account__ under the stub `sub`:
+
+    ```sh
     curl -H 'Content-Type: application/json; charset=utf-8' -d '{"stub": "sub" }' -X DELETE http://YOUR.STATIC.IP.ADDRESS/accounts
     ```
 
 - __List balances__ on `sub` account  :
 
-    ```
+    ```sh
     curl -H 'Content-Type: application/json; charset=utf-8' -d '{"stub": "sub" }' -X GET http://YOUR.STATIC.IP.ADDRESS/balances
     ```
 
-- Open a 11$ __long__ position on ETH-PERP using `test` account :
+- __Open a long position__ of 11$ on ETH-PERP using `test` account :
 
-    ```
+    ```sh
     curl -H 'Content-Type: application/json; charset=utf-8' -d '{"stub": "test", "symbol": "ETH-PERP", "size": "11", "direction": "long"}' -X POST http://YOUR.STATIC.IP.ADDRESS/trades
     ```
 
-- Open a 11$ __short__ position on ETH-PERP using `test` account :
+- __Open a short position__ a 11$ on ETH-PERP using `test` account :
 
-    ```
+    ```sh
     curl -H 'Content-Type: application/json; charset=utf-8' -d '{"stub": "test", "symbol": "ETH-PERP", "size": "11", "direction": "short"}' -X POST http://YOUR.STATIC.IP.ADDRESS/trades
     ```
 
-- __Close 100%__ of a position (short or long) on ETH-PERP using `test` account :
+- __Close 100% of a position__ (short or long) on ETH-PERP using `test` account :
 
-    ```
+    ```sh
     curl -H 'Content-Type: application/json; charset=utf-8' -d '{"stub": "test", "symbol": "ETH-PERP", "direction": "close"}' -X POST http://YOUR.STATIC.IP.ADDRESS/trades
     ```
 
 ## TODO list
 
-- [x] Basic server
 - [ ] Command processor
-- [x] Webhooks processor
-- [x] Accounts handler
-- [x] FTX integration
 - [ ] Binance integration
 - [ ] IP filtering
-- [x] DB for storing API keys / secrets
-- [x] Usage
 - [ ] Improve error handling
-- [x] Improve logging
 - [ ] Add relative / percent position sizing
 - [ ] Tests / coverage
 - [ ] Check if account is valid at save
 - [ ] List available markets route
 - [ ] Add partial position close
 - [ ] Improve validators
+
+## Motivations
+
+I was using [frostybot-js](https://github.com/CryptoMF/frostybot-js) for a while but sometimes the service was crashing or not performing well if multiples alerts were received at the same time, this tool does not pretend to be better than frostybot but it fixes those issues. I need for my personnal use something fast and reliable for trading or I will lose money and opportunities.
 
 ## Credits
 
