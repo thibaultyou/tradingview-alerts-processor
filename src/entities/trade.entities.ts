@@ -1,12 +1,12 @@
 import { IsIn, IsString, ValidateIf } from 'class-validator';
-import { SIDES } from '../constants/trade.constants';
+import { SIDES, Side } from '../constants/trade.constants';
 
 export class Trade {
   @IsString()
   stub: string;
 
   @IsString()
-  @ValidateIf((o) => !(o.direction === 'close' || o.direction === 'cancel'))
+  @ValidateIf((o) => !(o.direction === Side.Close))
   size: string;
 
   @IsString()
@@ -14,5 +14,5 @@ export class Trade {
 
   @IsString()
   @IsIn(SIDES)
-  direction: string;
+  direction: Side;
 }

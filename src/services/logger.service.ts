@@ -1,4 +1,4 @@
-import * as chalk from 'chalk';
+import chalk from 'chalk';
 import { createLogger, format, transports } from 'winston';
 const { combine, json, timestamp } = format;
 // eslint-disable-next-line no-console

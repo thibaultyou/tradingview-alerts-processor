@@ -1,5 +1,7 @@
 import { ClassType, transformAndValidate } from 'class-transformer-validator';
 import { Request, Response, NextFunction } from 'express';
+import { HttpCode } from '../constants/http.constants';
+import { REQUEST_PAYLOAD_VALIDATION_ERROR } from '../messages/validation.messages';
 
 export const validateClass = async (
   req: Request,
@@ -12,10 +14,10 @@ export const validateClass = async (
     await transformAndValidate(classType, req.body);
     next();
   } catch (err) {
-    res.writeHead(400);
+    res.writeHead(HttpCode.BAD_REQUEST);
     res.write(
       JSON.stringify({
-        message: 'Validation error',
+        message: REQUEST_PAYLOAD_VALIDATION_ERROR,
         constraints: Object.values(err[0].constraints)
       })
     );

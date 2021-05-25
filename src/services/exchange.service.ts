@@ -1,58 +1,89 @@
-import { Ticker, Exchange } from 'ccxt';
+import { Ticker } from 'ccxt';
 import ccxt = require('ccxt');
 import { Account } from '../entities/account.entities';
 import { Trade } from '../entities/trade.entities';
-import { IBalances } from '../interfaces/exchange.interfaces';
+import { IBalance, IBalances } from '../interfaces/exchange.interfaces';
 import { getAccountId } from '../utils/account.utils';
-import { error, info } from './logger.service';
+import { debug, error } from './logger.service';
 import { TradingService } from './trade.service';
 import { Market } from '../entities/market.entities';
 import { IMarket } from '../interfaces/market.interface';
+import {
+  Exchange,
+  FTX_SUBACCOUNT_HEADER
+} from '../constants/exchanges.constants';
+import {
+  BALANCE_READ_ERROR,
+  BALANCE_READ_SUCCESS,
+  EXCHANGE_INIT_ERROR,
+  EXCHANGE_INIT_SUCCESS,
+  MARKETS_READ_ERROR,
+  MARKETS_READ_SUCCESS,
+  TICKER_READ_ERROR,
+  TICKER_READ_SUCCESS
+} from '../messages/exchange.messages';
+import {
+  BalancesFetchError,
+  ExchangeInstanceInitError,
+  MarketsFetchError,
+  TickerFetchError,
+  TradeExecutionError
+} from '../errors/exchange.errors';
+import {
+  TRADE_EXECUTION_ERROR,
+  TRADE_EXECUTION_SUCCESS
+} from '../messages/trade.messages';
 
-const exchanges = new Map<string, Exchange>();
+const exchanges = new Map<string, ccxt.Exchange>();
 const tradingService = TradingService.getInstance();
 
-export const refreshExchange = (account: Account): Exchange => {
+export const refreshExchange = (account: Account): ccxt.Exchange => {
   const { exchange, subaccount, apiKey, secret } = account;
-  const accountId = getAccountId(account);
-  let exchangeInstance = exchanges.get(accountId);
-  if (!exchangeInstance) {
-    if (exchange === 'ftx') {
-      const options: Exchange['options'] = { apiKey: apiKey, secret: secret };
+  const id = getAccountId(account);
+  let instance = exchanges.get(id);
+  if (!instance) {
+    const options: ccxt.Exchange['options'] = {
+      apiKey: apiKey,
+      secret: secret
+    };
+    if (exchange === Exchange.FTX) {
       if (subaccount) {
-        options['headers'] = { 'FTX-SUBACCOUNT': subaccount.toUpperCase() };
+        options['headers'] = { [FTX_SUBACCOUNT_HEADER]: subaccount };
       }
       try {
-        exchanges.set(accountId, new ccxt.ftx(options));
-        info(`${exchange.toUpperCase()} instance for "${accountId}" loaded.`);
+        exchanges.set(id, new ccxt.ftx(options));
       } catch (err) {
-        const message = `Unable to init exchange instance for "${accountId}".`;
-        error(message);
-        throw new Error(message);
+        error(EXCHANGE_INIT_ERROR(id, exchange));
+        throw new ExchangeInstanceInitError(EXCHANGE_INIT_ERROR(id, exchange));
       }
     }
   }
-
-  exchangeInstance = exchanges.get(accountId);
-  if (!exchangeInstance) {
-    const message = `Could not configure ${exchange} instance.`;
-    error(message);
-    throw new Error(message);
+  // we double check here
+  instance = exchanges.get(id);
+  if (!instance) {
+    error(EXCHANGE_INIT_ERROR(id, exchange));
+    throw new ExchangeInstanceInitError(EXCHANGE_INIT_ERROR(id, exchange));
   }
-  return exchangeInstance;
+  debug(EXCHANGE_INIT_SUCCESS(id, exchange));
+  return instance;
 };
 
 export const getAccountBalances = async (
   account: Account
-): Promise<IBalances> => {
-  const accountId = getAccountId(account);
+): Promise<IBalance[]> => {
+  const id = getAccountId(account);
   try {
-    const balances: IBalances = await refreshExchange(account).fetch_balance();
-    info(`"${accountId}" account balance successfully fetched.`);
+    const result: IBalances = await refreshExchange(account).fetch_balance();
+    const balances = result.info.result.map((b) => ({
+      coin: b.coin,
+      free: b.free,
+      total: b.total
+    }));
+    debug(BALANCE_READ_SUCCESS(id));
     return balances;
   } catch (err) {
-    error(`Failed to check "${accountId}" account balance : ${err}.`);
-    throw err;
+    error(BALANCE_READ_ERROR(id));
+    throw new BalancesFetchError(BALANCE_READ_ERROR(id));
   }
 };
 
@@ -62,22 +93,26 @@ export const fetchTickerPrice = async (
 ): Promise<Ticker> => {
   try {
     const ticker: Ticker = await refreshExchange(account).fetchTicker(symbol);
-    info(`${symbol} ticker successfully fetched.`);
+    debug(TICKER_READ_SUCCESS(symbol));
     return ticker;
   } catch (err) {
-    const message = `Failed to check "${symbol}" ticker : ${err}.`;
-    error(message);
-    throw new Error(message);
+    error(TICKER_READ_ERROR(symbol));
+    throw new TickerFetchError(TICKER_READ_ERROR(symbol));
   }
 };
 
 export const executeTrade = (account: Account, trade: Trade): boolean => {
+  const { stub } = account;
+  const { symbol, direction } = trade;
   try {
     const exchange = refreshExchange(account);
     tradingService.addTrade({ exchange, account, trade });
+    debug(TRADE_EXECUTION_SUCCESS(stub, symbol, direction));
   } catch (err) {
-    error(`Failed to execute trade  : ${err}.`);
-    throw err;
+    error(TRADE_EXECUTION_ERROR(stub, symbol, direction));
+    throw new TradeExecutionError(
+      TRADE_EXECUTION_ERROR(stub, symbol, direction)
+    );
   }
   return true;
 };
@@ -88,8 +123,7 @@ export const fetchAvailableMarkets = async (
   const { exchange } = market;
   try {
     const markets: ccxt.Market[] = await new ccxt[exchange]().fetchMarkets();
-    info(`${exchange.toUpperCase()} markets successfully fetched.`);
-    return markets.flatMap((m) =>
+    const availableMarkets = markets.flatMap((m) =>
       m.active
         ? {
             id: m.id,
@@ -100,8 +134,10 @@ export const fetchAvailableMarkets = async (
           }
         : undefined
     );
+    debug(MARKETS_READ_SUCCESS(exchange));
+    return availableMarkets;
   } catch (err) {
-    error(`Failed to fetch markets for ${exchange.toUpperCase()} : ${err}.`);
-    throw err;
+    error(MARKETS_READ_ERROR(exchange));
+    throw new MarketsFetchError(MARKETS_READ_ERROR(exchange));
   }
 };

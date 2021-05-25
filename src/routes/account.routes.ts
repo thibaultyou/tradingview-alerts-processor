@@ -1,63 +1,71 @@
 import { Request, Response } from 'express';
-import { Account, AccountStub } from '../entities/account.entities';
 import {
+  ACCOUNT_DELETE_ERROR,
+  ACCOUNT_DELETE_SUCCESS,
+  ACCOUNT_READ_ERROR,
+  ACCOUNT_READ_SUCCESS,
+  ACCOUNT_WRITE_ERROR,
+  ACCOUNT_WRITE_SUCCESS
+} from '../messages/account.messages';
+import {
+  formatAccount,
+  formatAccountStub,
+  getAccountId
+} from '../utils/account.utils';
+import {
+  writeAccount,
   readAccount,
-  addAccount,
   removeAccount
 } from '../services/account.service';
-import { getAccountId } from '../utils/account.utils';
+import { HttpCode } from '../constants/http.constants';
 
 export const postAccount = (req: Request, res: Response): void => {
-  const account: Account = req.body;
-  const { apiKey, exchange, secret, stub, subaccount } = account;
-  const accountId = getAccountId(account);
-  const entry: Account = {
-    apiKey: apiKey,
-    exchange: exchange,
-    secret: secret,
-    stub: stub.toUpperCase()
-  };
-  if (subaccount) {
-    entry['subaccount'] = subaccount.toUpperCase();
+  const account = formatAccount(req.body);
+  const id = getAccountId(account);
+  try {
+    writeAccount(account);
+    res.write(
+      JSON.stringify({
+        message: ACCOUNT_WRITE_SUCCESS(id)
+      })
+    );
+  } catch (err) {
+    res.writeHead(HttpCode.BAD_REQUEST);
+    res.write(
+      JSON.stringify({
+        message: ACCOUNT_WRITE_ERROR(id),
+        error: err.message
+      })
+    );
   }
-  const result = addAccount(entry);
-  res.write(
-    result
-      ? JSON.stringify({
-          message: `"${accountId}" account successfully registered.`
-        })
-      : JSON.stringify({
-          message: `"${accountId}" account already exists.`
-        })
-  );
   res.end();
 };
 
 export const getAccount = (req: Request, res: Response): void => {
-  const { stub }: AccountStub = req.body;
+  const id = formatAccountStub(req.body);
   try {
-    res.write(JSON.stringify(readAccount(stub.toUpperCase())));
-  } catch (err) {
-    res.writeHead(404);
+    const account = readAccount(id);
     res.write(
-      JSON.stringify({ message: `"${stub}" account does not exists.` })
+      JSON.stringify({
+        message: ACCOUNT_READ_SUCCESS(id),
+        account: account
+      })
     );
+  } catch (err) {
+    res.writeHead(HttpCode.NOT_FOUND);
+    res.write(JSON.stringify({ message: ACCOUNT_READ_ERROR(id) }));
   }
   res.end();
 };
 
 export const deleteAccount = (req: Request, res: Response): void => {
-  const { stub }: AccountStub = req.body;
+  const id = formatAccountStub(req.body);
   try {
-    removeAccount(stub.toUpperCase());
-    res.write(
-      JSON.stringify({ message: `"${stub}" account successfully removed.` })
-    );
+    removeAccount(id);
+    res.write(JSON.stringify({ message: ACCOUNT_DELETE_SUCCESS(id) }));
   } catch (err) {
-    res.writeHead(404);
-    res.write(
-      JSON.stringify({ message: `"${stub}" account does not exists.` })
-    );
+    res.writeHead(HttpCode.NOT_FOUND);
+    res.write(JSON.stringify({ message: ACCOUNT_DELETE_ERROR(id) }));
   }
   res.end();
 };

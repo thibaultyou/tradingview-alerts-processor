@@ -9,7 +9,17 @@ import { AccountStub } from '../entities/account.entities';
 import { Trade } from '../entities/trade.entities';
 import { getTradeSide } from '../utils/trade.utils';
 import { Market } from '../entities/market.entities';
-import { IMarket } from '../interfaces/market.interface';
+import { HttpCode } from '../constants/http.constants';
+import {
+  BALANCE_READ_ERROR,
+  BALANCE_READ_SUCCESS,
+  MARKETS_READ_ERROR,
+  MARKETS_READ_SUCCESS
+} from '../messages/exchange.messages';
+import {
+  TRADE_EXECUTION_ERROR,
+  TRADE_EXECUTION_SUCCESS
+} from '../messages/trade.messages';
 
 export const getBalances = async (
   req: Request,
@@ -19,12 +29,17 @@ export const getBalances = async (
   try {
     const account = readAccount(stub);
     const balances = await getAccountBalances(account);
-    res.write(JSON.stringify({ balances: balances.info.result }));
-  } catch (err) {
-    res.writeHead(500);
     res.write(
       JSON.stringify({
-        message: `Unable to fetch balances for "${stub}" account.`,
+        message: BALANCE_READ_SUCCESS(stub),
+        balances: balances
+      })
+    );
+  } catch (err) {
+    res.writeHead(HttpCode.INTERNAL_SERVER_ERROR);
+    res.write(
+      JSON.stringify({
+        message: BALANCE_READ_ERROR(stub),
         error: err.message
       })
     );
@@ -35,20 +50,19 @@ export const getBalances = async (
 export const postTrade = async (req: Request, res: Response): Promise<void> => {
   const { direction, stub, symbol }: Trade = req.body;
   const side = getTradeSide(direction);
-  let account;
   try {
-    account = readAccount(stub);
+    const account = readAccount(stub);
     executeTrade(account, req.body);
     res.write(
       JSON.stringify({
-        message: `${symbol} ${side} trade executed for "${stub}" account.`
+        message: TRADE_EXECUTION_SUCCESS(stub, symbol, side)
       })
     );
   } catch (err) {
-    res.writeHead(500);
+    res.writeHead(HttpCode.INTERNAL_SERVER_ERROR);
     res.write(
       JSON.stringify({
-        message: `Unable to execute ${symbol} ${side} trade for "${stub}" account.`,
+        message: TRADE_EXECUTION_ERROR(stub, symbol, side),
         error: err.message
       })
     );
@@ -62,13 +76,18 @@ export const getMarkets = async (
 ): Promise<void> => {
   const { exchange }: Market = req.body;
   try {
-    const markets: IMarket[] = await fetchAvailableMarkets(req.body);
-    res.write(JSON.stringify({ markets: markets }));
-  } catch (err) {
-    res.writeHead(500);
+    const markets = await fetchAvailableMarkets(req.body);
     res.write(
       JSON.stringify({
-        message: `Unable to fetch "${exchange.toUpperCase()}" markets.`,
+        message: MARKETS_READ_SUCCESS(exchange),
+        markets: markets
+      })
+    );
+  } catch (err) {
+    res.writeHead(HttpCode.INTERNAL_SERVER_ERROR);
+    res.write(
+      JSON.stringify({
+        message: MARKETS_READ_ERROR(exchange),
         error: err.message
       })
     );
