@@ -33,8 +33,7 @@ export const postAccount = (req: Request, res: Response): void => {
     res.writeHead(HttpCode.BAD_REQUEST);
     res.write(
       JSON.stringify({
-        message: ACCOUNT_WRITE_ERROR(id),
-        error: err.message
+        message: ACCOUNT_WRITE_ERROR(id)
       })
     );
   }
