@@ -14,7 +14,7 @@ export const formatAccount = (account: Account): Account => {
     stub: stub.toUpperCase()
   };
   if (subaccount) {
-    account['subaccount'] = subaccount.toUpperCase();
+    formattedAccount['subaccount'] = subaccount.toUpperCase();
   }
   return formattedAccount;
 };
