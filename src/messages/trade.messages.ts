@@ -23,8 +23,8 @@ export const CLOSE_TRADE_SUCCESS = (
   size?: string
 ): string =>
   `Closing ${
-    size ? size + ' ' : ''
-  }position on ${symbol} for ${accountId} account.`;
+    size.includes('%') ? size : '100%'
+  } of position on ${symbol} for ${accountId} account.`;
 
 export const CLOSE_TRADE_ERROR_NOT_FOUND = (
   accountId: string,
@@ -51,3 +51,6 @@ export const OPEN_TRADE_ERROR = (
 
 export const TRADE_ERROR_SIZE = (size: string): string =>
   `Size percentage not valid, must be between 1 and 100 : ${size}.`;
+
+export const TRADE_EXECUTION_TIME = (start: Date, end: Date): string =>
+  `Trade executed in ${end.getTime() - start.getTime()} ms.`;

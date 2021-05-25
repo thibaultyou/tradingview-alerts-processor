@@ -5,7 +5,7 @@ const { combine, json, timestamp } = format;
 const log = console.log;
 
 const logger = createLogger({
-  level: 'info',
+  level: 'debug',
   format: combine(timestamp(), json()),
   transports: [
     new transports.File({ filename: 'logs/error.log', level: 'error' }),
@@ -21,7 +21,6 @@ const tradesLogger = createLogger({
 
 export const debug = (message: string): void => {
   logger.debug(message);
-  log(message);
 };
 
 export const info = (message: string): void => {

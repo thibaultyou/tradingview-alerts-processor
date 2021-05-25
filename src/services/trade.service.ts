@@ -6,6 +6,7 @@ import {
   CLOSE_TRADE_SUCCESS,
   OPEN_TRADE_ERROR,
   OPEN_TRADE_SUCCESS,
+  TRADE_EXECUTION_TIME,
   TRADE_SERVICE_ADD,
   TRADE_SERVICE_INIT
 } from '../messages/trade.messages';
@@ -22,7 +23,7 @@ import {
   getTradeSide
 } from '../utils/trade.utils';
 import { fetchTickerPrice } from './exchange.service';
-import { error, close, long, short, debug } from './logger.service';
+import { error, close, long, short, debug, info } from './logger.service';
 import { ClosePositionError, OpenPositionError } from '../errors/trade.errors';
 
 export class TradingService {
@@ -57,13 +58,18 @@ export class TradingService {
     debug(TRADE_SERVICE_ADD);
   };
 
-  processTrade = async (info: ITradeInfo): Promise<Order> => {
-    const { account, exchange, trade } = info;
+  processTrade = async (tradeInfo: ITradeInfo): Promise<Order> => {
+    const { account, exchange, trade } = tradeInfo;
     const { direction } = trade;
     try {
-      return direction === Side.Close
-        ? await this.closeTrade(exchange, account, trade)
-        : await this.openTrade(exchange, account, trade);
+      const start = new Date();
+      const order =
+        direction === Side.Close
+          ? await this.closeTrade(exchange, account, trade)
+          : await this.openTrade(exchange, account, trade);
+      const end = new Date();
+      info(TRADE_EXECUTION_TIME(start, end));
+      return order;
     } catch (err) {
       // ignore
     }
