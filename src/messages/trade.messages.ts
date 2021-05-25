@@ -24,7 +24,7 @@ export const CLOSE_TRADE_SUCCESS = (
 ): string =>
   `Closing ${
     size.includes('%') ? size : '100%'
-  } of position on ${symbol} for ${accountId} account.`;
+  } of open position on ${symbol} for ${accountId} account.`;
 
 export const CLOSE_TRADE_ERROR_NOT_FOUND = (
   accountId: string,

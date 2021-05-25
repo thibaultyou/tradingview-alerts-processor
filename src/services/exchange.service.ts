@@ -35,6 +35,7 @@ import {
 } from '../messages/trade.messages';
 
 const exchanges = new Map<string, ccxt.Exchange>();
+const tickers = new Map<string, Map<string, ccxt.Ticker>>();
 const tradingService = TradingService.getInstance();
 
 export const refreshExchange = (account: Account): ccxt.Exchange => {
@@ -52,6 +53,7 @@ export const refreshExchange = (account: Account): ccxt.Exchange => {
       }
       try {
         exchanges.set(id, new ccxt.ftx(options));
+        tickers.set(exchange, new Map<string, ccxt.Ticker>());
       } catch (err) {
         error(EXCHANGE_INIT_ERROR(id, exchange));
         throw new ExchangeInstanceInitError(EXCHANGE_INIT_ERROR(id, exchange));
@@ -91,14 +93,26 @@ export const fetchTickerPrice = async (
   account: Account,
   symbol: string
 ): Promise<Ticker> => {
-  try {
-    const ticker: Ticker = await refreshExchange(account).fetchTicker(symbol);
-    debug(TICKER_READ_SUCCESS(symbol));
-    return ticker;
-  } catch (err) {
-    error(TICKER_READ_ERROR(symbol));
-    throw new TickerFetchError(TICKER_READ_ERROR(symbol));
+  const { exchange } = account;
+  let ticker = tickers.get(exchange).get(symbol);
+  if (!ticker) {
+    try {
+      const ticker: Ticker = await refreshExchange(account).fetchTicker(symbol);
+      tickers.get(exchange).set(symbol, ticker);
+    } catch (err) {
+      error(TICKER_READ_ERROR(exchange, symbol));
+      throw new TickerFetchError(TICKER_READ_ERROR(exchange, symbol));
+    }
   }
+
+  // we double check here
+  ticker = tickers.get(exchange).get(symbol);
+  if (!ticker) {
+    error(TICKER_READ_ERROR(exchange, symbol));
+    throw new ExchangeInstanceInitError(TICKER_READ_ERROR(exchange, symbol));
+  }
+  debug(TICKER_READ_SUCCESS(exchange, symbol));
+  return ticker;
 };
 
 export const executeTrade = (account: Account, trade: Trade): boolean => {

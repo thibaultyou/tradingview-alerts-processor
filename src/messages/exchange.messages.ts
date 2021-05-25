@@ -26,8 +26,11 @@ export const EXCHANGE_INIT_SUCCESS = (
   exchange: Exchange
 ): string => `${formatExchange(exchange)} instance for ${accountId} loaded.`;
 
-export const TICKER_READ_SUCCESS = (symbol: string): string =>
-  `${symbol} ticker successfully fetched.`;
+export const TICKER_READ_SUCCESS = (
+  exchange: Exchange,
+  symbol: string
+): string =>
+  `${symbol} ticker on ${formatExchange(exchange)} successfully fetched.`;
 
-export const TICKER_READ_ERROR = (symbol: string): string =>
-  `Failed to check "${symbol}" ticker`;
+export const TICKER_READ_ERROR = (exchange: Exchange, symbol: string): string =>
+  `Failed to check ${symbol} ticker on ${formatExchange(exchange)}.`;
