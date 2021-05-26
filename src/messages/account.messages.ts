@@ -2,7 +2,7 @@ export const ACCOUNT_WRITE_SUCCESS = (accountId: string): string =>
   `${accountId.toUpperCase()} account successfully registered.`;
 
 export const ACCOUNT_WRITE_ERROR = (accountId: string): string =>
-  `${accountId.toUpperCase()} account already exists.`;
+  `Specified stub for ${accountId.toUpperCase()} account already exists.`;
 
 export const ACCOUNT_READ_SUCCESS = (accountId: string): string =>
   `${accountId.toUpperCase()} account successfully readed.`;

@@ -101,13 +101,7 @@ Feel free to submit [Github issues](https://github.com/thibaultyou/tradingview-a
 
     ```sh
     cd tradingview-alerts-processor/
-    sudo sh install.sh
-    ```
-
-- Check your app status :
-
-    ```sh
-    pm2 status npm
+    sh install.sh
     ```
 
 - You should see npm entry with `online` status, if this is not the case reconfigure PM2 and check again with :
