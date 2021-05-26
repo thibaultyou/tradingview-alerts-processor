@@ -257,9 +257,10 @@ Feel free to submit [Github issues](https://github.com/thibaultyou/tradingview-a
 - [ ] Improve error handling
 - [ ] Add relative / percent position sizing
 - [ ] Tests / coverage
-- [ ] Check if account is valid at save
-- [ ] List available markets route
 - [ ] Improve validators
+- [ ] Metrics
+- [ ] Docker
+- [ ] DB + encryption
 
 ## Motivations
 

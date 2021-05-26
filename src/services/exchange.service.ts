@@ -15,6 +15,8 @@ import {
 import {
   BALANCE_READ_ERROR,
   BALANCE_READ_SUCCESS,
+  EXCHANGE_AUTHENTICATION_ERROR,
+  EXCHANGE_AUTHENTICATION_SUCCESS,
   EXCHANGE_INIT_ERROR,
   EXCHANGE_INIT_SUCCESS,
   MARKETS_READ_ERROR,
@@ -38,26 +40,37 @@ const exchanges = new Map<string, ccxt.Exchange>();
 const tickers = new Map<string, Map<string, ccxt.Ticker>>();
 const tradingService = TradingService.getInstance();
 
-export const refreshExchange = (account: Account): ccxt.Exchange => {
+export const getExchange = async (account: Account): Promise<ccxt.Exchange> => {
   const { exchange, subaccount, apiKey, secret } = account;
+  const options: ccxt.Exchange['options'] = {
+    apiKey: apiKey,
+    secret: secret
+  };
+  if (exchange === Exchange.FTX && subaccount) {
+    options['headers'] = { [FTX_SUBACCOUNT_HEADER]: subaccount };
+  }
+  const instance = new ccxt[exchange](options);
+  await checkAccountCredentials(instance, account);
+  return instance;
+};
+
+export const refreshExchange = async (
+  account: Account
+): Promise<ccxt.Exchange> => {
+  const { exchange } = account;
   const id = getAccountId(account);
   let instance = exchanges.get(id);
   if (!instance) {
-    const options: ccxt.Exchange['options'] = {
-      apiKey: apiKey,
-      secret: secret
-    };
-    if (exchange === Exchange.FTX) {
-      if (subaccount) {
-        options['headers'] = { [FTX_SUBACCOUNT_HEADER]: subaccount };
-      }
-      try {
-        exchanges.set(id, new ccxt.ftx(options));
-        tickers.set(exchange, new Map<string, ccxt.Ticker>());
-      } catch (err) {
-        error(EXCHANGE_INIT_ERROR(id, exchange));
-        throw new ExchangeInstanceInitError(EXCHANGE_INIT_ERROR(id, exchange));
-      }
+    try {
+      const intanceExchange = await getExchange(account);
+      exchanges.set(id, intanceExchange);
+      tickers.set(exchange, new Map<string, ccxt.Ticker>());
+    } catch (err) {
+      debug(err);
+      error(EXCHANGE_INIT_ERROR(id, exchange));
+      throw new ExchangeInstanceInitError(
+        EXCHANGE_INIT_ERROR(id, exchange, err.message)
+      );
     }
   }
   // we double check here
@@ -70,12 +83,32 @@ export const refreshExchange = (account: Account): ccxt.Exchange => {
   return instance;
 };
 
+export const checkAccountCredentials = async (
+  exchangeInstance: ccxt.Exchange,
+  account: Account
+): Promise<void> => {
+  const { exchange } = account;
+  const id = getAccountId(account);
+  try {
+    exchangeInstance.checkRequiredCredentials();
+    await getAccountBalances(exchangeInstance, account);
+    debug(EXCHANGE_AUTHENTICATION_SUCCESS(id, exchange));
+  } catch (err) {
+    debug(err);
+    error(EXCHANGE_AUTHENTICATION_ERROR(id, exchange));
+    throw new ExchangeInstanceInitError(
+      EXCHANGE_AUTHENTICATION_ERROR(id, exchange, err.message)
+    );
+  }
+};
+
 export const getAccountBalances = async (
+  exchangeInstance: ccxt.Exchange,
   account: Account
 ): Promise<IBalance[]> => {
   const id = getAccountId(account);
   try {
-    const result: IBalances = await refreshExchange(account).fetch_balance();
+    const result: IBalances = await exchangeInstance.fetch_balance();
     const balances = result.info.result.map((b) => ({
       coin: b.coin,
       free: b.free,
@@ -84,12 +117,14 @@ export const getAccountBalances = async (
     debug(BALANCE_READ_SUCCESS(id));
     return balances;
   } catch (err) {
+    debug(err);
     error(BALANCE_READ_ERROR(id));
-    throw new BalancesFetchError(BALANCE_READ_ERROR(id));
+    throw new BalancesFetchError(BALANCE_READ_ERROR(id, err.message));
   }
 };
 
 export const fetchTickerPrice = async (
+  exchangeInstance: ccxt.Exchange,
   account: Account,
   symbol: string
 ): Promise<Ticker> => {
@@ -97,14 +132,16 @@ export const fetchTickerPrice = async (
   let ticker = tickers.get(exchange).get(symbol);
   if (!ticker) {
     try {
-      const ticker: Ticker = await refreshExchange(account).fetchTicker(symbol);
+      const ticker: Ticker = await exchangeInstance.fetchTicker(symbol);
       tickers.get(exchange).set(symbol, ticker);
     } catch (err) {
+      debug(err);
       error(TICKER_READ_ERROR(exchange, symbol));
-      throw new TickerFetchError(TICKER_READ_ERROR(exchange, symbol));
+      throw new TickerFetchError(
+        TICKER_READ_ERROR(exchange, symbol, err.message)
+      );
     }
   }
-
   // we double check here
   ticker = tickers.get(exchange).get(symbol);
   if (!ticker) {
@@ -115,17 +152,21 @@ export const fetchTickerPrice = async (
   return ticker;
 };
 
-export const executeTrade = (account: Account, trade: Trade): boolean => {
+export const executeTrade = async (
+  exchange: ccxt.Exchange,
+  account: Account,
+  trade: Trade
+): Promise<boolean> => {
   const { stub } = account;
   const { symbol, direction } = trade;
   try {
-    const exchange = refreshExchange(account);
     tradingService.addTrade({ exchange, account, trade });
     debug(TRADE_EXECUTION_SUCCESS(stub, symbol, direction));
   } catch (err) {
+    debug(err);
     error(TRADE_EXECUTION_ERROR(stub, symbol, direction));
     throw new TradeExecutionError(
-      TRADE_EXECUTION_ERROR(stub, symbol, direction)
+      TRADE_EXECUTION_ERROR(stub, symbol, direction, err.message)
     );
   }
   return true;
@@ -151,7 +192,8 @@ export const fetchAvailableMarkets = async (
     debug(MARKETS_READ_SUCCESS(exchange));
     return availableMarkets;
   } catch (err) {
+    debug(err);
     error(MARKETS_READ_ERROR(exchange));
-    throw new MarketsFetchError(MARKETS_READ_ERROR(exchange));
+    throw new MarketsFetchError(MARKETS_READ_ERROR(exchange, err.message));
   }
 };

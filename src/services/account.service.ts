@@ -7,14 +7,16 @@ import {
   ACCOUNT_READ_SUCCESS,
   ACCOUNT_READ_ERROR,
   ACCOUNT_DELETE_ERROR,
-  ACCOUNT_DELETE_SUCCESS
+  ACCOUNT_DELETE_SUCCESS,
+  ACCOUNT_WRITE_ERROR_ALREADY_EXISTS
 } from '../messages/account.messages';
 import { AccountReadError, AccountWriteError } from '../errors/account.errors';
 import { JsonDB } from 'node-json-db';
+import { refreshExchange } from './exchange.service';
 
 const accounts = new Map<string, Account>();
 
-export const writeAccount = (account: Account): Account => {
+export const writeAccount = async (account: Account): Promise<Account> => {
   const { stub } = account;
   const id = stub.toUpperCase();
   const path = `/${id}`;
@@ -23,18 +25,29 @@ export const writeAccount = (account: Account): Account => {
     db = getDatabase();
     db.getData(path);
   } catch (err) {
+    debug(err);
+
+    try {
+      await refreshExchange(account);
+    } catch (err) {
+      debug(err);
+      error(ACCOUNT_WRITE_ERROR(id));
+      throw new AccountWriteError(ACCOUNT_WRITE_ERROR(id, err.message));
+    }
+
     try {
       db.push(path, account);
       accounts.set(id, account);
       debug(ACCOUNT_WRITE_SUCCESS(id));
       return readAccount(id);
     } catch (err) {
+      debug(err);
       error(ACCOUNT_WRITE_ERROR(id));
-      throw new AccountWriteError(ACCOUNT_WRITE_ERROR(id));
+      throw new AccountWriteError(ACCOUNT_WRITE_ERROR(id, err.message));
     }
   }
-  error(ACCOUNT_WRITE_ERROR(id));
-  throw new AccountWriteError(ACCOUNT_WRITE_ERROR(id));
+  error(ACCOUNT_WRITE_ERROR_ALREADY_EXISTS(id));
+  throw new AccountWriteError(ACCOUNT_WRITE_ERROR_ALREADY_EXISTS(id));
 };
 
 export const readAccount = (accountId: string): Account => {
@@ -46,8 +59,9 @@ export const readAccount = (accountId: string): Account => {
       account = db.getData(`/${id}`);
       accounts.set(id, account);
     } catch (err) {
+      debug(err);
       error(ACCOUNT_READ_ERROR(id));
-      throw new AccountReadError(ACCOUNT_READ_ERROR(id));
+      throw new AccountReadError(ACCOUNT_READ_ERROR(id, err.message));
     }
   }
   // we double check here
@@ -69,8 +83,9 @@ export const removeAccount = (accountId: string): boolean => {
     db.getData(path);
     db.delete(path);
   } catch (err) {
+    debug(err);
     error(ACCOUNT_DELETE_ERROR(id));
-    throw new AccountWriteError(ACCOUNT_DELETE_ERROR(id));
+    throw new AccountWriteError(ACCOUNT_DELETE_ERROR(id, err.message));
   }
   debug(ACCOUNT_DELETE_SUCCESS(id));
   return true;

@@ -9,9 +9,12 @@ export const TRADE_EXECUTION_SUCCESS = (
 export const TRADE_EXECUTION_ERROR = (
   accountId: string,
   symbol: string,
-  side: Side
+  side: Side,
+  err?: string
 ): string =>
-  `Unable to execute ${symbol} ${side} trade for ${accountId} account.`;
+  `Unable to execute ${symbol} ${side} trade for ${accountId} account${
+    err ? ' -> ' + err : ''
+  }.`;
 
 export const TRADE_SERVICE_INIT = `Trading service started.`;
 
@@ -23,7 +26,7 @@ export const CLOSE_TRADE_SUCCESS = (
   size?: string
 ): string =>
   `Closing ${
-    size.includes('%') ? size : '100%'
+    size && size.includes('%') ? size : '100%'
   } of open position on ${symbol} for ${accountId} account.`;
 
 export const CLOSE_TRADE_ERROR_NOT_FOUND = (

@@ -20,6 +20,7 @@ const tradesLogger = createLogger({
 });
 
 export const debug = (message: string): void => {
+  // log(chalk(message));
   logger.debug(message);
 };
 

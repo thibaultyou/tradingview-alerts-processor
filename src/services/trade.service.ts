@@ -99,6 +99,7 @@ export class TradingService {
       close(CLOSE_TRADE_SUCCESS(id, symbol, size));
       return order;
     } catch (err) {
+      debug(err);
       error(CLOSE_TRADE_ERROR(id, symbol));
       throw new ClosePositionError(CLOSE_TRADE_ERROR(id, symbol));
     }
@@ -113,7 +114,7 @@ export class TradingService {
     const id = getAccountId(account);
     const side = getTradeSide(direction);
     try {
-      const ticker = await fetchTickerPrice(account, symbol);
+      const ticker = await fetchTickerPrice(exchange, account, symbol);
       const tradeSize = getAverageTradeSize(ticker, size);
       const order: Order = await exchange.createMarketOrder(
         symbol,
@@ -125,6 +126,7 @@ export class TradingService {
         : short(OPEN_TRADE_SUCCESS(id, symbol, side, size));
       return order;
     } catch (err) {
+      debug(err);
       error(OPEN_TRADE_ERROR(id, symbol, side));
       throw new OpenPositionError(OPEN_TRADE_ERROR(id, symbol, side));
     }
