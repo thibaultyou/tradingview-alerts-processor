@@ -186,7 +186,7 @@ Feel free to submit [Github issues](https://github.com/thibaultyou/tradingview-a
 
     ```sh
     cd tradingview-alerts-processor/
-    sudo sh update.sh
+    sh update.sh
     ```
 
 ## Available API commands
