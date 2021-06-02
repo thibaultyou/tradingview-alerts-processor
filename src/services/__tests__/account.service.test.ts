@@ -30,39 +30,42 @@ describe('Account service', () => {
       expect(res).toBe(sampleSubaccount);
     });
 
-    it.skip('should throw if account exists', async () => {
+    it('should throw if account exists', async () => {
       jest
         .spyOn(echangeService, 'refreshExchange')
         .mockImplementation(() => null);
       await writeAccount(sampleAccount);
-      expect(() => writeAccount(sampleAccount)).toThrow(AccountWriteError);
+      await expect(writeAccount(sampleAccount)).rejects.toThrow(
+        AccountWriteError
+      );
     });
 
-    it.skip('should throw if account credentials are invalid', async () => {
+    it('should throw if account credentials are invalid', async () => {
       jest
         .spyOn(echangeService, 'refreshExchange')
         .mockImplementationOnce(() => {
           throw new Error();
         });
-      await writeAccount(sampleAccount);
-      expect(() => writeAccount(sampleAccount)).toThrow(AccountWriteError);
+      await expect(writeAccount(sampleAccount)).rejects.toThrow(
+        AccountWriteError
+      );
     });
   });
 
   describe('readAccount', () => {
-    it.skip('should read account from database', () => {
-      writeAccount(sampleAccount);
+    it('should read account from database', async () => {
+      await writeAccount(sampleAccount);
       expect(readAccount(sampleAccount.stub)).toBe(sampleAccount);
     });
 
-    it.skip('should throw if account does not exists', () => {
+    it('should throw if account does not exists', () => {
       expect(() => readAccount(sampleAccount.stub)).toThrow(AccountReadError);
     });
   });
 
   describe('removeAccount', () => {
-    it.skip('should remove account from database', () => {
-      writeAccount(sampleAccount);
+    it('should remove account from database', async () => {
+      await writeAccount(sampleAccount);
       expect(removeAccount(sampleAccount.stub)).toBeTruthy();
     });
 

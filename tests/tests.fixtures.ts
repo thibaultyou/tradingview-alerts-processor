@@ -10,5 +10,5 @@ export const sampleAccount: Account = {
 
 export const sampleSubaccount: Account = {
   ...sampleAccount,
-  subaccount: 'subaccount'
+  subaccount: 'subaccountStub'
 };
