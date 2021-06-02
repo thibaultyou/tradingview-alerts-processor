@@ -6,6 +6,8 @@ import {
   CLOSE_TRADE_SUCCESS,
   OPEN_TRADE_ERROR,
   OPEN_TRADE_SUCCESS,
+  TRADE_EXECUTION_ERROR,
+  TRADE_EXECUTION_SUCCESS,
   TRADE_EXECUTION_TIME,
   TRADE_SERVICE_ADD,
   TRADE_SERVICE_INIT
@@ -16,15 +18,18 @@ import { Trade } from '../entities/trade.entities';
 import { IPosition } from '../interfaces/exchange.interfaces';
 import { ITradeInfo } from '../interfaces/trade.interface';
 import { getAccountId } from '../utils/account.utils';
+import ccxt = require('ccxt');
+
 import {
   getAverageTradeSize,
   getInvertedTradeSide,
   getOrderSize,
   getTradeSide
 } from '../utils/trade.utils';
-import { fetchTickerInfo, getAccountBalances } from './exchange.service';
+import { fetchTickerInfo } from './exchange.service';
 import { error, close, long, short, debug, info } from './logger.service';
 import { ClosePositionError, OpenPositionError } from '../errors/trade.errors';
+import { TradeExecutionError } from '../errors/exchange.errors';
 
 export class TradingService {
   private static instance: TradingService;
@@ -45,21 +50,42 @@ export class TradingService {
   start = (): void => {
     debug(TRADE_SERVICE_INIT);
     setInterval(() => {
-      const trade = this.trades.shift();
-      if (trade) {
-        this.processTrade(trade);
+      const tradeInfo = this.trades.shift();
+      if (tradeInfo) {
+        const { exchange, account, trade } = tradeInfo;
+        this.processTrade(exchange, account, trade);
       }
       // we add a timer between each trade to avoid FTX RateLimitExceeded exception
+      // TODO adjust delays according to exchanges specific rules
     }, DELAY_BETWEEN_TRADES);
   };
 
-  addTrade = (info: ITradeInfo): void => {
-    this.trades.push(info);
-    debug(TRADE_SERVICE_ADD);
+  addTrade = async (
+    exchange: ccxt.Exchange,
+    account: Account,
+    trade: Trade
+  ): Promise<boolean> => {
+    const { stub } = account;
+    const { symbol, direction } = trade;
+    try {
+      debug(TRADE_SERVICE_ADD);
+      this.trades.push({ exchange, account, trade });
+      debug(TRADE_EXECUTION_SUCCESS(stub, symbol, direction));
+    } catch (err) {
+      debug(err);
+      error(TRADE_EXECUTION_ERROR(stub, symbol, direction));
+      throw new TradeExecutionError(
+        TRADE_EXECUTION_ERROR(stub, symbol, direction, err.message)
+      );
+    }
+    return true;
   };
 
-  processTrade = async (tradeInfo: ITradeInfo): Promise<Order> => {
-    const { account, exchange, trade } = tradeInfo;
+  processTrade = async (
+    exchange: ccxt.Exchange,
+    account: Account,
+    trade: Trade
+  ): Promise<Order> => {
     const { direction } = trade;
     try {
       const start = new Date();

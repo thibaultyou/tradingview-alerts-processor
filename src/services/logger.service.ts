@@ -20,7 +20,7 @@ const tradesLogger = createLogger({
 });
 
 export const debug = (message: string): void => {
-  // log(chalk(message));
+  log(chalk(message));
   logger.debug(message);
 };
 
@@ -40,16 +40,19 @@ export const error = (message: string): void => {
 };
 
 export const long = (message: string): void => {
+  logger.info(message);
   tradesLogger.info(message);
   log(chalk.bold.blue(`🚀 ${message}`));
 };
 
 export const short = (message: string): void => {
+  logger.info(message);
   tradesLogger.info(message);
   log(chalk.bold.magenta(`🔥 ${message}`));
 };
 
 export const close = (message: string): void => {
+  logger.info(message);
   tradesLogger.info(message);
   log(chalk.bold.green(`💰 ${message}`));
 };

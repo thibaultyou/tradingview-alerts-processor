@@ -253,14 +253,17 @@ Feel free to submit [Github issues](https://github.com/thibaultyou/tradingview-a
 
 - [ ] Command processor
 - [ ] Binance integration
+- [ ] Kucoin integration
+- [ ] Check if specific method is supported by exchange
 - [ ] IP filtering
-- [ ] Improve error handling
 - [ ] Add relative / percent position sizing
 - [ ] Tests / coverage
 - [ ] Improve validators
+- [ ] Improve exchange specific configuration
 - [ ] Metrics
 - [ ] Docker
 - [ ] DB + encryption
+- [ ] Wiki
 
 ## Motivations
 

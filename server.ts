@@ -6,19 +6,16 @@ import {
   getAccount,
   deleteAccount
 } from './src/routes/account.routes';
-import {
-  getBalances,
-  getMarkets,
-  postTrade
-} from './src/routes/exchange.routes';
+import { getBalances, getMarkets } from './src/routes/exchange.routes';
 import { info } from './src/services/logger.service';
 import { TradingService } from './src/services/trade.service';
 import {
   validateAccount,
   validateAccountStub
 } from './src/validators/account.validators';
-import { validateMarket } from './src/validators/market.validator';
-import { validateTrade } from './src/validators/trade.validator';
+import { postTrade } from './src/routes/trade.routes';
+import { validateMarket } from './src/validators/market.validators';
+import { validateTrade } from './src/validators/trade.validators';
 import {
   ACCOUNTS_ROUTE,
   BALANCES_ROUTE,
