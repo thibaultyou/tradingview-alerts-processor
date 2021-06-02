@@ -123,7 +123,7 @@ export const getAccountBalances = async (
   }
 };
 
-export const fetchTickerPrice = async (
+export const fetchTickerInfo = async (
   exchangeInstance: ccxt.Exchange,
   account: Account,
   symbol: string

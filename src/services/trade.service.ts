@@ -22,7 +22,7 @@ import {
   getOrderSize,
   getTradeSide
 } from '../utils/trade.utils';
-import { fetchTickerPrice } from './exchange.service';
+import { fetchTickerInfo, getAccountBalances } from './exchange.service';
 import { error, close, long, short, debug, info } from './logger.service';
 import { ClosePositionError, OpenPositionError } from '../errors/trade.errors';
 
@@ -83,17 +83,28 @@ export class TradingService {
     const { symbol, size } = trade;
     const id = getAccountId(account);
     try {
-      const positions: IPosition[] = await exchange.fetchPositions();
-      const position = positions.filter((p) => p.future === symbol).pop();
-      if (!position) {
+      let currentSize;
+      let orderSide = 'sell';
+      const ticker = await fetchTickerInfo(exchange, account, symbol);
+      if (ticker.info.type === 'spot') {
+        const balances = await getAccountBalances(exchange, account);
+        currentSize = balances
+          .filter((b) => b.coin === ticker.info.baseCurrency)
+          .pop().free;
+      } else {
+        const positions: IPosition[] = await exchange.fetchPositions();
+        const position = positions.filter((p) => p.future === symbol).pop();
+        currentSize = position.size;
+        orderSide = getInvertedTradeSide(position.side as Side);
+      }
+      if (!currentSize) {
         error(CLOSE_TRADE_ERROR_NOT_FOUND(id, symbol));
         throw new ClosePositionError(CLOSE_TRADE_ERROR_NOT_FOUND(id, symbol));
       }
-      const orderSize = getOrderSize(size, position.size);
-      const invertedSide = getInvertedTradeSide(position.side as Side);
+      const orderSize = getOrderSize(size, currentSize);
       const order: Order = await exchange.createMarketOrder(
         symbol,
-        invertedSide,
+        orderSide as 'sell' | 'buy',
         orderSize
       );
       close(CLOSE_TRADE_SUCCESS(id, symbol, size));
@@ -114,7 +125,7 @@ export class TradingService {
     const id = getAccountId(account);
     const side = getTradeSide(direction);
     try {
-      const ticker = await fetchTickerPrice(exchange, account, symbol);
+      const ticker = await fetchTickerInfo(exchange, account, symbol);
       const tradeSize = getAverageTradeSize(ticker, size);
       const order: Order = await exchange.createMarketOrder(
         symbol,
