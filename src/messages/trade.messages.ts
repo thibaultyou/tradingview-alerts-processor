@@ -18,7 +18,7 @@ export const TRADE_EXECUTION_ERROR = (
 
 export const TRADE_SERVICE_INIT = `Trading service started.`;
 
-export const TRADE_SERVICE_ADD = `Adding trade to exexutor.`;
+export const TRADE_SERVICE_ADD = `Adding trade to executor.`;
 
 export const CLOSE_TRADE_SUCCESS = (
   accountId: string,

@@ -14,7 +14,7 @@ import {
 import { AccountReadError, AccountWriteError } from '../errors/account.errors';
 import { JsonDB } from 'node-json-db';
 import { refreshExchange } from './exchange.service';
-import { getAccountId } from '../utils/account.utils';
+import { getAccountId, formatBalances } from '../utils/account.utils';
 import {
   BALANCE_READ_ERROR,
   BALANCE_READ_SUCCESS,
@@ -25,7 +25,7 @@ import {
   BalancesFetchError,
   ExchangeInstanceInitError
 } from '../errors/exchange.errors';
-import { IBalance, IBalances } from '../interfaces/exchange.interfaces';
+import { IBalance } from '../interfaces/exchange.interfaces';
 
 const accounts = new Map<string, Account>();
 
@@ -130,15 +130,9 @@ export const getAccountBalances = async (
   const id = getAccountId(account);
   try {
     // we don't use fetchBalance() because coin is not returned
-    const result: IBalances = await exchangeInstance.fetch_balance();
-    // we're filtering there because balances are dynamic keys
-    const balances = result.info.result.map((b: IBalance) => ({
-      coin: b.coin,
-      free: b.free,
-      total: b.total
-    }));
+    const balances = await exchangeInstance.fetch_balance();
     debug(BALANCE_READ_SUCCESS(id));
-    return balances;
+    return formatBalances(account.exchange, balances);
   } catch (err) {
     debug(err);
     error(BALANCE_READ_ERROR(id));

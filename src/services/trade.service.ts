@@ -1,5 +1,4 @@
-import { Exchange, Order } from 'ccxt';
-import { DELAY_BETWEEN_TRADES } from '../constants/env.constants';
+import { Order } from 'ccxt';
 import {
   CLOSE_TRADE_ERROR,
   CLOSE_TRADE_ERROR_NOT_FOUND,
@@ -30,34 +29,37 @@ import { fetchTickerInfo } from './exchange.service';
 import { error, close, long, short, debug, info } from './logger.service';
 import { ClosePositionError, OpenPositionError } from '../errors/trade.errors';
 import { TradeExecutionError } from '../errors/exchange.errors';
+import {
+  DELAY_BETWEEN_TRADES,
+  Exchange
+} from '../constants/exchanges.constants';
 
 export class TradingService {
-  private static instance: TradingService;
-  trades: ITradeInfo[];
+  private static instances: Map<Exchange, TradingService> = new Map();
+  private static trades: Map<Exchange, ITradeInfo[]> = new Map();
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function
-  private constructor() {
-    this.trades = [];
-  }
+  private constructor() {}
 
-  public static getInstance = (): TradingService => {
-    if (!TradingService.instance) {
-      TradingService.instance = new TradingService();
+  public static getInstance = (exchange: Exchange): TradingService => {
+    if (!TradingService.instances.get(exchange)) {
+      const service = new TradingService();
+      TradingService.instances.set(exchange, service);
+      TradingService.trades.set(exchange, []);
+      service.start(exchange);
     }
-    return TradingService.instance;
+    return TradingService.instances.get(exchange);
   };
 
-  start = (): void => {
+  start = (exchange: Exchange): void => {
     debug(TRADE_SERVICE_INIT);
     setInterval(() => {
-      const tradeInfo = this.trades.shift();
+      const tradeInfo = TradingService.trades.get(exchange).shift();
       if (tradeInfo) {
         const { exchange, account, trade } = tradeInfo;
         this.processTrade(exchange, account, trade);
       }
-      // we add a timer between each trade to avoid FTX RateLimitExceeded exception
-      // TODO adjust delays according to exchanges specific rules
-    }, DELAY_BETWEEN_TRADES);
+    }, DELAY_BETWEEN_TRADES[exchange]);
   };
 
   addTrade = async (
@@ -69,7 +71,9 @@ export class TradingService {
     const { symbol, direction } = trade;
     try {
       debug(TRADE_SERVICE_ADD);
-      this.trades.push({ exchange, account, trade });
+      TradingService.trades
+        .get(account.exchange)
+        .push({ exchange, account, trade });
       debug(TRADE_EXECUTION_SUCCESS(stub, symbol, direction));
     } catch (err) {
       debug(err);
@@ -102,7 +106,7 @@ export class TradingService {
   };
 
   closeTrade = async (
-    exchange: Exchange,
+    exchange: ccxt.Exchange,
     account: Account,
     trade: Trade
   ): Promise<Order> => {
@@ -143,7 +147,7 @@ export class TradingService {
   };
 
   openTrade = async (
-    exchange: Exchange,
+    exchange: ccxt.Exchange,
     account: Account,
     trade: Trade
   ): Promise<Order> => {

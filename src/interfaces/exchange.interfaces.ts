@@ -3,13 +3,6 @@ export interface IBalance {
   total: string;
   free: string;
 }
-
-export interface IBalances {
-  info: {
-    result: [IBalance];
-  };
-}
-
 export interface IPosition {
   future: string;
   size: string;

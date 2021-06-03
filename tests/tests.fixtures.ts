@@ -4,7 +4,7 @@ import {
   FTX_SUBACCOUNT_HEADER
 } from '../src/constants/exchanges.constants';
 import { Account } from '../src/entities/account.entities';
-import { IBalance, IBalances } from '../src/interfaces/exchange.interfaces';
+import { IBalance } from '../src/interfaces/exchange.interfaces';
 
 export const sampleAccount: Account = {
   apiKey: 'apiKey',
@@ -34,6 +34,6 @@ export const sampleBalance: IBalance = {
   total: '0.2'
 };
 
-export const sampleBalances: IBalances = {
+export const sampleBalances = {
   info: { result: [sampleBalance] }
 };
