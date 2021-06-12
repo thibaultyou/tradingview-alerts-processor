@@ -1,62 +1,102 @@
-import { Exchange } from '../constants/exchanges.constants';
+import { ExchangeId } from '../constants/exchanges.constants';
 import { formatExchange } from '../utils/exchange.utils';
 
-export const BALANCE_READ_SUCCESS = (accountId: string): string =>
-  `Balances successfully fetched for ${accountId} account.`;
+export const BALANCE_READ_SUCCESS = (
+  exchange: ExchangeId,
+  accountId: string
+): string =>
+  `Balances - ${formatExchange(
+    exchange
+  )}/${accountId} - Balances successfully fetched.`;
 
-export const BALANCE_READ_ERROR = (accountId: string, err?: string): string =>
-  `Unable to fetch balances for ${accountId} account${
+export const BALANCE_READ_ERROR = (
+  exchange: ExchangeId,
+  accountId: string,
+  err?: string
+): string =>
+  `Balances - ${formatExchange(
+    exchange
+  )}/${accountId} - Unable to fetch balances${err ? ' -> ' + err : ''}.`;
+
+export const MARKETS_READ_SUCCESS = (exchange: ExchangeId): string =>
+  `Markets - ${formatExchange(exchange)} - Markets successfully fetched.`;
+
+export const MARKETS_READ_ERROR = (
+  exchange: ExchangeId,
+  err?: string
+): string =>
+  `Markets - ${formatExchange(exchange)} - Unable to fetch markets${
     err ? ' -> ' + err : ''
   }.`;
 
-export const MARKETS_READ_SUCCESS = (exchange: Exchange): string =>
-  `Markets successfully fetched for ${exchange} exchange.`;
-
-export const MARKETS_READ_ERROR = (exchange: Exchange, err?: string): string =>
-  `Unable to fetch ${exchange} markets${err ? ' -> ' + err : ''}.`;
-
 export const EXCHANGE_INIT_ERROR = (
   accountId: string,
-  exchange: Exchange,
+  exchange: ExchangeId,
   err?: string
 ): string =>
-  `Unable to init ${formatExchange(
+  `Exchanges - ${formatExchange(
     exchange
-  )} exchange instance for ${accountId}${err ? ' -> ' + err : ''}.`;
+  )}/${accountId} - Unable to init exchange instance${
+    err ? ' -> ' + err : ''
+  }.`;
 
 export const EXCHANGE_INIT_SUCCESS = (
   accountId: string,
-  exchange: Exchange
-): string => `${formatExchange(exchange)} instance for ${accountId} loaded.`;
+  exchange: ExchangeId
+): string =>
+  `Exchanges - ${formatExchange(
+    exchange
+  )}/${accountId} - Instance successfully loaded.`;
 
 export const TICKER_READ_SUCCESS = (
-  exchange: Exchange,
+  exchange: ExchangeId,
   symbol: string
 ): string =>
-  `${symbol} ticker on ${formatExchange(exchange)} successfully fetched.`;
+  `Tickers - ${formatExchange(
+    exchange
+  )} - ${symbol} ticker successfully fetched.`;
 
 export const TICKER_READ_ERROR = (
-  exchange: Exchange,
+  exchange: ExchangeId,
   symbol: string,
   err?: string
 ): string =>
-  `Failed to check ${symbol} ticker on ${formatExchange(exchange)}${
+  `Tickers - ${formatExchange(exchange)} - Failed to check ${symbol} ticker${
     err ? ' -> ' + err : ''
   }.`;
 
 export const EXCHANGE_AUTHENTICATION_ERROR = (
   accountId: string,
-  exchange: Exchange,
+  exchange: ExchangeId,
   err?: string
 ): string =>
-  `Failed to authenticate ${accountId} account on ${formatExchange(exchange)}${
-    err ? ' -> ' + err : ''
-  }.`;
+  `Exchanges - ${formatExchange(
+    exchange
+  )}/${accountId} - Failed to authenticate account${err ? ' -> ' + err : ''}.`;
 
 export const EXCHANGE_AUTHENTICATION_SUCCESS = (
   accountId: string,
-  exchange: Exchange
+  exchange: ExchangeId
 ): string =>
-  `${accountId} account successfully authenticated on ${formatExchange(
+  `Exchanges - ${formatExchange(
     exchange
-  )}.`;
+  )}/${accountId} - Account successfully authenticated.`;
+
+export const POSITIONS_READ_SUCCESS = (
+  accountId: string,
+  exchange: ExchangeId
+): string =>
+  `Exchanges - ${formatExchange(
+    exchange
+  )}/${accountId} - Current positions succesfully fetched.`;
+
+export const POSITIONS_READ_ERROR = (
+  accountId: string,
+  exchange: ExchangeId,
+  err?: string
+): string =>
+  `Exchanges - ${formatExchange(
+    exchange
+  )}/${accountId} - Failed to fetch current positions${
+    err ? ' -> ' + err : ''
+  }.`;

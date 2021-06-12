@@ -1,0 +1,8 @@
+version: "3"
+services:
+  tap:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports: ["0.0.0.0:80:3000"]

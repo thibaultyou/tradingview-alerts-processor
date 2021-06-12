@@ -1,59 +1,135 @@
+import { ExchangeId } from '../constants/exchanges.constants';
 import { Side } from '../constants/trade.constants';
+import { formatExchange } from '../utils/exchange.utils';
 
 export const TRADE_EXECUTION_SUCCESS = (
+  exchange: ExchangeId,
   accountId: string,
   symbol: string,
   side: Side
-): string => `${symbol} ${side} trade executed for ${accountId} account.`;
+): string =>
+  `Trading - ${formatExchange(
+    exchange
+  )}/${accountId.toUpperCase()} - ${symbol} ${side} trade executed.`;
 
 export const TRADE_EXECUTION_ERROR = (
+  exchange: ExchangeId,
   accountId: string,
   symbol: string,
   side: Side,
   err?: string
 ): string =>
-  `Unable to execute ${symbol} ${side} trade for ${accountId} account${
+  `Trading - ${formatExchange(
+    exchange
+  )}/${accountId} - Unable to execute ${symbol} ${side} trade${
     err ? ' -> ' + err : ''
   }.`;
 
-export const TRADE_SERVICE_INIT = `Trading service started.`;
+export const TRADE_SERVICE_START = (exchange: ExchangeId): string =>
+  `Trading - ${formatExchange(exchange)} - Trading executor started.`;
 
-export const TRADE_SERVICE_ADD = `Adding trade to executor.`;
+export const TRADE_SERVICE_STOP = (exchange: ExchangeId): string =>
+  `Trading - ${formatExchange(exchange)} - Trading executor stopped.`;
+
+export const TRADE_SERVICE_ALREADY_STARTED = (exchange: ExchangeId): string =>
+  `Trading - ${formatExchange(exchange)} - Trading executor already started.`;
+
+export const TRADE_SERVICE_ALREADY_STOPPED = (exchange: ExchangeId): string =>
+  `Trading - ${formatExchange(exchange)} - Trading executor already stopped.`;
+
+export const TRADE_SERVICE_ADD = (exchange: ExchangeId): string =>
+  `Trading - ${formatExchange(exchange)} - Adding trade to executor.`;
 
 export const CLOSE_TRADE_SUCCESS = (
+  exchange: ExchangeId,
   accountId: string,
   symbol: string,
-  size?: string
+  absolute: number,
+  percentage?: string
 ): string =>
-  `Closing ${
-    size && size.includes('%') ? size : '100%'
-  } of open position on ${symbol} for ${accountId} account.`;
+  `Trading - ${formatExchange(
+    exchange
+  )}/${accountId} - $$$ Closing ${percentage} of open position / available balance for ${symbol} (~ ${absolute} $US).`;
 
 export const CLOSE_TRADE_ERROR_NOT_FOUND = (
+  exchange: ExchangeId,
   accountId: string,
   symbol: string
-): string => `No open position found on ${symbol} for ${accountId} account.`;
+): string =>
+  `Trading - ${formatExchange(
+    exchange
+  )}/${accountId} - No open position / available balance found for ${symbol}.`;
 
-export const CLOSE_TRADE_ERROR = (accountId: string, symbol: string): string =>
-  `Failed to close ${symbol} position for ${accountId} account.`;
+export const CLOSE_TRADE_ERROR = (
+  exchange: ExchangeId,
+  accountId: string,
+  symbol: string
+): string =>
+  `Trading - ${formatExchange(
+    exchange
+  )}/${accountId} - Failed to close ${symbol} position.`;
 
-export const OPEN_TRADE_SUCCESS = (
+export const OPEN_LONG_TRADE_SUCCESS = (
+  exchange: ExchangeId,
   accountId: string,
   symbol: string,
-  side: Side,
   size: string
 ): string =>
-  `Opening ${side} position on ${symbol} (${size} $US) for ${accountId} account.`;
+  `Trading - ${formatExchange(
+    exchange
+  )}/${accountId} - ^^^ Opening long position / buying ${symbol} (~ ${size} $US).`;
+
+export const OPEN_SHORT_TRADE_SUCCESS = (
+  exchange: ExchangeId,
+  accountId: string,
+  symbol: string,
+  size: string
+): string =>
+  `Trading - ${formatExchange(
+    exchange
+  )}/${accountId} - vvv Opening short position ${symbol} (~ ${size} $US).`;
+
+export const REVERSING_TRADE = (
+  exchange: ExchangeId,
+  accountId: string,
+  symbol: string
+): string =>
+  `Trading - ${formatExchange(
+    exchange
+  )}/${accountId} - xxx Reversing position ${symbol}.`;
 
 export const OPEN_TRADE_ERROR = (
+  exchange: ExchangeId,
   accountId: string,
   symbol: string,
   side: Side
 ): string =>
-  `Failed to open ${side} position on ${symbol} for ${accountId} account`;
+  `Trading - ${formatExchange(
+    exchange
+  )}/${accountId} - Failed to open ${side} position for ${symbol}.`;
+
+export const OPEN_TRADE_ERROR_MAX_SIZE = (
+  exchange: ExchangeId,
+  accountId: string,
+  symbol: string,
+  side: Side,
+  max: string
+): string =>
+  `Trading - ${formatExchange(
+    exchange
+  )}/${accountId} - Failed to open ${side} position for ${symbol}, max size reached (${max} $US).`;
 
 export const TRADE_ERROR_SIZE = (size: string): string =>
-  `Size percentage not valid, must be between 1 and 100 : ${size}.`;
+  `Trading - Size percentage not valid, must be between 1 and 100 : ${size}.`;
 
 export const TRADE_EXECUTION_TIME = (start: Date, end: Date): string =>
-  `Trade executed in ${end.getTime() - start.getTime()} ms.`;
+  `Trading - Trade executed in ${end.getTime() - start.getTime()} ms.`;
+
+export const OPEN_TRADE_NO_CURRENT_OPENED_POSITION = (
+  accountId: string,
+  exchange: ExchangeId,
+  symbol: string
+): string =>
+  `Exchanges - ${formatExchange(
+    exchange
+  )}/${accountId} - No current position opened for ${symbol}.`;

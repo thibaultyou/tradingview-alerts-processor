@@ -18,7 +18,7 @@ export const getDatabase = (): JsonDB => {
       );
       debug(DATABASE_CONFIGURATION_SUCCESS);
     } catch (err) {
-      error(DATABASE_CONFIGURATION_ERROR);
+      error(DATABASE_CONFIGURATION_ERROR, err);
       throw new DatabaseError(DATABASE_CONFIGURATION_ERROR);
     }
   }

@@ -15,7 +15,6 @@ import {
   removeAccount
 } from '../services/account.service';
 import { HttpCode } from '../constants/http.constants';
-import { debug } from '../services/logger.service';
 
 export const postAccount = async (
   req: Request,
@@ -31,7 +30,6 @@ export const postAccount = async (
       })
     );
   } catch (err) {
-    debug(err);
     res.writeHead(HttpCode.BAD_REQUEST);
     res.write(
       JSON.stringify({
@@ -53,7 +51,6 @@ export const getAccount = (req: Request, res: Response): void => {
       })
     );
   } catch (err) {
-    debug(err);
     res.writeHead(HttpCode.NOT_FOUND);
     res.write(JSON.stringify({ message: err.message }));
   }
@@ -66,7 +63,6 @@ export const deleteAccount = (req: Request, res: Response): void => {
     removeAccount(id);
     res.write(JSON.stringify({ message: ACCOUNT_DELETE_SUCCESS(id) }));
   } catch (err) {
-    debug(err);
     res.writeHead(HttpCode.NOT_FOUND);
     res.write(JSON.stringify({ message: err.message }));
   }

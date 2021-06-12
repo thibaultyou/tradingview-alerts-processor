@@ -1,60 +1,30 @@
+import { ExchangeId } from '../../constants/exchanges.constants';
+import { TradingService } from '../trade.service';
 describe('Trade service', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  describe('getInstance', () => {
-    it.skip('should return instance', async () => {
+  describe('getTradeExecutor', () => {
+    it('should return executor', async () => {
+      expect(TradingService.getTradeExecutor(ExchangeId.FTX)).toBeDefined();
+    });
+  });
+
+  describe('startExecutors', () => {
+    it('should start executors', async () => {
       expect(true).toBe(false);
     });
   });
 
-  describe('start', () => {
-    it.skip('should start trading service', async () => {
+  describe('stopExecutors', () => {
+    it('should stop executors', async () => {
       expect(true).toBe(false);
     });
   });
 
-  describe('addTrade', () => {
-    it.skip('should add trade to service queue', async () => {
-      expect(true).toBe(false);
-    });
-
-    it.skip('should throw if execution has failed', async () => {
-      expect(true).toBe(false);
-    });
-  });
-
-  describe('processTrade', () => {
-    it.skip('should process open order', async () => {
-      expect(true).toBe(false);
-    });
-
-    it.skip('should process close order', async () => {
-      expect(true).toBe(false);
-    });
-  });
-
-  describe('closeTrade', () => {
-    it.skip('should process trade', async () => {
-      expect(true).toBe(false);
-    });
-
-    it.skip('should throw if no position was found for specified symbol', async () => {
-      expect(true).toBe(false);
-    });
-
-    it.skip('should throw if execution has failed', async () => {
-      expect(true).toBe(false);
-    });
-  });
-
-  describe('openTrade', () => {
-    it.skip('should process trade', async () => {
-      expect(true).toBe(false);
-    });
-
-    it.skip('should throw if execution has failed', async () => {
+  describe('clearExecutors', () => {
+    it('should remove all executors from TradingService', async () => {
       expect(true).toBe(false);
     });
   });

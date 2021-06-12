@@ -1,5 +1,5 @@
 import { IsString, IsIn, IsOptional } from 'class-validator';
-import { Exchange, EXCHANGES } from '../constants/exchanges.constants';
+import { ExchangeId, EXCHANGES } from '../constants/exchanges.constants';
 
 export class Account {
   @IsString()
@@ -10,7 +10,7 @@ export class Account {
 
   @IsIn(EXCHANGES)
   @IsString()
-  exchange: Exchange;
+  exchange: ExchangeId;
 
   @IsString()
   stub: string;

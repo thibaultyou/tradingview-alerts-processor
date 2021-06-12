@@ -1,4 +1,4 @@
-import { removeAccount } from '../src/services/account.service';
+import { removeAccount } from '../services/account.service';
 import { sampleAccount, sampleSubaccount } from './tests.fixtures';
 
 export const clearTestingDatabase = (): void => {

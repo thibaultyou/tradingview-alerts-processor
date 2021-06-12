@@ -11,14 +11,14 @@ import {
   sampleFTXExchangeOptions,
   sampleBalances,
   sampleBalance
-} from '../../../tests/tests.fixtures';
+} from '../../tests/tests.fixtures';
 import ccxt = require('ccxt');
 
 import {
   AccountReadError,
   AccountWriteError
 } from '../../errors/account.errors';
-import { clearTestingDatabase } from '../../../tests/tests.utils';
+import { clearTestingDatabase } from '../../tests/tests.utils';
 import * as exchangeService from '../exchange.service';
 import * as accountService from '../account.service';
 import {

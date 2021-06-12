@@ -1,7 +1,6 @@
-import ccxt = require('ccxt');
 import { Account } from '../entities/account.entities';
 import { getDatabase } from '../db/store.db';
-import { debug, error } from './logger.service';
+import { debug, error, info } from './logger.service';
 import {
   ACCOUNT_WRITE_SUCCESS,
   ACCOUNT_WRITE_ERROR,
@@ -26,6 +25,7 @@ import {
   ExchangeInstanceInitError
 } from '../errors/exchange.errors';
 import { IBalance } from '../interfaces/exchange.interfaces';
+import { Exchange } from 'ccxt';
 
 const accounts = new Map<string, Account>();
 
@@ -38,24 +38,20 @@ export const writeAccount = async (account: Account): Promise<Account> => {
     db = getDatabase();
     db.getData(path);
   } catch (err) {
-    debug(err);
-
     try {
       await refreshExchange(account);
     } catch (err) {
-      debug(err);
-      error(ACCOUNT_WRITE_ERROR(id));
+      error(ACCOUNT_WRITE_ERROR(id), err);
       throw new AccountWriteError(ACCOUNT_WRITE_ERROR(id, err.message));
     }
 
     try {
       db.push(path, account);
       accounts.set(id, account);
-      debug(ACCOUNT_WRITE_SUCCESS(id));
+      info(ACCOUNT_WRITE_SUCCESS(id));
       return readAccount(id);
     } catch (err) {
-      debug(err);
-      error(ACCOUNT_WRITE_ERROR(id));
+      error(ACCOUNT_WRITE_ERROR(id), err);
       throw new AccountWriteError(ACCOUNT_WRITE_ERROR(id, err.message));
     }
   }
@@ -72,8 +68,7 @@ export const readAccount = (accountId: string): Account => {
       account = db.getData(`/${id}`);
       accounts.set(id, account);
     } catch (err) {
-      debug(err);
-      error(ACCOUNT_READ_ERROR(id));
+      error(ACCOUNT_READ_ERROR(id), err);
       throw new AccountReadError(ACCOUNT_READ_ERROR(id, err.message));
     }
   }
@@ -96,26 +91,24 @@ export const removeAccount = (accountId: string): boolean => {
     db.getData(path);
     db.delete(path);
   } catch (err) {
-    debug(err);
-    error(ACCOUNT_DELETE_ERROR(id));
+    error(ACCOUNT_DELETE_ERROR(id), err);
     throw new AccountWriteError(ACCOUNT_DELETE_ERROR(id, err.message));
   }
-  debug(ACCOUNT_DELETE_SUCCESS(id));
+  info(ACCOUNT_DELETE_SUCCESS(id));
   return true;
 };
 
 export const checkAccountCredentials = async (
-  exchangeInstance: ccxt.Exchange,
+  instance: Exchange,
   account: Account
 ): Promise<boolean> => {
   const { exchange } = account;
   const id = getAccountId(account);
   try {
-    await getAccountBalances(exchangeInstance, account);
+    await getAccountBalances(instance, account);
     debug(EXCHANGE_AUTHENTICATION_SUCCESS(id, exchange));
   } catch (err) {
-    debug(err);
-    error(EXCHANGE_AUTHENTICATION_ERROR(id, exchange));
+    error(EXCHANGE_AUTHENTICATION_ERROR(id, exchange), err);
     throw new ExchangeInstanceInitError(
       EXCHANGE_AUTHENTICATION_ERROR(id, exchange, err.message)
     );
@@ -124,18 +117,27 @@ export const checkAccountCredentials = async (
 };
 
 export const getAccountBalances = async (
-  exchangeInstance: ccxt.Exchange,
+  instance: Exchange,
   account: Account
 ): Promise<IBalance[]> => {
+  const { exchange } = account;
   const id = getAccountId(account);
   try {
     // we don't use fetchBalance() because coin is not returned
-    const balances = await exchangeInstance.fetch_balance();
-    debug(BALANCE_READ_SUCCESS(id));
-    return formatBalances(account.exchange, balances);
+    const balances = await instance.fetch_balance();
+    debug(BALANCE_READ_SUCCESS(exchange, id));
+    return formatBalances(exchange, balances);
   } catch (err) {
-    debug(err);
-    error(BALANCE_READ_ERROR(id));
-    throw new BalancesFetchError(BALANCE_READ_ERROR(id, err.message));
+    error(BALANCE_READ_ERROR(exchange, id), err);
+    throw new BalancesFetchError(BALANCE_READ_ERROR(exchange, id, err.message));
   }
+};
+
+export const getAccountTickerBalance = async (
+  instance: Exchange,
+  account: Account,
+  symbol: string
+): Promise<IBalance> => {
+  const balances = await getAccountBalances(instance, account);
+  return balances.filter((b) => b.coin === symbol).pop();
 };

@@ -13,14 +13,14 @@ export const postTrade = async (req: Request, res: Response): Promise<void> => {
   try {
     const account = readAccount(stub);
     const exchange = await refreshExchange(account);
-    TradingService.getInstance(account.exchange).addTrade(
+    TradingService.getTradeExecutor(account.exchange).addTrade(
       exchange,
       account,
       req.body
     );
     res.write(
       JSON.stringify({
-        message: TRADE_EXECUTION_SUCCESS(stub, symbol, side)
+        message: TRADE_EXECUTION_SUCCESS(account.exchange, stub, symbol, side)
       })
     );
   } catch (err) {

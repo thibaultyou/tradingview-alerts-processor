@@ -23,7 +23,7 @@ export const getBalances = async (
     const balances = await getAccountBalances(exchange, account);
     res.write(
       JSON.stringify({
-        message: BALANCE_READ_SUCCESS(stub),
+        message: BALANCE_READ_SUCCESS(account.exchange, stub),
         balances: balances
       })
     );
