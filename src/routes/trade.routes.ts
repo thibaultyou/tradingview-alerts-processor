@@ -11,7 +11,7 @@ export const postTrade = async (req: Request, res: Response): Promise<void> => {
   const { direction, stub, symbol }: Trade = req.body;
   const side = getTradeSide(direction);
   try {
-    const account = readAccount(stub);
+    const account = await readAccount(stub);
     const exchange = await refreshExchange(account);
     TradingService.getTradeExecutor(account.exchange).addTrade(
       exchange,

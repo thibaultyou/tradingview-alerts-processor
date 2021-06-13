@@ -1,10 +1,7 @@
-import { Ticker, Exchange } from 'ccxt';
-import ccxt = require('ccxt');
 import { Account } from '../entities/account.entities';
-import { getAccountId } from '../utils/account.utils';
+import { checkAccountCredentials } from './account.service';
 import { debug, error } from './logger.service';
-import { Market } from '../entities/market.entities';
-import { IMarket } from '../interfaces/market.interface';
+import { Exchange, Ticker } from 'ccxt';
 import {
   EXCHANGE_INIT_ERROR,
   EXCHANGE_INIT_SUCCESS,
@@ -13,22 +10,25 @@ import {
   TICKER_READ_ERROR,
   TICKER_READ_SUCCESS
 } from '../messages/exchange.messages';
+import { ExchangeId } from '../constants/exchanges.constants';
 import {
   ExchangeInstanceInitError,
   MarketsFetchError,
   TickerFetchError
 } from '../errors/exchange.errors';
-import { checkAccountCredentials } from './account.service';
-import { getExchangeOptions } from '../utils/exchange.utils';
-import { ExchangeId } from '../constants/exchanges.constants';
+import { getAccountId } from '../utils/account.utils';
 import {
   getBinanceFuturesUSDTTickerCurrentPositionSize,
   getBinanceSpotTickerCurrentBalance
 } from '../utils/exchanges/binance.utils';
+import { getExchangeOptions } from '../utils/exchange.utils';
 import {
   getFTXFuturesTickerCurrentPositionSize,
   getFTXSpotTickerCurrentBalance
 } from '../utils/exchanges/ftx.utils';
+import { IMarket } from '../interfaces/market.interface';
+import { Market } from '../entities/market.entities';
+import ccxt = require('ccxt');
 
 const exchanges = new Map<string, Exchange>();
 const tickers = new Map<string, Map<string, Ticker>>();

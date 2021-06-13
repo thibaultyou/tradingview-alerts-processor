@@ -1,15 +1,17 @@
 # Installation using AWS lightsail - Docker
 
+### 📚 Index
+
 <!-- toc -->
 
-- [Step 1 - Instance setup](#step-1---instance-setup)
-- [Step 2 - SSH access](#step-2---ssh-access)
-- [Step 3 - Install and configure app](#step-3---install-and-configure-app)
-- [Optional steps](#optional-steps)
+- [📦️ Instance setup](#%F0%9F%93%A6%EF%B8%8F-instance-setup)
+- [🔒️ SSH access](#%F0%9F%94%92%EF%B8%8F-ssh-access)
+- [🚀 Install and configure app](#%F0%9F%9A%80-install-and-configure-app)
+- [💄 Optional steps](#%F0%9F%92%84-optional-steps)
 
 <!-- tocstop -->
 
-### Step 1 - Instance setup
+### 📦️ Instance setup
 
 - Create a [AWS lightsail](https://lightsail.aws.amazon.com/) account
 
@@ -27,7 +29,7 @@
   - Name it like you want
   - Validate creation
 
-### Step 2 - SSH access
+### 🔒️ SSH access
 
 >
 > If you're not confident with SSH you can open a Terminal using your browser on AWS lightsail by clicking on your instance and skip this step
@@ -53,7 +55,7 @@
     ssh USERNAME@YOUR.STATIC.IP.ADDRESS -i ~/Downloads/key.pem
     ```
 
-### Step 3 - Install and configure app
+### 🚀 Install and configure app
 
 - Refresh packages and install updates :
 
@@ -61,28 +63,39 @@
     sudo apt update -y && sudo apt upgrade -y
     ```
 
-- Install Docker :
+- Install Docker and Docker-compose :
 
     ```sh
     sudo apt install -y docker.io
+    sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+    sudo chmod +x /usr/local/bin/docker-compose
+    sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
     ```
 
 - Download and run the app :
 
     ```sh
-    sudo docker run -d -p 80:3000 --restart unless-stopped madamefleur/tradingview-alerts-processor:latest
+    curl https://raw.githubusercontent.com/thibaultyou/tradingview-alerts-processor/master/docker-compose.yml
+    sudo docker-compose up -d
     ```
 
-### Optional steps
+### 💄 Optional steps
 
 >
-> For those steps you need to be logged in your instance, see the first command in [Step 3 - Install and configure app](#step-3---install-and-configure-app)
+> For those steps you need to be logged in your instance, see the first command in [Step 3 - Install and configure app](#%F0%9F%9A%80-install-and-configure-app)
 >
 
 - Check app logs :
 
     ```sh
-    sudo docker logs -f $(sudo docker ps | grep 'madamefleur/tradingview-alerts-processor' | awk '{ print $1 }')
+    sudo docker-compose logs
+    ```
+
+- Update the app :
+
+    ```sh
+    sudo docker-compose pull
+    sudo docker-compose up -d
     ```
 
 - Restrict commands to Tradingview alerts system only, __once activated you'll not be able to send commands from your computer with HTTP requests, please [add your accounts](./1c_Keys.md) before using this__ :

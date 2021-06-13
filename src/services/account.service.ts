@@ -1,5 +1,4 @@
 import { Account } from '../entities/account.entities';
-import { getDatabase } from '../db/store.db';
 import { debug, error, info } from './logger.service';
 import {
   ACCOUNT_WRITE_SUCCESS,
@@ -11,7 +10,6 @@ import {
   ACCOUNT_WRITE_ERROR_ALREADY_EXISTS
 } from '../messages/account.messages';
 import { AccountReadError, AccountWriteError } from '../errors/account.errors';
-import { JsonDB } from 'node-json-db';
 import { refreshExchange } from './exchange.service';
 import { getAccountId, formatBalances } from '../utils/account.utils';
 import {
@@ -26,17 +24,22 @@ import {
 } from '../errors/exchange.errors';
 import { IBalance } from '../interfaces/exchange.interfaces';
 import { Exchange } from 'ccxt';
+import { DatabaseService } from './db.service';
 
 const accounts = new Map<string, Account>();
 
 export const writeAccount = async (account: Account): Promise<Account> => {
   const { stub } = account;
   const id = stub.toUpperCase();
-  const path = `/${id}`;
-  let db: JsonDB;
+
+  let db;
   try {
-    db = getDatabase();
-    db.getData(path);
+    db = DatabaseService.getDatabaseInstance();
+    const res = await db.read(id);
+    if (!res) {
+      error(ACCOUNT_READ_ERROR(id));
+      throw new AccountReadError(ACCOUNT_READ_ERROR(id));
+    }
   } catch (err) {
     try {
       await refreshExchange(account);
@@ -46,7 +49,7 @@ export const writeAccount = async (account: Account): Promise<Account> => {
     }
 
     try {
-      db.push(path, account);
+      await db.write(id, account);
       accounts.set(id, account);
       info(ACCOUNT_WRITE_SUCCESS(id));
       return readAccount(id);
@@ -59,13 +62,13 @@ export const writeAccount = async (account: Account): Promise<Account> => {
   throw new AccountWriteError(ACCOUNT_WRITE_ERROR_ALREADY_EXISTS(id));
 };
 
-export const readAccount = (accountId: string): Account => {
+export const readAccount = async (accountId: string): Promise<Account> => {
   const id = accountId.toUpperCase();
   let account = accounts.get(id);
   if (!account) {
     try {
-      const db = getDatabase();
-      account = db.getData(`/${id}`);
+      const db = DatabaseService.getDatabaseInstance();
+      account = await db.read(id);
       accounts.set(id, account);
     } catch (err) {
       error(ACCOUNT_READ_ERROR(id), err);
@@ -82,14 +85,12 @@ export const readAccount = (accountId: string): Account => {
   return account;
 };
 
-export const removeAccount = (accountId: string): boolean => {
+export const removeAccount = async (accountId: string): Promise<boolean> => {
   const id = accountId.toUpperCase();
-  const path = `/${id}`;
   try {
-    const db = getDatabase();
+    const db = DatabaseService.getDatabaseInstance();
     accounts.delete(id);
-    db.getData(path);
-    db.delete(path);
+    await db.delete(id);
   } catch (err) {
     error(ACCOUNT_DELETE_ERROR(id), err);
     throw new AccountWriteError(ACCOUNT_DELETE_ERROR(id, err.message));

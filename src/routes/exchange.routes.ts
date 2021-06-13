@@ -18,7 +18,7 @@ export const getBalances = async (
 ): Promise<void> => {
   const { stub }: AccountStub = req.body;
   try {
-    const account = readAccount(stub);
+    const account = await readAccount(stub);
     const exchange = await refreshExchange(account);
     const balances = await getAccountBalances(exchange, account);
     res.write(

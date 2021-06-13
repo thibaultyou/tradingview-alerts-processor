@@ -40,10 +40,13 @@ export const postAccount = async (
   res.end();
 };
 
-export const getAccount = (req: Request, res: Response): void => {
+export const getAccount = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const id = formatAccountStub(req.body);
   try {
-    const account = readAccount(id);
+    const account = await readAccount(id);
     res.write(
       JSON.stringify({
         message: ACCOUNT_READ_SUCCESS(id),
@@ -57,10 +60,13 @@ export const getAccount = (req: Request, res: Response): void => {
   res.end();
 };
 
-export const deleteAccount = (req: Request, res: Response): void => {
+export const deleteAccount = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const id = formatAccountStub(req.body);
   try {
-    removeAccount(id);
+    await removeAccount(id);
     res.write(JSON.stringify({ message: ACCOUNT_DELETE_SUCCESS(id) }));
   } catch (err) {
     res.writeHead(HttpCode.NOT_FOUND);

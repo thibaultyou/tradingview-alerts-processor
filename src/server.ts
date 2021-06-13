@@ -1,6 +1,5 @@
 import express = require('express');
 import { NODE_PORT } from './constants/env.constants';
-import { getDatabase } from './db/store.db';
 import {
   postAccount,
   getAccount,
@@ -25,6 +24,7 @@ import {
 import { checkHealth } from './routes/health.routes';
 import { loggingMiddleware } from './utils/logger.utils';
 import { SERVER_RUNNING } from './messages/server.messages';
+import { DatabaseService } from './services/db.service';
 
 const app = express();
 
@@ -45,6 +45,6 @@ app.post(TRADES_ROUTE, loggingMiddleware, validateTrade, postTrade);
 app.get(HEALTH_ROUTE, loggingMiddleware, checkHealth);
 
 app.listen(PORT, () => {
-  getDatabase();
+  DatabaseService.getDatabaseInstance();
   info(SERVER_RUNNING);
 });

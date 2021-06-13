@@ -115,4 +115,14 @@ describe('Exchange service', () => {
       );
     });
   });
+
+  describe('getTickerCurrentBalance', () => {
+    it('should return specified ticker current balance / position size', async () => {
+      expect(true).toBe(false);
+    });
+
+    it(`should throw if markets can't be fetched`, async () => {
+      expect(true).toBe(false);
+    });
+  });
 });

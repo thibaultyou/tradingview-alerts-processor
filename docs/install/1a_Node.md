@@ -1,15 +1,17 @@
 # Installation using AWS lightsail - Nodejs
 
+### 📚 Index
+
 <!-- toc -->
 
-- [Step 1 - Instance setup](#step-1---instance-setup)
-- [Step 2 - SSH access](#step-2---ssh-access)
-- [Step 3 - Install and configure app](#step-3---install-and-configure-app)
-- [Optional steps](#optional-steps)
+- [📦️ Instance setup](#%F0%9F%93%A6%EF%B8%8F-instance-setup)
+- [🔒️ SSH access](#%F0%9F%94%92%EF%B8%8F-ssh-access)
+- [🚀 Install and configure app](#%F0%9F%9A%80-install-and-configure-app)
+- [💄 Optional steps](#%F0%9F%92%84-optional-steps)
 
 <!-- tocstop -->
 
-### Step 1 - Instance setup
+### 📦️ Instance setup
 
 - Create a [AWS lightsail](https://lightsail.aws.amazon.com/) account
 
@@ -27,7 +29,7 @@
   - Name it like you want
   - Validate creation
 
-### Step 2 - SSH access
+### 🔒️ SSH access
 
 >
 > If you're not confident with SSH you can open a Terminal using your browser on AWS lightsail by clicking on your instance and skip this step
@@ -53,7 +55,7 @@
     ssh USERNAME@YOUR.STATIC.IP.ADDRESS -i ~/Downloads/key.pem
     ```
 
-### Step 3 - Install and configure app
+### 🚀 Install and configure app
 
 >
 > Your Node.js instance must be a [Bitnami one](https://aws.amazon.com/marketplace/pp/B00NNZUAKO)
@@ -80,10 +82,10 @@
     pm2 status npm
     ```
 
-### Optional steps
+### 💄 Optional steps
 
 >
-> For those steps you need to be logged in your instance, see the first command in [Step 3 - Install and configure app](#step-3---install-and-configure-app)
+> For those steps you need to be logged in your instance, see the first command in [Step 3 - Install and configure app](#%F0%9F%9A%80-install-and-configure-app)
 >
 
 - Check app logs :

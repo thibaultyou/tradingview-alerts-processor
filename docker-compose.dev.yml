@@ -1,9 +1,11 @@
 version: "3"
 services:
   tap:
-    image: madamefleur/tradingview-alerts-processor:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
     restart: unless-stopped
-    ports: ["0.0.0.0:80:3000"]
+    ports: ["0.0.0.0:3333:3000"]
     volumes:
       - ./docker/logs:/tap/logs
     links:
@@ -12,6 +14,8 @@ services:
       - db
     environment:
       - DATABASE_TYPE=redis # can be set to json
+      # - REDIS_PORT=6379
+      # - REDIS_HOST=db
   db:
     image: 'bitnami/redis:latest'
     environment:

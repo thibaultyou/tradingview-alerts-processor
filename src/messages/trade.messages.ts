@@ -77,7 +77,7 @@ export const OPEN_LONG_TRADE_SUCCESS = (
 ): string =>
   `Trading - ${formatExchange(
     exchange
-  )}/${accountId} - ^^^ Opening long position / buying ${symbol} (~ ${size} $US).`;
+  )}/${accountId} - ^^^ Opening long position ${symbol} (~ ${size} $US).`;
 
 export const OPEN_SHORT_TRADE_SUCCESS = (
   exchange: ExchangeId,
@@ -88,6 +88,26 @@ export const OPEN_SHORT_TRADE_SUCCESS = (
   `Trading - ${formatExchange(
     exchange
   )}/${accountId} - vvv Opening short position ${symbol} (~ ${size} $US).`;
+
+export const BUY_TRADE_SUCCESS = (
+  exchange: ExchangeId,
+  accountId: string,
+  symbol: string,
+  size: string
+): string =>
+  `Trading - ${formatExchange(
+    exchange
+  )}/${accountId} - ^^^ Buying ${symbol} (~ ${size} $US).`;
+
+export const SELL_TRADE_SUCCESS = (
+  exchange: ExchangeId,
+  accountId: string,
+  symbol: string,
+  size: string
+): string =>
+  `Trading - ${formatExchange(
+    exchange
+  )}/${accountId} - vvv Selling ${symbol} (~ ${size} $US).`;
 
 export const REVERSING_TRADE = (
   exchange: ExchangeId,

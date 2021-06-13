@@ -1,11 +1,13 @@
 import { Order, Exchange, Ticker } from 'ccxt';
 import {
+  BUY_TRADE_SUCCESS,
   CLOSE_TRADE_ERROR,
   CLOSE_TRADE_SUCCESS,
   OPEN_LONG_TRADE_SUCCESS,
   OPEN_SHORT_TRADE_SUCCESS,
   OPEN_TRADE_ERROR,
   REVERSING_TRADE,
+  SELL_TRADE_SUCCESS,
   TRADE_EXECUTION_ERROR,
   TRADE_EXECUTION_SUCCESS,
   TRADE_EXECUTION_TIME,
@@ -177,9 +179,21 @@ export class TradingExecutor {
         side as 'buy' | 'sell',
         orderSize
       );
-      side === Side.Buy
-        ? long(OPEN_LONG_TRADE_SUCCESS(exchange, id, symbol, size))
-        : short(OPEN_SHORT_TRADE_SUCCESS(exchange, id, symbol, size));
+      if (
+        exchange === ExchangeId.BinanceFuturesUSD ||
+        (exchange === ExchangeId.FTX && ticker.info.type === 'future')
+      ) {
+        side === Side.Buy
+          ? long(OPEN_LONG_TRADE_SUCCESS(exchange, id, symbol, size))
+          : short(OPEN_SHORT_TRADE_SUCCESS(exchange, id, symbol, size));
+      } else if (
+        exchange === ExchangeId.Binance ||
+        (exchange === ExchangeId.FTX && ticker.info.type === 'spot')
+      ) {
+        side === Side.Buy
+          ? long(BUY_TRADE_SUCCESS(exchange, id, symbol, size))
+          : short(SELL_TRADE_SUCCESS(exchange, id, symbol, size));
+      }
       return order;
     } catch (err) {
       error(OPEN_TRADE_ERROR(exchange, id, symbol, side), err);
