@@ -39,6 +39,7 @@ You can use the bot with :
 - open a Long / Short position (futures) or Buy / Sell a token (spot) in $US
 - close a position or a percentage of it
 - close a position and open another in the opposite direction
+- close a position while reducing on oversell / overbuy
 - set a maximum budget
 - list account balances
 - list exchange markets

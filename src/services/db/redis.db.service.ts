@@ -53,7 +53,8 @@ export class RedisDatabaseService extends BaseDatabaseService {
       debug(DATABASE_READ_SUCCESS(key));
       return value;
     } catch (err) {
-      error(DATABASE_READ_ERROR(key, err));
+      // ignore err
+      debug(DATABASE_READ_ERROR(key));
       throw new DatabaseReadError(DATABASE_READ_ERROR(key));
     }
   };
@@ -64,7 +65,7 @@ export class RedisDatabaseService extends BaseDatabaseService {
       await this.instance.set(key, JSON.stringify(value));
       debug(DATABASE_CREATE_SUCCESS(key));
     } catch (err) {
-      error(DATABASE_CREATE_ERROR(key, err));
+      debug(DATABASE_CREATE_ERROR(key, err));
       throw new DatabaseCreateError(DATABASE_CREATE_ERROR(key, err));
     }
     return value;
@@ -76,7 +77,7 @@ export class RedisDatabaseService extends BaseDatabaseService {
       await this.instance.set(key, JSON.stringify(updated));
       debug(DATABASE_UPDATE_SUCCESS(key));
     } catch (err) {
-      error(DATABASE_UPDATE_ERROR(key, err));
+      debug(DATABASE_UPDATE_ERROR(key, err));
       throw new DatabaseUpdateError(DATABASE_UPDATE_ERROR(key, err));
     }
     return updated;
@@ -89,7 +90,7 @@ export class RedisDatabaseService extends BaseDatabaseService {
       debug(DATABASE_DELETE_SUCCESS(key));
       return value;
     } catch (err) {
-      error(DATABASE_DELETE_ERROR(key, err));
+      debug(DATABASE_DELETE_ERROR(key, err));
       throw new DatabaseDeleteError(DATABASE_DELETE_ERROR(key, err));
     }
   };

@@ -67,11 +67,23 @@
 - __Close a short position__ and __open a long position__ on ETH-PERP using `test` account :
 
     ```sh
-    curl -d '{"stub": "test", "symbol": "ETH-PERP", "direction": "long", "size": "11", "reverse": true }' -X POST http://YOUR.STATIC.IP.ADDRESS/trades -H 'Content-Type: application/json; charset=utf-8'
+    curl -d '{"stub": "test", "symbol": "ETH-PERP", "direction": "long", "size": "11", "mode": "reverse" }' -X POST http://YOUR.STATIC.IP.ADDRESS/trades -H 'Content-Type: application/json; charset=utf-8'
     ```
 
 - __Close a long position__ and __open a short position__ on ETH-PERP using `test` account :
 
     ```sh
-    curl -d '{"stub": "test", "symbol": "ETH-PERP", "direction": "short", "size": "11", "reverse": true }' -X POST http://YOUR.STATIC.IP.ADDRESS/trades -H 'Content-Type: application/json; charset=utf-8'
+    curl -d '{"stub": "test", "symbol": "ETH-PERP", "direction": "short", "size": "11", "mode": "reverse" }' -X POST http://YOUR.STATIC.IP.ADDRESS/trades -H 'Content-Type: application/json; charset=utf-8'
+    ```
+
+- __Close a short position__ (for example 80$US) while reducing with __a long position__ (100$US) on ETH-PERP using `test` account :
+
+    ```sh
+    curl -d '{"stub": "test", "symbol": "ETH-PERP", "direction": "long", "size": "100", "mode": "overflow" }' -X POST http://YOUR.STATIC.IP.ADDRESS/trades -H 'Content-Type: application/json; charset=utf-8'
+    ```
+
+- __Close a long position__ (for example 80$US) while reducing with __a short position__ (100$US) on ETH-PERP using `test` account :
+
+    ```sh
+    curl -d '{"stub": "test", "symbol": "ETH-PERP", "direction": "short", "size": "100", "mode": "overflow" }' -X POST http://YOUR.STATIC.IP.ADDRESS/trades -H 'Content-Type: application/json; charset=utf-8'
     ```

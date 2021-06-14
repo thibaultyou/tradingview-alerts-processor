@@ -15,7 +15,7 @@ import {
   TRADE_SERVICE_START,
   TRADE_SERVICE_STOP
 } from '../messages/trade.messages';
-import { Side } from '../constants/trade.constants';
+import { Side, TradingMode } from '../constants/trade.constants';
 import { Account } from '../entities/account.entities';
 import { Trade } from '../entities/trade.entities';
 import { ITradeInfo } from '../interfaces/trade.interface';
@@ -163,14 +163,17 @@ export class TradingExecutor {
     account: Account,
     trade: Trade
   ): Promise<Order> => {
-    const { direction, size, max, symbol, reverse } = trade;
+    const { direction, size, max, symbol, mode } = trade;
     const { exchange } = account;
     const id = getAccountId(account);
     const side = getTradeSide(direction);
     try {
       const ticker = await fetchTickerInfo(instance, account, symbol);
-      if (reverse) {
-        await this.handleReversePosition(instance, account, trade, ticker);
+      if (mode === TradingMode.Reverse || mode === TradingMode.Overflow) {
+        await this.closeOnOpenOrder(instance, account, trade, ticker);
+        if (mode === TradingMode.Overflow) {
+          return;
+        }
       }
       const orderSize = getAverageTradeSize(exchange, ticker, size);
       if (max) {
@@ -203,7 +206,7 @@ export class TradingExecutor {
     }
   };
 
-  handleReversePosition = async (
+  closeOnOpenOrder = async (
     instance: Exchange,
     account: Account,
     trade: Trade,
@@ -212,21 +215,21 @@ export class TradingExecutor {
     const { symbol } = trade;
     const { exchange } = account;
     const id = getAccountId(account);
-    let needReversing = false;
+    let isClosingNeeded = false;
     if (exchange === ExchangeId.FTX && ticker.info.type === 'future') {
-      needReversing = await getFTXFuturesReversePositionStatus(
+      isClosingNeeded = await getFTXFuturesReversePositionStatus(
         instance,
         account,
         trade
       );
     } else if (exchange === ExchangeId.BinanceFuturesUSD) {
-      needReversing = await getBinanceFuturesReversePositionStatus(
+      isClosingNeeded = await getBinanceFuturesReversePositionStatus(
         instance,
         account,
         trade
       );
     }
-    if (needReversing) {
+    if (isClosingNeeded) {
       debug(REVERSING_TRADE(exchange, id, symbol));
       await this.closeOrder(instance, account, trade, ticker);
     }

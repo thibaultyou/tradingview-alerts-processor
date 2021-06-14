@@ -1,5 +1,10 @@
 import { IsIn, IsOptional, IsString, ValidateIf } from 'class-validator';
-import { SIDES, Side } from '../constants/trade.constants';
+import {
+  SIDES,
+  Side,
+  TRADING_MODES,
+  TradingMode
+} from '../constants/trade.constants';
 
 export class Trade {
   @IsString()
@@ -13,8 +18,10 @@ export class Trade {
   @IsOptional()
   max?: string;
 
+  @IsString()
+  @IsIn(TRADING_MODES)
   @IsOptional()
-  reverse?: true | string;
+  mode?: TradingMode;
 
   @IsString()
   symbol: string;

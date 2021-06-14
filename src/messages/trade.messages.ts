@@ -77,7 +77,7 @@ export const OPEN_LONG_TRADE_SUCCESS = (
 ): string =>
   `Trading - ${formatExchange(
     exchange
-  )}/${accountId} - ^^^ Opening long position ${symbol} (~ ${size} $US).`;
+  )}/${accountId} - ^^^ Opening long position on ${symbol} (~ ${size} $US).`;
 
 export const OPEN_SHORT_TRADE_SUCCESS = (
   exchange: ExchangeId,
@@ -87,7 +87,7 @@ export const OPEN_SHORT_TRADE_SUCCESS = (
 ): string =>
   `Trading - ${formatExchange(
     exchange
-  )}/${accountId} - vvv Opening short position ${symbol} (~ ${size} $US).`;
+  )}/${accountId} - vvv Opening short position on ${symbol} (~ ${size} $US).`;
 
 export const BUY_TRADE_SUCCESS = (
   exchange: ExchangeId,
@@ -116,7 +116,7 @@ export const REVERSING_TRADE = (
 ): string =>
   `Trading - ${formatExchange(
     exchange
-  )}/${accountId} - xxx Reversing position ${symbol}.`;
+  )}/${accountId} - xxx Reversing / closing if overflow position on ${symbol}.`;
 
 export const OPEN_TRADE_ERROR = (
   exchange: ExchangeId,
@@ -126,7 +126,7 @@ export const OPEN_TRADE_ERROR = (
 ): string =>
   `Trading - ${formatExchange(
     exchange
-  )}/${accountId} - Failed to open ${side} position for ${symbol}.`;
+  )}/${accountId} - Failed to open ${side} position on ${symbol}.`;
 
 export const OPEN_TRADE_ERROR_MAX_SIZE = (
   exchange: ExchangeId,
@@ -137,7 +137,7 @@ export const OPEN_TRADE_ERROR_MAX_SIZE = (
 ): string =>
   `Trading - ${formatExchange(
     exchange
-  )}/${accountId} - Failed to open ${side} position for ${symbol}, max size reached (${max} $US).`;
+  )}/${accountId} - Failed to open ${side} position on ${symbol}, max size reached (${max} $US).`;
 
 export const TRADE_ERROR_SIZE = (size: string): string =>
   `Trading - Size percentage not valid, must be between 1 and 100 : ${size}.`;
