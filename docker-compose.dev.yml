@@ -1,0 +1,25 @@
+version: "3"
+services:
+  tap:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports: ["0.0.0.0:3333:3000"]
+    volumes:
+      - ./docker/logs:/tap/logs
+    links:
+      - db
+    depends_on:
+      - db
+    environment:
+      - DATABASE_TYPE=redis # can be set to json
+      # - REDIS_PORT=6379
+      # - REDIS_HOST=db
+  db:
+    image: 'bitnami/redis:latest'
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    restart: unless-stopped
+    volumes:
+      - ./docker/db:/bitnami/redis/data

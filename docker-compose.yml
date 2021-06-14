@@ -1,0 +1,21 @@
+version: "3"
+services:
+  tap:
+    image: madamefleur/tradingview-alerts-processor:latest
+    restart: unless-stopped
+    ports: ["0.0.0.0:80:3000"]
+    volumes:
+      - ./docker/logs:/tap/logs
+    links:
+      - db
+    depends_on:
+      - db
+    environment:
+      - DATABASE_TYPE=redis # can be set to json
+  db:
+    image: 'bitnami/redis:latest'
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    restart: unless-stopped
+    volumes:
+      - ./docker/db:/bitnami/redis/data

@@ -7,8 +7,9 @@
         "target": "es2020",
         "noImplicitAny": true,
         "moduleResolution": "node",
-        "sourceMap": true,
+        "rootDir": "src",
         "outDir": "dist",
+        "declaration": true,
         "baseUrl": ".",
         "paths": {
             "*": [
@@ -19,5 +20,6 @@
     },
     "include": [
         "src/**/*"
-    ]
+    ],
+    "exclude": ["src/tests/**/*", "**.test.ts"]
 }

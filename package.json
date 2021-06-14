@@ -1,22 +1,24 @@
 {
   "name": "tradingview-alerts-processor",
   "version": "1.0.0",
-  "description": "Minimalist service desgined to execute TradingView webhooks and process them to [FTX](https://ftx.com/) and [Binance](https://www.binance.com/fr/futures) exchanges.",
+  "description": "Minimalist service desgined to execute TradingView webhooks and process them to cryptocurrencies exchanges.",
   "main": "server.js",
   "keywords": [],
   "author": "Thibault YOU",
   "license": "MIT",
   "scripts": {
-    "dev": "concurrently \"npm run lint\" \"npm run prettier:watch\" \"npm run test:watch\" \"nodemon server.ts\"",
-    "lint": "eslint . --ext .ts",
-    "lint:fix": "eslint . --ext .ts --fix",
-    "prettier:watch": "onchange 'src/**/*.ts' 'server.ts' -- prettier --write {{changed}}",
-    "prettier:format": "prettier --config .prettierrc 'src/**/*.ts' 'server.ts' --write",
-    "start": "ts-node server.ts",
-    "build": "tsc --project ./",
-    "test": "jest",
-    "test:cov": "npm run test --coverage",
-    "test:watch": "npm run test:cov --watchAll"
+    "clean": "rimraf dist",
+    "dev": "npm run clean && concurrently \"npm run lint\" \"npm run prettier:watch\" \"npm run test:watch\" \"nodemon src/server.ts\"",
+    "lint": "npm run clean && eslint . --ext .ts",
+    "lint:fix": "npm run clean && eslint . --ext .ts --fix",
+    "prettier:watch": "npm run clean && onchange 'src/**/*.ts' -- prettier --write {{changed}}",
+    "prettier:format": "npm run clean && prettier --config .prettierrc 'src/**/*.ts' --write",
+    "start": "ts-node src/server.ts",
+    "start:prod": "node dist/server.js",
+    "build": "npm run clean && tsc --project tsconfig.json",
+    "test": "npm run clean && jest",
+    "test:cov": "npm run clean && npm run test --coverage",
+    "test:watch": "npm run clean && npm run test:cov --watchAll"
   },
   "pre-commit": [
     "lint:fix",
@@ -41,18 +43,21 @@
     ],
     "testEnvironment": "node",
     "setupFiles": [
-      "./tests/setup.jest.mocks.ts"
+      "./src/tests/setup.jest.mocks.ts"
+    ],
+    "testPathIgnorePatterns": [
+      "dist"
     ]
   },
   "dependencies": {
-    "babel-jest": "^27.0.0",
     "ccxt": "1.50.18",
-    "chalk": "4.1.1",
     "class-transformer": "0.4.0",
     "class-transformer-validator": "0.9.1",
     "class-validator": "0.13.1",
     "express": "4.17.1",
+    "handy-redis": "2.2.1",
     "node-json-db": "1.3.0",
+    "redis": "3.1.2",
     "typescript": "4.2.4",
     "winston": "3.3.3"
   },
@@ -60,6 +65,7 @@
     "@types/express": "4.17.11",
     "@types/jest": "26.0.22",
     "@types/node": "15.6.0",
+    "@types/redis": "2.8.29",
     "@typescript-eslint/eslint-plugin": "4.24.0",
     "@typescript-eslint/parser": "4.24.0",
     "concurrently": "6.1.0",
@@ -71,6 +77,7 @@
     "onchange": "7.1.0",
     "pre-commit": "1.2.2",
     "prettier": "2.3.0",
+    "rimraf": "3.0.2",
     "ts-jest": "26.5.0",
     "ts-node": "9.1.1"
   }

@@ -1,55 +1,76 @@
-import chalk from 'chalk';
-import { createLogger, format, transports } from 'winston';
-const { combine, json, timestamp } = format;
-// eslint-disable-next-line no-console
-const log = console.log;
+import { createLogger, transports } from 'winston';
+import {
+  debugLogFileLoggerOptions,
+  errorLogFileLoggerOptions,
+  tradesLogFileLoggerOptions
+} from '../utils/logger.utils';
+import {
+  consoleLoggerOptions,
+  defaultLoggerFormat
+} from '../utils/logger.utils';
 
 const logger = createLogger({
   level: 'debug',
-  format: combine(timestamp(), json()),
+  format: defaultLoggerFormat,
   transports: [
-    new transports.File({ filename: 'logs/error.log', level: 'error' }),
-    new transports.File({ filename: 'logs/debug.log' })
+    new transports.File(errorLogFileLoggerOptions),
+    new transports.File(debugLogFileLoggerOptions)
   ]
+});
+
+const consoleLogger = createLogger({
+  level: 'debug',
+  format: defaultLoggerFormat,
+  transports: [new transports.Console(consoleLoggerOptions)]
 });
 
 const tradesLogger = createLogger({
   level: 'info',
-  format: combine(timestamp(), json()),
-  transports: [new transports.File({ filename: 'logs/trades.log' })]
+  format: defaultLoggerFormat,
+  transports: [new transports.File(tradesLogFileLoggerOptions)]
 });
 
 export const debug = (message: string): void => {
-  // log(chalk(message));
   logger.debug(message);
+  consoleLogger.debug(message);
 };
 
 export const info = (message: string): void => {
   logger.info(message);
-  log(chalk.green(message));
+  consoleLogger.info(message);
 };
 
 export const warning = (message: string): void => {
   logger.warn(message);
-  log(chalk.bold.yellow(`⚠️ ${message}`));
+  consoleLogger.warn(message);
 };
 
-export const error = (message: string): void => {
-  logger.error(message);
-  log(chalk.bold.red(`❌ ${message}`));
+export const error = (message: string, error?: Record<string, any>): void => {
+  if (!error) {
+    logger.error(message);
+    consoleLogger.error(message);
+  } else {
+    logger.error(message, { details: error });
+    const formattedError = JSON.stringify(error);
+    const hasError = error && formattedError !== '{}';
+    consoleLogger.error(`${message}${hasError ? ' -> ' + formattedError : ''}`);
+  }
 };
 
 export const long = (message: string): void => {
+  logger.info(message);
+  consoleLogger.info(message);
   tradesLogger.info(message);
-  log(chalk.bold.blue(`🚀 ${message}`));
 };
 
 export const short = (message: string): void => {
+  logger.info(message);
+  consoleLogger.info(message);
   tradesLogger.info(message);
-  log(chalk.bold.magenta(`🔥 ${message}`));
 };
 
 export const close = (message: string): void => {
+  logger.info(message);
+  consoleLogger.info(message);
   tradesLogger.info(message);
-  log(chalk.bold.green(`💰 ${message}`));
 };

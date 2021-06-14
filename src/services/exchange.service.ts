@@ -1,22 +1,8 @@
-import { Ticker } from 'ccxt';
-import ccxt = require('ccxt');
 import { Account } from '../entities/account.entities';
-import { Trade } from '../entities/trade.entities';
-import { IBalance, IBalances } from '../interfaces/exchange.interfaces';
-import { getAccountId } from '../utils/account.utils';
+import { checkAccountCredentials } from './account.service';
 import { debug, error } from './logger.service';
-import { TradingService } from './trade.service';
-import { Market } from '../entities/market.entities';
-import { IMarket } from '../interfaces/market.interface';
+import { Exchange, Ticker } from 'ccxt';
 import {
-  Exchange,
-  FTX_SUBACCOUNT_HEADER
-} from '../constants/exchanges.constants';
-import {
-  BALANCE_READ_ERROR,
-  BALANCE_READ_SUCCESS,
-  EXCHANGE_AUTHENTICATION_ERROR,
-  EXCHANGE_AUTHENTICATION_SUCCESS,
   EXCHANGE_INIT_ERROR,
   EXCHANGE_INIT_SUCCESS,
   MARKETS_READ_ERROR,
@@ -24,39 +10,38 @@ import {
   TICKER_READ_ERROR,
   TICKER_READ_SUCCESS
 } from '../messages/exchange.messages';
+import { ExchangeId } from '../constants/exchanges.constants';
 import {
-  BalancesFetchError,
   ExchangeInstanceInitError,
   MarketsFetchError,
-  TickerFetchError,
-  TradeExecutionError
+  TickerFetchError
 } from '../errors/exchange.errors';
+import { getAccountId } from '../utils/account.utils';
 import {
-  TRADE_EXECUTION_ERROR,
-  TRADE_EXECUTION_SUCCESS
-} from '../messages/trade.messages';
+  getBinanceFuturesUSDTTickerCurrentPositionSize,
+  getBinanceSpotTickerCurrentBalance
+} from '../utils/exchanges/binance.utils';
+import { getExchangeOptions } from '../utils/exchange.utils';
+import {
+  getFTXFuturesTickerCurrentPositionSize,
+  getFTXSpotTickerCurrentBalance
+} from '../utils/exchanges/ftx.utils';
+import { IMarket } from '../interfaces/market.interface';
+import { Market } from '../entities/market.entities';
+import ccxt = require('ccxt');
 
-const exchanges = new Map<string, ccxt.Exchange>();
-const tickers = new Map<string, Map<string, ccxt.Ticker>>();
-const tradingService = TradingService.getInstance();
+const exchanges = new Map<string, Exchange>();
+const tickers = new Map<string, Map<string, Ticker>>();
 
-export const getExchange = async (account: Account): Promise<ccxt.Exchange> => {
-  const { exchange, subaccount, apiKey, secret } = account;
-  const options: ccxt.Exchange['options'] = {
-    apiKey: apiKey,
-    secret: secret
-  };
-  if (exchange === Exchange.FTX && subaccount) {
-    options['headers'] = { [FTX_SUBACCOUNT_HEADER]: subaccount };
-  }
+export const getExchange = async (account: Account): Promise<Exchange> => {
+  const { exchange } = account;
+  const options = getExchangeOptions(account);
   const instance = new ccxt[exchange](options);
   await checkAccountCredentials(instance, account);
   return instance;
 };
 
-export const refreshExchange = async (
-  account: Account
-): Promise<ccxt.Exchange> => {
+export const refreshExchange = async (account: Account): Promise<Exchange> => {
   const { exchange } = account;
   const id = getAccountId(account);
   let instance = exchanges.get(id);
@@ -64,10 +49,9 @@ export const refreshExchange = async (
     try {
       const intanceExchange = await getExchange(account);
       exchanges.set(id, intanceExchange);
-      tickers.set(exchange, new Map<string, ccxt.Ticker>());
+      tickers.set(exchange, new Map<string, Ticker>());
     } catch (err) {
-      debug(err);
-      error(EXCHANGE_INIT_ERROR(id, exchange));
+      error(EXCHANGE_INIT_ERROR(id, exchange), err);
       throw new ExchangeInstanceInitError(
         EXCHANGE_INIT_ERROR(id, exchange, err.message)
       );
@@ -83,60 +67,20 @@ export const refreshExchange = async (
   return instance;
 };
 
-export const checkAccountCredentials = async (
-  exchangeInstance: ccxt.Exchange,
-  account: Account
-): Promise<void> => {
-  const { exchange } = account;
-  const id = getAccountId(account);
-  try {
-    exchangeInstance.checkRequiredCredentials();
-    await getAccountBalances(exchangeInstance, account);
-    debug(EXCHANGE_AUTHENTICATION_SUCCESS(id, exchange));
-  } catch (err) {
-    debug(err);
-    error(EXCHANGE_AUTHENTICATION_ERROR(id, exchange));
-    throw new ExchangeInstanceInitError(
-      EXCHANGE_AUTHENTICATION_ERROR(id, exchange, err.message)
-    );
-  }
-};
-
-export const getAccountBalances = async (
-  exchangeInstance: ccxt.Exchange,
-  account: Account
-): Promise<IBalance[]> => {
-  const id = getAccountId(account);
-  try {
-    const result: IBalances = await exchangeInstance.fetch_balance();
-    const balances = result.info.result.map((b) => ({
-      coin: b.coin,
-      free: b.free,
-      total: b.total
-    }));
-    debug(BALANCE_READ_SUCCESS(id));
-    return balances;
-  } catch (err) {
-    debug(err);
-    error(BALANCE_READ_ERROR(id));
-    throw new BalancesFetchError(BALANCE_READ_ERROR(id, err.message));
-  }
-};
-
 export const fetchTickerInfo = async (
-  exchangeInstance: ccxt.Exchange,
+  instance: Exchange,
   account: Account,
   symbol: string
 ): Promise<Ticker> => {
+  await refreshExchange(account);
   const { exchange } = account;
   let ticker = tickers.get(exchange).get(symbol);
   if (!ticker) {
     try {
-      const ticker: Ticker = await exchangeInstance.fetchTicker(symbol);
+      const ticker: Ticker = await instance.fetchTicker(symbol);
       tickers.get(exchange).set(symbol, ticker);
     } catch (err) {
-      debug(err);
-      error(TICKER_READ_ERROR(exchange, symbol));
+      error(TICKER_READ_ERROR(exchange, symbol), err);
       throw new TickerFetchError(
         TICKER_READ_ERROR(exchange, symbol, err.message)
       );
@@ -146,30 +90,10 @@ export const fetchTickerInfo = async (
   ticker = tickers.get(exchange).get(symbol);
   if (!ticker) {
     error(TICKER_READ_ERROR(exchange, symbol));
-    throw new ExchangeInstanceInitError(TICKER_READ_ERROR(exchange, symbol));
+    throw new TickerFetchError(TICKER_READ_ERROR(exchange, symbol));
   }
   debug(TICKER_READ_SUCCESS(exchange, symbol));
   return ticker;
-};
-
-export const executeTrade = async (
-  exchange: ccxt.Exchange,
-  account: Account,
-  trade: Trade
-): Promise<boolean> => {
-  const { stub } = account;
-  const { symbol, direction } = trade;
-  try {
-    tradingService.addTrade({ exchange, account, trade });
-    debug(TRADE_EXECUTION_SUCCESS(stub, symbol, direction));
-  } catch (err) {
-    debug(err);
-    error(TRADE_EXECUTION_ERROR(stub, symbol, direction));
-    throw new TradeExecutionError(
-      TRADE_EXECUTION_ERROR(stub, symbol, direction, err.message)
-    );
-  }
-  return true;
 };
 
 export const fetchAvailableMarkets = async (
@@ -192,8 +116,40 @@ export const fetchAvailableMarkets = async (
     debug(MARKETS_READ_SUCCESS(exchange));
     return availableMarkets;
   } catch (err) {
-    debug(err);
-    error(MARKETS_READ_ERROR(exchange));
+    error(MARKETS_READ_ERROR(exchange), err);
     throw new MarketsFetchError(MARKETS_READ_ERROR(exchange, err.message));
+  }
+};
+
+export const getTickerCurrentBalance = async (
+  instance: Exchange,
+  account: Account,
+  ticker: Ticker,
+  symbol: string
+): Promise<number> => {
+  const { exchange } = account;
+  if (exchange === ExchangeId.Binance) {
+    return await getBinanceSpotTickerCurrentBalance(
+      instance,
+      account,
+      ticker,
+      symbol
+    );
+  } else if (exchange === ExchangeId.BinanceFuturesUSD) {
+    return await getBinanceFuturesUSDTTickerCurrentPositionSize(
+      instance,
+      account,
+      ticker,
+      symbol
+    );
+  } else if (exchange === ExchangeId.FTX) {
+    return ticker.info.type === 'spot'
+      ? await getFTXSpotTickerCurrentBalance(instance, account, ticker, symbol)
+      : await getFTXFuturesTickerCurrentPositionSize(
+          instance,
+          account,
+          ticker,
+          symbol
+        );
   }
 };
