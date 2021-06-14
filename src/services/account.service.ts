@@ -25,6 +25,8 @@ import {
 import { IBalance } from '../interfaces/exchange.interfaces';
 import { Exchange } from 'ccxt';
 import { DatabaseService } from './db.service';
+import { ExchangeId } from '../constants/exchanges.constants';
+import { formatFTXSpotSymbol } from '../utils/exchanges/ftx.utils';
 
 const accounts = new Map<string, Account>();
 
@@ -140,5 +142,7 @@ export const getAccountTickerBalance = async (
   symbol: string
 ): Promise<IBalance> => {
   const balances = await getAccountBalances(instance, account);
-  return balances.filter((b) => b.coin === symbol).pop();
+  const formattedSymbol =
+    account.exchange === ExchangeId.FTX ? formatFTXSpotSymbol(symbol) : symbol;
+  return balances.filter((b) => b.coin === formattedSymbol).pop();
 };

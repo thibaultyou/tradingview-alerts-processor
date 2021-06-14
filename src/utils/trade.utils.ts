@@ -139,18 +139,16 @@ export const handleMaxBudget = async (
   const { exchange } = account;
   const id = getAccountId(account);
   const side = getTradeSide(direction);
-  if (max) {
-    const current = await getTickerCurrentBalance(
-      instance,
-      account,
-      ticker,
-      symbol
+  const current = await getTickerCurrentBalance(
+    instance,
+    account,
+    ticker,
+    symbol
+  );
+  if (current + getSizeInDollars(exchange, ticker, orderSize) > Number(max)) {
+    error(OPEN_TRADE_ERROR_MAX_SIZE(exchange, id, symbol, side, max));
+    throw new OpenPositionError(
+      OPEN_TRADE_ERROR_MAX_SIZE(exchange, id, symbol, side, max)
     );
-    if (current + getSizeInDollars(exchange, ticker, orderSize) > Number(max)) {
-      error(OPEN_TRADE_ERROR_MAX_SIZE(exchange, id, symbol, side, max));
-      throw new OpenPositionError(
-        OPEN_TRADE_ERROR_MAX_SIZE(exchange, id, symbol, side, max)
-      );
-    }
   }
 };

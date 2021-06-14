@@ -1,7 +1,7 @@
 {
   "name": "tradingview-alerts-processor",
   "version": "1.0.0",
-  "description": "Minimalist service desgined to execute TradingView webhooks and process them to [FTX](https://ftx.com/) and [Binance](https://www.binance.com/fr/futures) exchanges.",
+  "description": "Minimalist service desgined to execute TradingView webhooks and process them to cryptocurrencies exchanges.",
   "main": "server.js",
   "keywords": [],
   "author": "Thibault YOU",

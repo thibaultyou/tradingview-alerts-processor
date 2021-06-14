@@ -3,8 +3,13 @@ import { ExchangeId } from '../constants/exchanges.constants';
 import { Account } from '../entities/account.entities';
 import { updateFTXExchangeOptions } from './exchanges/ftx.utils';
 
-export const formatExchange = (exchange: ExchangeId): string =>
-  exchange === ExchangeId.FTX ? 'FTX' : 'Binance';
+const EXCHANGE_NAMES = {
+  [ExchangeId.FTX]: 'FTX',
+  [ExchangeId.Binance]: 'Binance',
+  [ExchangeId.BinanceFuturesUSD]: 'BinanceFutures'
+};
+
+export const formatExchange = (id: ExchangeId): string => EXCHANGE_NAMES[id];
 
 export const getExchangeOptions = (account: Account): Exchange['options'] => {
   const { exchange, subaccount, apiKey, secret } = account;

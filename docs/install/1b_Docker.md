@@ -5,7 +5,7 @@
 <!-- toc -->
 
 - [📦️ Instance setup](#%F0%9F%93%A6%EF%B8%8F-instance-setup)
-- [🔒️ SSH access](#%F0%9F%94%92%EF%B8%8F-ssh-access)
+- [🔒️ SSH access (optional)](#%F0%9F%94%92%EF%B8%8F-ssh-access-optional)
 - [🚀 Install and configure app](#%F0%9F%9A%80-install-and-configure-app)
 - [💄 Optional steps](#%F0%9F%92%84-optional-steps)
 
@@ -18,18 +18,19 @@
 - Deploy an VPS instance
   - Go to [AWS lightsail > Intances](https://lightsail.aws.amazon.com/ls/webapp/home/instances)
   - Select [Create instance](https://lightsail.aws.amazon.com/ls/webapp/create/instance)
-  - Select Linux/Unix > OS > __Ubuntu__
+  - Select the closest region to your exchange : _ap-northeast-1_ for Binance and FTX
+  - Select Linux/Unix > OS > __Ubuntu (latest version)__
   - Name it like you want
   - Validate creation
 
 - Add a static IP
   - Go to [AWS lightsail > Networking](https://lightsail.aws.amazon.com/ls/webapp/home/networking)
   - Select [Create static IP](https://lightsail.aws.amazon.com/ls/webapp/create/static-ip)
-  - Attach it to your instance
+  - Attach it to your instance (if you're not seeing it wait few minutes)
   - Name it like you want
   - Validate creation
 
-### 🔒️ SSH access
+### 🔒️ SSH access (optional)
 
 >
 > If you're not confident with SSH you can open a Terminal using your browser on AWS lightsail by clicking on your instance and skip this step
@@ -57,6 +58,7 @@
 
 ### 🚀 Install and configure app
 
+- Open a terminal session with your instance
 - Refresh packages and install updates :
 
     ```sh
@@ -70,25 +72,36 @@
     sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
     sudo chmod +x /usr/local/bin/docker-compose
     sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+    sudo systemctl enable docker
     ```
 
 - Download and run the app :
 
     ```sh
-    curl https://raw.githubusercontent.com/thibaultyou/tradingview-alerts-processor/master/docker-compose.yml
+    curl https://raw.githubusercontent.com/thibaultyou/tradingview-alerts-processor/master/docker-compose.yml --output docker-compose.yml
+    mkdir -p docker/db
+    sudo chown 1001 docker/db
     sudo docker-compose up -d
     ```
+
+- Once done you can check from your browser that everything is running fine on _http://YOUR.STATIC.IP.ADDRESS/health_
 
 ### 💄 Optional steps
 
 >
-> For those steps you need to be logged in your instance, see the first command in [Step 3 - Install and configure app](#%F0%9F%9A%80-install-and-configure-app)
+> For those steps you need to be logged in your instance, see the first command in [🚀 Install and configure app](#%F0%9F%9A%80-install-and-configure-app)
 >
 
-- Check app logs :
+- Check services logs (production logs) :
 
     ```sh
-    sudo docker-compose logs
+    sudo docker-compose logs -f --tail='10'
+    ```
+
+- Check all app logs (debug logs) :
+
+    ```sh
+    tail -f docker/logs/debug.log
     ```
 
 - Update the app :

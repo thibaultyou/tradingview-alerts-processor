@@ -23,6 +23,9 @@ import { PositionsFetchError } from '../../errors/exchange.errors';
 import { Side } from '../../constants/trade.constants';
 import { Trade } from '../../entities/trade.entities';
 
+export const formatFTXSpotSymbol = (symbol: string): string =>
+  symbol.split('/')[0];
+
 export const updateFTXSpotCloseOrderOptions = async (
   instance: Exchange,
   account: Account,

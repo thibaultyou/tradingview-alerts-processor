@@ -1,28 +1,30 @@
 # TradingView alerts processor
 
+[![Docker build status](https://img.shields.io/docker/cloud/build/madamefleur/tradingview-alerts-processor)](https://hub.docker.com/repository/docker/madamefleur/tradingview-alerts-processor) &nbsp; [![Docker image size](https://img.shields.io/docker/image-size/madamefleur/tradingview-alerts-processor)](https://hub.docker.com/repository/docker/madamefleur/tradingview-alerts-processor/tags?page=1&ordering=last_updated)
+
 >
 > This project is under construction 🚧
 >
 
 Minimalist service designed to execute [TradingView](https://www.tradingview.com/) webhooks and process them to cryptocurrencies exchanges from [AWS lightsail](https://lightsail.aws.amazon.com/).
 
-### :package: Installation
+### 📦 Installation
 
-Choose your method and follow steps :
+Choose install your method and follow steps :
 
-- [Recommended - Installation using AWS lightsail with Docker](docs/install/1b_Docker.md)
-- [Installation using AWS lightsail with Nodejs](docs/install/1a_Node.md)
+- [Recommended - AWS lightsail with Docker](docs/install/1b_Docker.md)
+- [AWS lightsail with Nodejs](docs/install/1a_Node.md)
 
 then you can [configure exchanges api keys](docs/install/1c_Keys.md).
 
-### :rocket: Usage
+### 🚀 Usage
 
 You can use the bot with :
 
 - [Tradingview alerts / webhooks system](docs/2_Alerts.md)
 - [HTTP requests](docs/3_Commands.md)
 
-### 💱 Supported exchanges
+### 🏦 Supported exchanges
 
 | logo                                                                                                                                                                               | id            | name                                                                        | ver | doc                                                                |
 |------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------|-----------------------------------------------------------------------------|:---:|:------------------------------------------------------------------:|

@@ -5,7 +5,7 @@
 <!-- toc -->
 
 - [📦️ Instance setup](#%F0%9F%93%A6%EF%B8%8F-instance-setup)
-- [🔒️ SSH access](#%F0%9F%94%92%EF%B8%8F-ssh-access)
+- [🔒️ SSH access (optional)](#%F0%9F%94%92%EF%B8%8F-ssh-access-optional)
 - [🚀 Install and configure app](#%F0%9F%9A%80-install-and-configure-app)
 - [💄 Optional steps](#%F0%9F%92%84-optional-steps)
 
@@ -18,6 +18,7 @@
 - Deploy an VPS instance
   - Go to [AWS lightsail > Intances](https://lightsail.aws.amazon.com/ls/webapp/home/instances)
   - Select [Create instance](https://lightsail.aws.amazon.com/ls/webapp/create/instance)
+  - Select the closest region to your exchange : _ap-northeast-1_ for Binance and FTX
   - Select Linux/Unix > Apps + OS > __Node.js__
   - Name it like you want
   - Validate creation
@@ -25,11 +26,11 @@
 - Add a static IP
   - Go to [AWS lightsail > Networking](https://lightsail.aws.amazon.com/ls/webapp/home/networking)
   - Select [Create static IP](https://lightsail.aws.amazon.com/ls/webapp/create/static-ip)
-  - Attach it to your instance
+  - Attach it to your instance (if you're not seeing it wait few minutes)
   - Name it like you want
   - Validate creation
 
-### 🔒️ SSH access
+### 🔒️ SSH access (optional)
 
 >
 > If you're not confident with SSH you can open a Terminal using your browser on AWS lightsail by clicking on your instance and skip this step
@@ -61,6 +62,7 @@
 > Your Node.js instance must be a [Bitnami one](https://aws.amazon.com/marketplace/pp/B00NNZUAKO)
 >
 
+- Open a terminal session with your instance
 - Clone the app sources :
 
     ```sh
@@ -85,7 +87,7 @@
 ### 💄 Optional steps
 
 >
-> For those steps you need to be logged in your instance, see the first command in [Step 3 - Install and configure app](#%F0%9F%9A%80-install-and-configure-app)
+> For those steps you need to be logged in your instance, see the first command in [🚀 Install and configure app](#%F0%9F%9A%80-install-and-configure-app)
 >
 
 - Check app logs :

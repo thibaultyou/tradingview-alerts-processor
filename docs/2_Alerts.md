@@ -30,3 +30,27 @@
         ```json
         { "stub": "dev", "direction": "close", "symbol": "ETH-PERP", "size": "50%" }
         ```
+
+    - Short position and close opened Long position if any :
+
+        ```json
+        { "stub": "dev", "direction": "short", "symbol": "ETH-PERP", "size": "50", "reverse": true }
+        ```
+
+    - Long position and close opened Short position if any :
+
+        ```json
+        { "stub": "dev", "direction": "long", "symbol": "ETH-PERP", "size": "50", "reverse": true }
+        ```
+
+    - Long position with a 500 $US max budget :
+
+        ```json
+        { "stub": "dev", "direction": "long", "symbol": "ETH-PERP", "size": "50", "max": "500" }
+        ```
+
+    - Short position with a 500 $US max budget :
+
+        ```json
+        { "stub": "dev", "direction": "short", "symbol": "ETH-PERP", "size": "50", "max": "500" }
+        ```

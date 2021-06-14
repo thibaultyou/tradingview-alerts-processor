@@ -163,7 +163,7 @@ export class TradingExecutor {
     account: Account,
     trade: Trade
   ): Promise<Order> => {
-    const { direction, size, symbol, reverse } = trade;
+    const { direction, size, max, symbol, reverse } = trade;
     const { exchange } = account;
     const id = getAccountId(account);
     const side = getTradeSide(direction);
@@ -173,7 +173,9 @@ export class TradingExecutor {
         await this.handleReversePosition(instance, account, trade, ticker);
       }
       const orderSize = getAverageTradeSize(exchange, ticker, size);
-      await handleMaxBudget(instance, account, ticker, trade, orderSize);
+      if (max) {
+        await handleMaxBudget(instance, account, ticker, trade, orderSize);
+      }
       const order: Order = await instance.createMarketOrder(
         symbol,
         side as 'buy' | 'sell',

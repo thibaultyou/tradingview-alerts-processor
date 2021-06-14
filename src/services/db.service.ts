@@ -12,8 +12,8 @@ export class DatabaseService {
 
   public static getDatabaseInstance = (): Database => {
     if (!DatabaseService.instance) {
-      DatabaseService.instance = new RedisDatabaseService();
-      DB === 'redis' ? new RedisDatabaseService() : new JSONDatabaseService();
+      DatabaseService.instance =
+        DB === 'redis' ? new RedisDatabaseService() : new JSONDatabaseService();
     }
     return DatabaseService.instance;
   };
