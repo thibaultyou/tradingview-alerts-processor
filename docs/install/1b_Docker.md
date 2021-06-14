@@ -1,16 +1,5 @@
 # Installation using AWS lightsail - Docker
 
-### 📚 Index
-
-<!-- toc -->
-
-- [📦️ Instance setup](#%F0%9F%93%A6%EF%B8%8F-instance-setup)
-- [🔒️ SSH access (optional)](#%F0%9F%94%92%EF%B8%8F-ssh-access-optional)
-- [🚀 Install and configure app](#%F0%9F%9A%80-install-and-configure-app)
-- [💄 Optional steps](#%F0%9F%92%84-optional-steps)
-
-<!-- tocstop -->
-
 ### 📦️ Instance setup
 
 - Create a [AWS lightsail](https://lightsail.aws.amazon.com/) account
