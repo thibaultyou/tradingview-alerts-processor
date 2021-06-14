@@ -51,7 +51,7 @@ export const writeAccount = async (account: Account): Promise<Account> => {
     }
 
     try {
-      await db.write(id, account);
+      await db.create(id, account);
       accounts.set(id, account);
       info(ACCOUNT_WRITE_SUCCESS(id));
       return readAccount(id);
@@ -70,7 +70,7 @@ export const readAccount = async (accountId: string): Promise<Account> => {
   if (!account) {
     try {
       const db = DatabaseService.getDatabaseInstance();
-      account = await db.read(id);
+      account = (await db.read(id)) as Account;
       accounts.set(id, account);
     } catch (err) {
       error(ACCOUNT_READ_ERROR(id), err);

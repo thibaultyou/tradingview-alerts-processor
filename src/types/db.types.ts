@@ -1,4 +1,4 @@
-import { JSONDatabaseService } from '../db/json.db';
-import { RedisDatabaseService } from '../db/redis.db';
+import { JSONDatabaseService } from '../services/db/json.db.service';
+import { RedisDatabaseService } from '../services/db/redis.db.service';
 
-export type Database = JSONDatabaseService | RedisDatabaseService;
+export type Database = RedisDatabaseService | JSONDatabaseService;

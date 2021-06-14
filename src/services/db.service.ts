@@ -1,8 +1,9 @@
-import { JSONDatabaseService } from '../db/json.db';
-import { RedisDatabaseService } from '../db/redis.db';
+import { DatabaseId } from '../constants/db.constants';
+import { JSONDatabaseService } from './db/json.db.service';
+import { RedisDatabaseService } from './db/redis.db.service';
 import { Database } from '../types/db.types';
 
-const DB = process.env.DATABASE_TYPE || 'json';
+const DATABASE = process.env.DATABASE_TYPE || DatabaseId.JSON;
 
 export class DatabaseService {
   private static instance: Database;
@@ -13,7 +14,9 @@ export class DatabaseService {
   public static getDatabaseInstance = (): Database => {
     if (!DatabaseService.instance) {
       DatabaseService.instance =
-        DB === 'redis' ? new RedisDatabaseService() : new JSONDatabaseService();
+        DATABASE === DatabaseId.REDIS
+          ? new RedisDatabaseService()
+          : new JSONDatabaseService();
     }
     return DatabaseService.instance;
   };
