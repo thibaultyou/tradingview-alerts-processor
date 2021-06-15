@@ -35,7 +35,7 @@ You can use the bot with :
 
 ### 🚧 Features
 
-- add / read / delete account (or FTX subaccount) configuration
+- add / read / delete account (or subaccount for FTX) configuration
 - open a Long / Short position (futures) or Buy / Sell a token (spot) in $US
 - close a position or a percentage of it
 - close a position and open another in the opposite direction (Futures only)
@@ -46,15 +46,17 @@ You can use the bot with :
 
 Coming soon :
 
+- trading modes for spot markets
 - leverage config for Binance
 - additional tickers / account and exchanges checks
 - AWS container service install
+- missing endpoints : logs, orders, positions
 - better logging system
 - relative account position sizing
-- storage upgrade
 - Kucoin support
 - Kraken support
 - limit orders
+- multiple commands at once
 - more metrics
 - web UI
 
