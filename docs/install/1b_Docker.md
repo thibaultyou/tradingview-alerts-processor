@@ -101,7 +101,7 @@
     ```
 
 - Restrict commands to Tradingview alerts system only, __once activated you'll not be able to send commands from your computer with HTTP requests, please [add your accounts](./1c_Keys.md) before using this__ :
-  - Go to [AWS lightsail > Networking](https://lightsail.aws.amazon.com/ls/webapp/home/networking)
+  - Go to AWS lightsail > your instance > Networking
   - Add a filter rule on TCP port 80
   - Check restrict to IP
   - Add the following :
