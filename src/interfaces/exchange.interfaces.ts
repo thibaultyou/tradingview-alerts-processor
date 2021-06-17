@@ -38,3 +38,5 @@ export interface IBinanceFuturesUSDPosition {
   isolatedWallet: string;
   updateTime: string;
 }
+
+export type FuturesPosition = IFTXFuturesPosition | IBinanceFuturesUSDPosition;

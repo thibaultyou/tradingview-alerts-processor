@@ -1,5 +1,4 @@
 import { Request, Response } from 'express';
-import { refreshExchange } from '../services/exchange.service';
 import { readAccount } from '../services/account.service';
 import { Trade } from '../entities/trade.entities';
 import { getTradeSide } from '../utils/trade.utils';
@@ -12,9 +11,7 @@ export const postTrade = async (req: Request, res: Response): Promise<void> => {
   const side = getTradeSide(direction);
   try {
     const account = await readAccount(stub);
-    const exchange = await refreshExchange(account);
     TradingService.getTradeExecutor(account.exchange).addTrade(
-      exchange,
       account,
       req.body
     );

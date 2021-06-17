@@ -4,11 +4,7 @@ import {
   ACCOUNT_READ_SUCCESS,
   ACCOUNT_WRITE_SUCCESS
 } from '../messages/account.messages';
-import {
-  formatAccount,
-  formatAccountStub,
-  getAccountId
-} from '../utils/account.utils';
+import { formatAccount, formatAccountStub } from '../utils/account.utils';
 import {
   writeAccount,
   readAccount,
@@ -21,7 +17,7 @@ export const postAccount = async (
   res: Response
 ): Promise<void> => {
   const account = formatAccount(req.body);
-  const id = getAccountId(account);
+  const id = account.stub.toUpperCase();
   try {
     await writeAccount(account);
     res.write(
