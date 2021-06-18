@@ -4,6 +4,12 @@ export enum ExchangeId {
   BinanceFuturesUSD = 'binanceusdm'
 }
 
+export const EXCHANGES_NAMES = {
+  [ExchangeId.FTX]: 'FTX',
+  [ExchangeId.Binance]: 'Binance',
+  [ExchangeId.BinanceFuturesUSD]: 'BinanceFutures'
+};
+
 export const EXCHANGES = [
   ExchangeId.Binance,
   ExchangeId.FTX,

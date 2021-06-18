@@ -1,6 +1,6 @@
 import { ExchangeId } from '../constants/exchanges.constants';
 import { Side } from '../constants/trade.constants';
-import { formatExchange } from '../utils/exchange.utils';
+import { formatExchange } from '../utils/exchanges/common.exchange.utils';
 
 export const TRADE_EXECUTION_SUCCESS = (
   exchange: ExchangeId,
@@ -97,6 +97,15 @@ export const REVERSING_TRADE = (
   `Trading - ${formatExchange(
     exchange
   )}/${accountId} - xxx Reversing / closing if overflow position on ${symbol}.`;
+
+export const REVERSING_TRADE_ERROR = (
+  exchange: ExchangeId,
+  accountId: string,
+  symbol: string
+): string =>
+  `Trading - ${formatExchange(
+    exchange
+  )}/${accountId} - Failed to reverse position on ${symbol}.`;
 
 export const OPEN_TRADE_ERROR = (
   exchange: ExchangeId,

@@ -23,19 +23,37 @@ import {
   ExchangeId
 } from '../constants/exchanges.constants';
 import { ExchangeService } from '../types/exchanges.types';
-import { getExchangeService } from '../utils/exchange.utils';
+import { BinanceFuturesUSDMExchangeService } from '../services/exchanges/binance-usdm.futures.exchange.service';
+import { BinanceSpotExchangeService } from '../services/exchanges/binance.spot.exchange.service';
+import { FTXExchangeService } from '../services/exchanges/ftx.exchange.service';
+
+export const initExchangeService = (
+  exchangeId: ExchangeId
+): ExchangeService => {
+  switch (exchangeId) {
+    case ExchangeId.Binance:
+      return new BinanceSpotExchangeService();
+    case ExchangeId.BinanceFuturesUSD:
+      return new BinanceFuturesUSDMExchangeService();
+    case ExchangeId.FTX:
+    default:
+      return new FTXExchangeService();
+  }
+};
 
 export class TradingExecutor {
   private isStarted = false;
   private executionLoop: NodeJS.Timeout;
   private id: ExchangeId;
-  exchangeService: ExchangeService;
+  private exchangeService: ExchangeService;
   private trades: ITradeInfo[] = [];
 
   constructor(id: ExchangeId) {
     this.id = id;
-    this.exchangeService = getExchangeService(id);
+    this.exchangeService = initExchangeService(id);
   }
+
+  getExchangeService = (): ExchangeService => this.exchangeService;
 
   getStatus = (): boolean => this.isStarted;
 

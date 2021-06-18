@@ -1,59 +1,76 @@
 import { Exchange, Order, Ticker } from 'ccxt';
-import { Account } from '../../entities/account.entities';
-import { IBalance } from '../../interfaces/exchange.interfaces';
-import { ExchangeId } from '../../constants/exchanges.constants';
-import { getAccountId } from '../../utils/account.utils';
+import { Account } from '../../../entities/account.entities';
+import { ExchangeId } from '../../../constants/exchanges.constants';
+import { getAccountId } from '../../../utils/account.utils';
 import ccxt = require('ccxt');
 import {
-  BALANCE_READ_ERROR,
-  BALANCE_READ_SUCCESS,
-  EXCHANGE_AUTHENTICATION_ERROR,
-  EXCHANGE_AUTHENTICATION_SUCCESS,
   EXCHANGE_INIT_ERROR,
   EXCHANGE_INIT_SUCCESS,
   TICKER_READ_ERROR,
   TICKER_READ_SUCCESS
-} from '../../messages/exchange.messages';
-import { close, debug, error, long, short } from '../logger.service';
+} from '../../../messages/exchange.messages';
+import { close, debug, error, long, short } from '../../logger.service';
 import {
-  BalancesFetchError,
   ExchangeInstanceInitError,
   TickerFetchError
-} from '../../errors/exchange.errors';
-import { Trade } from '../../entities/trade.entities';
-import { IOrderOptions } from '../../interfaces/trade.interface';
+} from '../../../errors/exchange.errors';
+import { Trade } from '../../../entities/trade.entities';
+import { IOrderOptions } from '../../../interfaces/trade.interface';
 import {
   CLOSE_TRADE_ERROR,
   CLOSE_TRADE_SUCCESS,
   OPEN_LONG_TRADE_SUCCESS,
   OPEN_SHORT_TRADE_SUCCESS,
-  OPEN_TRADE_ERROR,
-  OPEN_TRADE_ERROR_MAX_SIZE,
-  REVERSING_TRADE
-} from '../../messages/trade.messages';
+  OPEN_TRADE_ERROR
+} from '../../../messages/trade.messages';
 import {
   ClosePositionError,
   OpenPositionError
-} from '../../errors/trade.errors';
-import { Side, TradingMode } from '../../constants/trade.constants';
-import { getAverageTradeSize, getTradeSide } from '../../utils/trade.utils';
-import { formatBalances, getExchangeOptions } from '../../utils/exchange.utils';
+} from '../../../errors/trade.errors';
+import { Side, TradingMode } from '../../../constants/trade.constants';
+import { getAverageTradeSize, getTradeSide } from '../../../utils/trade.utils';
+import { getExchangeOptions } from '../../../utils/exchanges/common.exchange.utils';
 
-interface Session {
+export interface Session {
   account: Account;
   exchange: Exchange;
 }
 
 export abstract class CommonExchangeService {
   exchangeId: ExchangeId;
-  private defaultExchange: Exchange;
-  sessions = new Map<string, Session>(); // account id, exchange session
-  private tickers = new Map<string, Ticker>(); // symbol, ticker infos
+  defaultExchange: Exchange;
+  sessions = new Map<string, Session>(); // account id, exchange session`
+  tickers = new Map<string, Ticker>(); // symbol, ticker infos
 
   constructor(exchangeId: ExchangeId) {
     this.exchangeId = exchangeId;
     this.defaultExchange = new ccxt[exchangeId]();
   }
+
+  abstract getTokenAmountInDollars(ticker: Ticker, size: number): number;
+
+  abstract getCloseOrderOptions(
+    account: Account,
+    ticker: Ticker
+  ): Promise<IOrderOptions>;
+
+  abstract handleReverseOrder(
+    account: Account,
+    ticker: Ticker,
+    trade: Trade
+  ): Promise<void>;
+
+  abstract checkCredentials(
+    account: Account,
+    instance: Exchange
+  ): Promise<boolean>;
+
+  abstract handleMaxBudget(
+    account: Account,
+    ticker: Ticker,
+    trade: Trade,
+    orderSize: number
+  ): Promise<void>;
 
   refreshSession = async (account: Account): Promise<Session> => {
     const accountId = getAccountId(account);
@@ -83,44 +100,6 @@ export abstract class CommonExchangeService {
     return session;
   };
 
-  getBalances = async (
-    account: Account,
-    instance?: Exchange
-  ): Promise<IBalance[]> => {
-    const accountId = getAccountId(account);
-    try {
-      if (!instance) {
-        instance = (await this.refreshSession(account)).exchange;
-      }
-      // we don't use fetchBalance() because coin is not returned
-      const balances = await instance.fetch_balance();
-      debug(BALANCE_READ_SUCCESS(this.exchangeId, accountId));
-      return formatBalances(this.exchangeId, balances);
-    } catch (err) {
-      error(BALANCE_READ_ERROR(this.exchangeId, accountId), err);
-      throw new BalancesFetchError(
-        BALANCE_READ_ERROR(this.exchangeId, accountId, err.message)
-      );
-    }
-  };
-
-  private checkCredentials = async (
-    account: Account,
-    instance: Exchange
-  ): Promise<boolean> => {
-    const accountId = getAccountId(account);
-    try {
-      await this.getBalances(account, instance);
-      debug(EXCHANGE_AUTHENTICATION_SUCCESS(accountId, this.exchangeId));
-    } catch (err) {
-      error(EXCHANGE_AUTHENTICATION_ERROR(accountId, this.exchangeId), err);
-      throw new ExchangeInstanceInitError(
-        EXCHANGE_AUTHENTICATION_ERROR(accountId, this.exchangeId, err.message)
-      );
-    }
-    return true;
-  };
-
   getTicker = async (symbol: string): Promise<Ticker> => {
     let ticker = this.tickers.get(symbol);
     if (!ticker) {
@@ -143,15 +122,6 @@ export abstract class CommonExchangeService {
     debug(TICKER_READ_SUCCESS(this.exchangeId, symbol));
     return ticker;
   };
-
-  abstract getTokenAmountInDollars(ticker: Ticker, size: number): number;
-
-  abstract getTickerBalance(account: Account, ticker: Ticker): Promise<number>;
-
-  abstract getCloseOrderOptions(
-    account: Account,
-    ticker: Ticker
-  ): Promise<IOrderOptions>;
 
   closeOrder = async (
     account: Account,
@@ -199,15 +169,7 @@ export abstract class CommonExchangeService {
     try {
       const ticker = await this.getTicker(symbol);
       if (mode === TradingMode.Reverse || mode === TradingMode.Overflow) {
-        const isClosingNeeded = await this.getClosingStatus(
-          account,
-          ticker,
-          trade
-        );
-        if (isClosingNeeded) {
-          debug(REVERSING_TRADE(this.exchangeId, accountId, symbol));
-          await this.closeOrder(account, trade, ticker);
-        }
+        await this.handleReverseOrder(account, ticker, trade);
         if (mode === TradingMode.Overflow) {
           return;
         }
@@ -234,32 +196,4 @@ export abstract class CommonExchangeService {
       );
     }
   };
-
-  handleMaxBudget = async (
-    account: Account,
-    ticker: Ticker,
-    trade: Trade,
-    orderSize: number
-  ): Promise<void> => {
-    const { symbol, max, direction } = trade;
-    const { exchange } = account;
-    const id = getAccountId(account);
-    const side = getTradeSide(direction);
-    const current = await this.getTickerBalance(account, ticker);
-    if (
-      current + this.getTokenAmountInDollars(ticker, orderSize) >
-      Number(max)
-    ) {
-      error(OPEN_TRADE_ERROR_MAX_SIZE(exchange, id, symbol, side, max));
-      throw new OpenPositionError(
-        OPEN_TRADE_ERROR_MAX_SIZE(exchange, id, symbol, side, max)
-      );
-    }
-  };
-
-  abstract getClosingStatus(
-    account: Account,
-    ticker: Ticker,
-    trade: Trade
-  ): Promise<boolean>;
 }

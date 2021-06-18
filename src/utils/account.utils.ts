@@ -1,9 +1,7 @@
 import { Account, AccountStub } from '../entities/account.entities';
 
-export const getAccountId = (account: Account): string => {
-  const { subaccount, stub } = account;
-  return subaccount ? subaccount : stub;
-};
+export const getAccountId = (account: Account): string =>
+  account.stub.toUpperCase();
 
 export const formatAccount = (account: Account): Account => {
   const { apiKey, exchange, secret, stub, subaccount } = account;

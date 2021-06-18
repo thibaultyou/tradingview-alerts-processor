@@ -1,21 +1,31 @@
-import { Ticker } from 'ccxt';
+import { Exchange, Ticker } from 'ccxt';
 import { ExchangeId } from '../../constants/exchanges.constants';
 import { Side } from '../../constants/trade.constants';
 import { Account } from '../../entities/account.entities';
 import { Trade } from '../../entities/trade.entities';
-import { PositionsFetchError } from '../../errors/exchange.errors';
+import {
+  ExchangeInstanceInitError,
+  PositionsFetchError
+} from '../../errors/exchange.errors';
+import { OpenPositionError } from '../../errors/trade.errors';
 import { IBinanceFuturesUSDPosition } from '../../interfaces/exchange.interfaces';
 import { IOrderOptions } from '../../interfaces/trade.interface';
 import {
+  EXCHANGE_AUTHENTICATION_ERROR,
+  EXCHANGE_AUTHENTICATION_SUCCESS,
   POSITIONS_READ_ERROR,
   POSITIONS_READ_SUCCESS
 } from '../../messages/exchange.messages';
-import { OPEN_TRADE_NO_CURRENT_OPENED_POSITION } from '../../messages/trade.messages';
+import {
+  OPEN_TRADE_ERROR_MAX_SIZE,
+  OPEN_TRADE_NO_CURRENT_OPENED_POSITION,
+  REVERSING_TRADE
+} from '../../messages/trade.messages';
 import { getAccountId } from '../../utils/account.utils';
-import { formatBinanceFuturesSymbol } from '../../utils/exchange.utils';
+import { formatBinanceFuturesSymbol } from '../../utils/exchanges/binance.exchange.utils';
 import { getTradeSide } from '../../utils/trade.utils';
 import { debug, error } from '../logger.service';
-import { FuturesExchangeService } from './futures.exchange.service';
+import { FuturesExchangeService } from './base/futures.exchange.service';
 
 export class BinanceFuturesUSDMExchangeService extends FuturesExchangeService {
   constructor() {
@@ -29,45 +39,39 @@ export class BinanceFuturesUSDMExchangeService extends FuturesExchangeService {
     return dollars;
   };
 
-  getTickerBalance = async (
+  checkCredentials = async (
     account: Account,
-    ticker: Ticker
-  ): Promise<number> => {
+    instance: Exchange
+  ): Promise<boolean> => {
     const accountId = getAccountId(account);
-    const symbol = formatBinanceFuturesSymbol(ticker.symbol);
-    // TODO catch err
-    const position = (await this.getTickerPosition(
-      account,
-      ticker
-    )) as IBinanceFuturesUSDPosition;
-    if (position) {
-      return this.getTokenAmountInDollars(ticker, Number(position.notional));
-    } else {
-      debug(
-        OPEN_TRADE_NO_CURRENT_OPENED_POSITION(
-          accountId,
-          this.exchangeId,
-          symbol
-        )
+    try {
+      await this.getPositions(account, instance);
+      debug(EXCHANGE_AUTHENTICATION_SUCCESS(accountId, this.exchangeId));
+    } catch (err) {
+      error(EXCHANGE_AUTHENTICATION_ERROR(accountId, this.exchangeId), err);
+      throw new ExchangeInstanceInitError(
+        EXCHANGE_AUTHENTICATION_ERROR(accountId, this.exchangeId, err.message)
       );
     }
+    return true;
   };
 
   getTickerPosition = async (
     account: Account,
     ticker: Ticker
   ): Promise<IBinanceFuturesUSDPosition> => {
+    const accountId = getAccountId(account);
     const symbol = formatBinanceFuturesSymbol(ticker.symbol);
     const positions = await this.getPositions(account);
     const position = positions.filter((p) => p.symbol === symbol).pop();
     if (!position) {
-      // TODO debug
-      // debug(
-      //   OPEN_TRADE_NO_CURRENT_OPENED_POSITION(
-      //     accountId,
-      //     this.exchangeId,
-      //     symbol
-      //   )
+      debug(
+        OPEN_TRADE_NO_CURRENT_OPENED_POSITION(
+          accountId,
+          this.exchangeId,
+          ticker.symbol
+        )
+      );
     }
     return position;
   };
@@ -83,13 +87,15 @@ export class BinanceFuturesUSDMExchangeService extends FuturesExchangeService {
   };
 
   getPositions = async (
-    account: Account
+    account: Account,
+    instance?: Exchange
   ): Promise<IBinanceFuturesUSDPosition[]> => {
     const accountId = getAccountId(account);
     try {
-      const positions = await this.sessions
-        .get(accountId)
-        .exchange.fetchPositions();
+      if (!instance) {
+        instance = (await this.refreshSession(account)).exchange;
+      }
+      const positions = await instance.fetchPositions();
       debug(POSITIONS_READ_SUCCESS(accountId, this.exchangeId));
       return positions;
     } catch (err) {
@@ -112,20 +118,44 @@ export class BinanceFuturesUSDMExchangeService extends FuturesExchangeService {
     };
   };
 
-  getClosingStatus = async (
+  handleReverseOrder = async (
     account: Account,
     ticker: Ticker,
     trade: Trade
-  ): Promise<boolean> => {
+  ): Promise<void> => {
     const { direction } = trade;
+    const accountId = getAccountId(account);
     const side = getTradeSide(direction);
     const size = await this.getTickerPositionSize(account, ticker);
     if (
       size &&
       ((size < 0 && side === Side.Buy) || (size > 0 && side === Side.Sell))
     ) {
-      return true;
+      debug(REVERSING_TRADE(this.exchangeId, accountId, ticker.symbol));
+      await this.closeOrder(account, trade, ticker);
     }
-    return false;
+  };
+
+  handleMaxBudget = async (
+    account: Account,
+    ticker: Ticker,
+    trade: Trade,
+    orderSize: number
+  ): Promise<void> => {
+    const { symbol, max, direction } = trade;
+    const accountId = getAccountId(account);
+    const side = getTradeSide(direction);
+    const current = await this.getTickerPositionSize(account, ticker);
+    if (
+      current + this.getTokenAmountInDollars(ticker, orderSize) >
+      Number(max)
+    ) {
+      error(
+        OPEN_TRADE_ERROR_MAX_SIZE(this.exchangeId, accountId, symbol, side, max)
+      );
+      throw new OpenPositionError(
+        OPEN_TRADE_ERROR_MAX_SIZE(this.exchangeId, accountId, symbol, side, max)
+      );
+    }
   };
 }

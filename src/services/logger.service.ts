@@ -45,7 +45,10 @@ export const warning = (message: string): void => {
   consoleLogger.warn(message);
 };
 
-export const error = (message: string, error?: Record<string, any>): void => {
+export const error = (
+  message: string,
+  error?: Record<string, unknown>
+): void => {
   if (!error) {
     logger.error(message);
     consoleLogger.error(message);

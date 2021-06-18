@@ -1,25 +1,73 @@
 import { ExchangeId } from '../../constants/exchanges.constants';
 import { Account } from '../../entities/account.entities';
-import { IFTXFuturesPosition } from '../../interfaces/exchange.interfaces';
+import {
+  IBalance,
+  IFTXFuturesPosition
+} from '../../interfaces/exchange.interfaces';
 import { getAccountId } from '../../utils/account.utils';
-import { FuturesExchangeService } from './futures.exchange.service';
-import { Ticker } from 'ccxt';
+import { Exchange, Order, Ticker } from 'ccxt';
 import { getInvertedTradeSide, getTradeSide } from '../../utils/trade.utils';
 import { Side } from '../../constants/trade.constants';
 import { IOrderOptions } from '../../interfaces/trade.interface';
 import {
+  EXCHANGE_AUTHENTICATION_ERROR,
+  EXCHANGE_AUTHENTICATION_SUCCESS,
   POSITIONS_READ_ERROR,
-  POSITIONS_READ_SUCCESS
+  POSITIONS_READ_SUCCESS,
+  TICKER_BALANCE_READ_ERROR,
+  TICKER_BALANCE_READ_SUCCESS
 } from '../../messages/exchange.messages';
 import { debug, error } from '../logger.service';
-import { PositionsFetchError } from '../../errors/exchange.errors';
+import {
+  ExchangeInstanceInitError,
+  PositionsFetchError,
+  TickerFetchError
+} from '../../errors/exchange.errors';
 import { Trade } from '../../entities/trade.entities';
-import { formatFTXSpotSymbol } from '../../utils/exchange.utils';
+import {
+  formatFTXSpotSymbol,
+  isFTXSpot
+} from '../../utils/exchanges/ftx.exchange.utils';
+import {
+  OPEN_TRADE_ERROR_MAX_SIZE,
+  OPEN_TRADE_NO_CURRENT_OPENED_POSITION,
+  REVERSING_TRADE
+} from '../../messages/trade.messages';
+import { Session } from './base/common.exchange.service';
+import { OpenPositionError } from '../../errors/trade.errors';
+import { CompositeExchangeService } from './base/composite.exchange.service';
 
-export class FTXExchangeService extends FuturesExchangeService {
+export class FTXExchangeService extends CompositeExchangeService {
   constructor() {
     super(ExchangeId.FTX);
   }
+
+  refreshSession: (account: Account) => Promise<Session>;
+  getBalances: (account: Account, instance?: Exchange) => Promise<IBalance[]>;
+  getTicker: (symbol: string) => Promise<Ticker>;
+  closeOrder: (
+    account: Account,
+    trade: Trade,
+    ticker?: Ticker
+  ) => Promise<Order>;
+  openOrder: (account: Account, trade: Trade) => Promise<Order>;
+
+  checkCredentials = async (
+    account: Account,
+    instance: Exchange
+  ): Promise<boolean> => {
+    const accountId = getAccountId(account);
+    try {
+      await this.getBalances(account, instance);
+      debug(EXCHANGE_AUTHENTICATION_SUCCESS(accountId, this.exchangeId));
+    } catch (err) {
+      error(EXCHANGE_AUTHENTICATION_ERROR(accountId, this.exchangeId), err);
+      throw new ExchangeInstanceInitError(
+        EXCHANGE_AUTHENTICATION_ERROR(accountId, this.exchangeId, err.message)
+      );
+    }
+    return true;
+  };
 
   getTokenAmountInDollars = (ticker: Ticker, size: number): number => {
     const { ask, bid } = ticker;
@@ -32,17 +80,19 @@ export class FTXExchangeService extends FuturesExchangeService {
     account: Account,
     ticker: Ticker
   ): Promise<number> => {
+    const accountId = getAccountId(account);
     const symbol = formatFTXSpotSymbol(ticker.symbol);
     try {
       const balances = await this.getBalances(account);
       const balance = balances.filter((b) => b.coin === symbol).pop();
-      if (!balance) {
-        // TODO debug
-      }
-      return this.getTokenAmountInDollars(ticker, Number(balance.free));
+      const size = this.getTokenAmountInDollars(ticker, Number(balance.free));
+      debug(TICKER_BALANCE_READ_SUCCESS(this.exchangeId, accountId, symbol));
+      return size;
     } catch (err) {
-      // TODO error
-      // TODO throw
+      error(TICKER_BALANCE_READ_ERROR(this.exchangeId, accountId, symbol, err));
+      throw new TickerFetchError(
+        TICKER_BALANCE_READ_ERROR(this.exchangeId, accountId, symbol, err)
+      );
     }
   };
 
@@ -54,8 +104,8 @@ export class FTXExchangeService extends FuturesExchangeService {
       size: 0,
       side: 'sell'
     };
-    if (ticker.info.type === 'spot') {
-      ticker.info.baseCurrency;
+    // we add a check since FTX is a composite exchange
+    if (isFTXSpot(ticker)) {
       const balance = await this.getTickerBalance(account, ticker);
       if (balance) {
         options = {
@@ -65,10 +115,7 @@ export class FTXExchangeService extends FuturesExchangeService {
       }
     } else {
       const symbol = ticker.info.name;
-      const positions = await this.getPositions(account);
-      const position = positions
-        .filter((p: IFTXFuturesPosition) => p.future === symbol)
-        .pop();
+      const position = await this.getTickerPosition(account, symbol);
       if (position) {
         options = {
           size: Number(position.size),
@@ -84,16 +131,17 @@ export class FTXExchangeService extends FuturesExchangeService {
     account: Account,
     ticker: Ticker
   ): Promise<IFTXFuturesPosition> => {
+    const accountId = getAccountId(account);
     const positions = await this.getPositions(account);
     const position = positions.filter((p) => p.future === ticker.symbol).pop();
     if (!position) {
-      // TODO debug
-      // debug(
-      //   OPEN_TRADE_NO_CURRENT_OPENED_POSITION(
-      //     accountId,
-      //     this.exchangeId,
-      //     symbol
-      //   )
+      debug(
+        OPEN_TRADE_NO_CURRENT_OPENED_POSITION(
+          accountId,
+          this.exchangeId,
+          ticker.symbol
+        )
+      );
     }
     return position;
   };
@@ -125,20 +173,51 @@ export class FTXExchangeService extends FuturesExchangeService {
     }
   };
 
-  getClosingStatus = async (
+  handleReverseOrder = async (
     account: Account,
     ticker: Ticker,
     trade: Trade
-  ): Promise<boolean> => {
+  ): Promise<void> => {
     const { direction } = trade;
+    const accountId = getAccountId(account);
     const side = getTradeSide(direction);
+    // TODO handle err
     const position = await this.getTickerPosition(account, ticker);
     if (position) {
-      const size = this.getTokenAmountInDollars(ticker, Number(position.size));
-      if (size && getTradeSide(position.side as Side) !== side) {
-        return true;
+      const positionSize = this.getTokenAmountInDollars(
+        ticker,
+        Number(position.size)
+      );
+      const positionSide = getTradeSide(position.side as Side);
+      if (positionSize && positionSide !== side) {
+        debug(REVERSING_TRADE(this.exchangeId, accountId, ticker.symbol));
+        await this.closeOrder(account, trade, ticker);
       }
     }
-    return false;
+  };
+
+  handleMaxBudget = async (
+    account: Account,
+    ticker: Ticker,
+    trade: Trade,
+    orderSize: number
+  ): Promise<void> => {
+    const { symbol, max, direction } = trade;
+    const { exchange } = account;
+    const id = getAccountId(account);
+    const side = getTradeSide(direction);
+    // we add a check since FTX is a composite exchange
+    const current = isFTXSpot(ticker)
+      ? await this.getTickerBalance(account, ticker)
+      : await this.getTickerPositionSize(account, ticker);
+    if (
+      current + this.getTokenAmountInDollars(ticker, orderSize) >
+      Number(max)
+    ) {
+      error(OPEN_TRADE_ERROR_MAX_SIZE(exchange, id, symbol, side, max));
+      throw new OpenPositionError(
+        OPEN_TRADE_ERROR_MAX_SIZE(exchange, id, symbol, side, max)
+      );
+    }
   };
 }

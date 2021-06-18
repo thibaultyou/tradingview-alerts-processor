@@ -12,13 +12,13 @@ import {
 import { AccountReadError, AccountWriteError } from '../errors/account.errors';
 import { DatabaseService } from './db.service';
 import { TradingService } from './trade.service';
+import { getAccountId } from '../utils/account.utils';
 
 const accounts = new Map<string, Account>();
 
 export const writeAccount = async (account: Account): Promise<Account> => {
-  const { stub, exchange } = account;
-  const id = stub.toUpperCase();
-
+  const { exchange } = account;
+  const id = getAccountId(account);
   let db;
   try {
     db = DatabaseService.getDatabaseInstance();
@@ -29,9 +29,9 @@ export const writeAccount = async (account: Account): Promise<Account> => {
     }
   } catch (err) {
     try {
-      await TradingService.getTradeExecutor(
-        exchange
-      ).exchangeService.refreshSession(account);
+      await TradingService.getTradeExecutor(exchange)
+        .getExchangeService()
+        .refreshSession(account);
     } catch (err) {
       error(ACCOUNT_WRITE_ERROR(id), err);
       throw new AccountWriteError(ACCOUNT_WRITE_ERROR(id, err.message));

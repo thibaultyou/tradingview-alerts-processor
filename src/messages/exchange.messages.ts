@@ -1,7 +1,28 @@
 import { ExchangeId } from '../constants/exchanges.constants';
-import { formatExchange } from '../utils/exchange.utils';
+import { formatExchange } from '../utils/exchanges/common.exchange.utils';
 
-export const BALANCE_READ_SUCCESS = (
+export const TICKER_BALANCE_READ_SUCCESS = (
+  exchange: ExchangeId,
+  accountId: string,
+  symbol: string
+): string =>
+  `Balances - ${formatExchange(
+    exchange
+  )}/${accountId} - ${symbol} ticker balance successfully fetched.`;
+
+export const TICKER_BALANCE_READ_ERROR = (
+  exchange: ExchangeId,
+  accountId: string,
+  symbol: string,
+  err?: string
+): string =>
+  `Balances - ${formatExchange(
+    exchange
+  )}/${accountId} - Unable to fetch ${symbol} ticker balance${
+    err ? ' -> ' + err : ''
+  }.`;
+
+export const BALANCES_READ_SUCCESS = (
   exchange: ExchangeId,
   accountId: string
 ): string =>
@@ -9,7 +30,7 @@ export const BALANCE_READ_SUCCESS = (
     exchange
   )}/${accountId} - Balances successfully fetched.`;
 
-export const BALANCE_READ_ERROR = (
+export const BALANCES_READ_ERROR = (
   exchange: ExchangeId,
   accountId: string,
   err?: string
