@@ -22,18 +22,6 @@
     curl -d '{"stub": "sub" }' -X DELETE http://YOUR.STATIC.IP.ADDRESS/accounts -H 'Content-Type: application/json; charset=utf-8'
     ```
 
-- __List balances__ on `sub` account :
-
-    ```sh
-    curl -d '{"stub": "sub" }' -X GET http://YOUR.STATIC.IP.ADDRESS/balances -H 'Content-Type: application/json; charset=utf-8'
-    ```
-
-- __List available markets__ on a specific exchange :
-
-    ```sh
-    curl -d '{"exchange": "ftx" }' -X GET http://YOUR.STATIC.IP.ADDRESS/markets -H 'Content-Type: application/json; charset=utf-8'
-    ```
-
 - __Open a long position__ of 11$ on ETH-PERP using `test` account :
 
     ```sh

@@ -1,11 +1,14 @@
 import { Exchange, Ticker } from 'ccxt';
 import { Account } from '../../../entities/account.entities';
-import { FuturesPosition } from '../../../interfaces/exchange.interfaces';
-import { Trade } from '../../../entities/trade.entities';
+import { IFuturesExchange } from '../../../interfaces/exchange.interfaces';
+import { FuturesPosition } from '../../../types/exchanges.types';
 import { SpotExchangeService } from './spot.exchange.service';
 
-// FIXME I'm not proud of this, need to replace by mixin
-export abstract class CompositeExchangeService extends SpotExchangeService {
+// FIXME can be replaced by a mixin
+export abstract class CompositeExchangeService
+  extends SpotExchangeService
+  implements IFuturesExchange
+{
   abstract getPositions(
     account: Account,
     instance?: Exchange
@@ -20,10 +23,4 @@ export abstract class CompositeExchangeService extends SpotExchangeService {
     account: Account,
     ticker: Ticker
   ): Promise<number>;
-
-  abstract handleReverseOrder(
-    account: Account,
-    ticker: Ticker,
-    trade: Trade
-  ): Promise<void>;
 }

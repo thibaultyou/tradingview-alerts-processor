@@ -6,22 +6,16 @@ import {
 } from '../../constants/exchanges.constants';
 import { Account } from '../../entities/account.entities';
 import { IBalance } from '../../interfaces/exchange.interfaces';
+import { formatBinanceSpotBalances } from './binance.exchange.utils';
+import { formatFTXSpotBalances } from './ftx.exchange.utils';
 
 export const formatExchange = (id: ExchangeId): string => EXCHANGES_NAMES[id];
 
-// FIXME refacto / remove any
+// FIXME remove any
 export const formatBalances = (id: ExchangeId, balances: any): IBalance[] => {
   return id === ExchangeId.FTX
-    ? balances.info.result.map((b: IBalance) => ({
-        coin: b.coin,
-        free: b.free,
-        total: b.total
-      }))
-    : balances.info.balances.map((b: any) => ({
-        coin: b.asset,
-        free: b.free,
-        total: Number(b.free) + Number(b.locked)
-      }));
+    ? formatFTXSpotBalances(balances)
+    : formatBinanceSpotBalances(balances);
 };
 
 export const getExchangeOptions = (
@@ -33,6 +27,7 @@ export const getExchangeOptions = (
     apiKey: apiKey,
     secret: secret
   };
+  // FIXME refacto / rmeove specific configs
   if (exchangeId === ExchangeId.FTX && subaccount) {
     options['headers'] = { [FTX_SUBACCOUNT_HEADER]: subaccount };
   }

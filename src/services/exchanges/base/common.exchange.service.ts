@@ -30,16 +30,15 @@ import {
 import { Side, TradingMode } from '../../../constants/trade.constants';
 import { getAverageTradeSize, getTradeSide } from '../../../utils/trade.utils';
 import { getExchangeOptions } from '../../../utils/exchanges/common.exchange.utils';
+import {
+  ICommonExchange,
+  ISession
+} from '../../../interfaces/exchange.interfaces';
 
-export interface Session {
-  account: Account;
-  exchange: Exchange;
-}
-
-export abstract class CommonExchangeService {
+export abstract class CommonExchangeService implements ICommonExchange {
   exchangeId: ExchangeId;
   defaultExchange: Exchange;
-  sessions = new Map<string, Session>(); // account id, exchange session`
+  sessions = new Map<string, ISession>(); // account id, exchange session`
   tickers = new Map<string, Ticker>(); // symbol, ticker infos
 
   constructor(exchangeId: ExchangeId) {
@@ -54,12 +53,6 @@ export abstract class CommonExchangeService {
     ticker: Ticker
   ): Promise<IOrderOptions>;
 
-  abstract handleReverseOrder(
-    account: Account,
-    ticker: Ticker,
-    trade: Trade
-  ): Promise<void>;
-
   abstract checkCredentials(
     account: Account,
     instance: Exchange
@@ -72,7 +65,13 @@ export abstract class CommonExchangeService {
     orderSize: number
   ): Promise<void>;
 
-  refreshSession = async (account: Account): Promise<Session> => {
+  abstract handleReverseOrder(
+    account: Account,
+    ticker: Ticker,
+    trade: Trade
+  ): Promise<void>;
+
+  refreshSession = async (account: Account): Promise<ISession> => {
     const accountId = getAccountId(account);
     let session = this.sessions.get(accountId);
     if (!session) {
@@ -139,7 +138,6 @@ export abstract class CommonExchangeService {
       const order = await this.sessions
         .get(accountId)
         .exchange.createMarketOrder(symbol, options.side, options.size);
-
       const percentage = size && size.includes('%') ? size : '100%';
       const absoluteSize = this.getTokenAmountInDollars(ticker, options.size);
 

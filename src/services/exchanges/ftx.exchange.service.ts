@@ -1,11 +1,8 @@
 import { ExchangeId } from '../../constants/exchanges.constants';
 import { Account } from '../../entities/account.entities';
-import {
-  IBalance,
-  IFTXFuturesPosition
-} from '../../interfaces/exchange.interfaces';
+import { IFTXFuturesPosition } from '../../interfaces/exchange.interfaces';
 import { getAccountId } from '../../utils/account.utils';
-import { Exchange, Order, Ticker } from 'ccxt';
+import { Exchange, Ticker } from 'ccxt';
 import { getInvertedTradeSide, getTradeSide } from '../../utils/trade.utils';
 import { Side } from '../../constants/trade.constants';
 import { IOrderOptions } from '../../interfaces/trade.interface';
@@ -33,7 +30,6 @@ import {
   OPEN_TRADE_NO_CURRENT_OPENED_POSITION,
   REVERSING_TRADE
 } from '../../messages/trade.messages';
-import { Session } from './base/common.exchange.service';
 import { OpenPositionError } from '../../errors/trade.errors';
 import { CompositeExchangeService } from './base/composite.exchange.service';
 
@@ -41,16 +37,6 @@ export class FTXExchangeService extends CompositeExchangeService {
   constructor() {
     super(ExchangeId.FTX);
   }
-
-  refreshSession: (account: Account) => Promise<Session>;
-  getBalances: (account: Account, instance?: Exchange) => Promise<IBalance[]>;
-  getTicker: (symbol: string) => Promise<Ticker>;
-  closeOrder: (
-    account: Account,
-    trade: Trade,
-    ticker?: Ticker
-  ) => Promise<Order>;
-  openOrder: (account: Account, trade: Trade) => Promise<Order>;
 
   checkCredentials = async (
     account: Account,
@@ -114,8 +100,7 @@ export class FTXExchangeService extends CompositeExchangeService {
         };
       }
     } else {
-      const symbol = ticker.info.name;
-      const position = await this.getTickerPosition(account, symbol);
+      const position = await this.getTickerPosition(account, ticker);
       if (position) {
         options = {
           size: Number(position.size),

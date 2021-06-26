@@ -1,10 +1,13 @@
 import { CommonExchangeService } from './common.exchange.service';
 import { Exchange, Ticker } from 'ccxt';
 import { Account } from '../../../entities/account.entities';
-import { FuturesPosition } from '../../../interfaces/exchange.interfaces';
-import { Trade } from '../../../entities/trade.entities';
+import { IFuturesExchange } from '../../../interfaces/exchange.interfaces';
+import { FuturesPosition } from '../../../types/exchanges.types';
 
-export abstract class FuturesExchangeService extends CommonExchangeService {
+export abstract class FuturesExchangeService
+  extends CommonExchangeService
+  implements IFuturesExchange
+{
   abstract getPositions(
     account: Account,
     instance?: Exchange
@@ -19,10 +22,4 @@ export abstract class FuturesExchangeService extends CommonExchangeService {
     account: Account,
     ticker: Ticker
   ): Promise<number>;
-
-  abstract handleReverseOrder(
-    account: Account,
-    ticker: Ticker,
-    trade: Trade
-  ): Promise<void>;
 }
