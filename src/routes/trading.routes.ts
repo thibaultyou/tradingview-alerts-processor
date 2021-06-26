@@ -1,10 +1,15 @@
-import { Request, Response } from 'express';
+import { Request, Response, Router } from 'express';
 import { readAccount } from '../services/account.service';
 import { Trade } from '../entities/trade.entities';
 import { getTradeSide } from '../utils/trading.utils';
 import { HttpCode } from '../constants/http.constants';
 import { TRADE_EXECUTION_SUCCESS } from '../messages/trading.messages';
 import { TradingService } from '../services/trading/trading.service';
+import { TRADES_ROUTE } from '../constants/routes.constants';
+import { loggingMiddleware } from '../utils/logger.utils';
+import { validateTrade } from '../validators/trade.validators';
+
+const router = Router();
 
 export const postTrade = async (req: Request, res: Response): Promise<void> => {
   const { direction, stub, symbol }: Trade = req.body;
@@ -30,3 +35,10 @@ export const postTrade = async (req: Request, res: Response): Promise<void> => {
   }
   res.end();
 };
+
+export const tradingRouter = router.get(
+  TRADES_ROUTE,
+  loggingMiddleware,
+  validateTrade,
+  postTrade
+);

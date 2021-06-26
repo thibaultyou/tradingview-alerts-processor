@@ -8,7 +8,7 @@ import {
   PositionsFetchError
 } from '../../errors/exchange.errors';
 import { OpenPositionError } from '../../errors/trading.errors';
-import { IBinanceFuturesUSDPosition } from '../../interfaces/exchange.interfaces';
+import { IBinanceFuturesUSDPosition } from '../../interfaces/exchanges.interfaces';
 import { IOrderOptions } from '../../interfaces/trading.interfaces';
 import {
   EXCHANGE_AUTHENTICATION_ERROR,

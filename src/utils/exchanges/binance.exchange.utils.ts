@@ -1,4 +1,4 @@
-import { IBalance } from '../../interfaces/exchange.interfaces';
+import { IBalance } from '../../interfaces/exchanges.interfaces';
 
 export const formatBinanceSpotSymbol = (symbol: string): string =>
   symbol.split('/')[0];

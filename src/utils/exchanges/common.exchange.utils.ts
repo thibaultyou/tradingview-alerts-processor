@@ -5,7 +5,7 @@ import {
   FTX_SUBACCOUNT_HEADER
 } from '../../constants/exchanges.constants';
 import { Account } from '../../entities/account.entities';
-import { IBalance } from '../../interfaces/exchange.interfaces';
+import { IBalance } from '../../interfaces/exchanges.interfaces';
 import { formatBinanceSpotBalances } from './binance.exchange.utils';
 import { formatFTXSpotBalances } from './ftx.exchange.utils';
 

@@ -1,6 +1,6 @@
 import { ExchangeId } from '../../constants/exchanges.constants';
 import { Account } from '../../entities/account.entities';
-import { IFTXFuturesPosition } from '../../interfaces/exchange.interfaces';
+import { IFTXFuturesPosition } from '../../interfaces/exchanges.interfaces';
 import { getAccountId } from '../../utils/account.utils';
 import { Exchange, Ticker } from 'ccxt';
 import { getInvertedTradeSide, getTradeSide } from '../../utils/trading.utils';

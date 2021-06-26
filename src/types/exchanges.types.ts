@@ -1,7 +1,7 @@
 import {
   IBinanceFuturesUSDPosition,
   IFTXFuturesPosition
-} from '../interfaces/exchange.interfaces';
+} from '../interfaces/exchanges.interfaces';
 import { BinanceFuturesUSDMExchangeService } from '../services/exchanges/binance-usdm.futures.exchange.service';
 import { BinanceSpotExchangeService } from '../services/exchanges/binance.spot.exchange.service';
 import { FTXExchangeService } from '../services/exchanges/ftx.exchange.service';

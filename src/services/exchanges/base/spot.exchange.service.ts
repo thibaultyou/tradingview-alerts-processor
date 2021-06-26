@@ -4,7 +4,7 @@ import { BalancesFetchError } from '../../../errors/exchange.errors';
 import {
   IBalance,
   ISpotExchange
-} from '../../../interfaces/exchange.interfaces';
+} from '../../../interfaces/exchanges.interfaces';
 import {
   BALANCES_READ_ERROR,
   BALANCES_READ_SUCCESS

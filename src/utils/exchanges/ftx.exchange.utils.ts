@@ -1,5 +1,5 @@
 import { Ticker } from 'ccxt';
-import { IBalance } from '../../interfaces/exchange.interfaces';
+import { IBalance } from '../../interfaces/exchanges.interfaces';
 
 export const formatFTXSpotSymbol = (symbol: string): string =>
   symbol.split('/')[0];

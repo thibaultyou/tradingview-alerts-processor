@@ -1,6 +1,6 @@
 import { Exchange, Ticker } from 'ccxt';
 import { Account } from '../../../entities/account.entities';
-import { IFuturesExchange } from '../../../interfaces/exchange.interfaces';
+import { IFuturesExchange } from '../../../interfaces/exchanges.interfaces';
 import { FuturesPosition } from '../../../types/exchanges.types';
 import { SpotExchangeService } from './spot.exchange.service';
 
