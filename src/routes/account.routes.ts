@@ -4,7 +4,7 @@ import {
   ACCOUNT_READ_SUCCESS,
   ACCOUNT_WRITE_SUCCESS
 } from '../messages/account.messages';
-import { formatAccount, formatAccountStub } from '../utils/account.utils';
+import { formatAccount, getAccountId } from '../utils/account.utils';
 import {
   writeAccount,
   readAccount,
@@ -25,7 +25,7 @@ export const postAccount = async (
   res: Response
 ): Promise<void> => {
   const account = formatAccount(req.body);
-  const id = account.stub.toUpperCase();
+  const id = getAccountId(account);
   try {
     await writeAccount(account);
     res.write(
@@ -48,7 +48,7 @@ export const getAccount = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  const id = formatAccountStub(req.body);
+  const id = getAccountId(req.body);
   try {
     const account = await readAccount(id);
     res.write(
@@ -68,7 +68,7 @@ export const deleteAccount = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  const id = formatAccountStub(req.body);
+  const id = getAccountId(req.body);
   try {
     await removeAccount(id);
     res.write(JSON.stringify({ message: ACCOUNT_DELETE_SUCCESS(id) }));

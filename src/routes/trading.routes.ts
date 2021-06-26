@@ -36,7 +36,7 @@ export const postTrade = async (req: Request, res: Response): Promise<void> => {
   res.end();
 };
 
-export const tradingRouter = router.get(
+export const tradingRouter = router.post(
   TRADES_ROUTE,
   loggingMiddleware,
   validateTrade,

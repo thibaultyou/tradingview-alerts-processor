@@ -8,14 +8,15 @@ import {
   PositionsFetchError
 } from '../../errors/exchange.errors';
 import { OpenPositionError } from '../../errors/trading.errors';
-import { IBinanceFuturesUSDPosition } from '../../interfaces/exchanges.interfaces';
+import { IBinanceFuturesUSDPosition } from '../../interfaces/exchanges/binance.exchange.interfaces';
 import { IOrderOptions } from '../../interfaces/trading.interfaces';
 import {
   EXCHANGE_AUTHENTICATION_ERROR,
   EXCHANGE_AUTHENTICATION_SUCCESS,
   POSITIONS_READ_ERROR,
-  POSITIONS_READ_SUCCESS
-} from '../../messages/exchange.messages';
+  POSITIONS_READ_SUCCESS,
+  POSITION_READ_SUCCESS
+} from '../../messages/exchanges.messages';
 import {
   OPEN_TRADE_ERROR_MAX_SIZE,
   OPEN_TRADE_NO_CURRENT_OPENED_POSITION,
@@ -23,7 +24,11 @@ import {
 } from '../../messages/trading.messages';
 import { getAccountId } from '../../utils/account.utils';
 import { formatBinanceFuturesSymbol } from '../../utils/exchanges/binance.exchange.utils';
-import { getTradeSide } from '../../utils/trading.utils';
+import {
+  getCloseOrderSize,
+  getTradeSize,
+  getTradeSide
+} from '../../utils/trading.utils';
 import { debug, error } from '../logger.service';
 import { FuturesExchangeService } from './base/futures.exchange.service';
 
@@ -31,13 +36,6 @@ export class BinanceFuturesUSDMExchangeService extends FuturesExchangeService {
   constructor() {
     super(ExchangeId.BinanceFuturesUSD);
   }
-
-  getTokenAmountInDollars = (ticker: Ticker, size: number): number => {
-    const { high, low } = ticker;
-    let dollars = Number(size) * ((high + low) / 2);
-    dollars = +dollars.toFixed(2);
-    return dollars;
-  };
 
   checkCredentials = async (
     account: Account,
@@ -64,7 +62,11 @@ export class BinanceFuturesUSDMExchangeService extends FuturesExchangeService {
     const symbol = formatBinanceFuturesSymbol(ticker.symbol);
     const positions = await this.getPositions(account);
     const position = positions.filter((p) => p.symbol === symbol).pop();
-    if (!position) {
+    if (position) {
+      debug(
+        POSITION_READ_SUCCESS(accountId, this.exchangeId, symbol, position)
+      );
+    } else {
       debug(
         OPEN_TRADE_NO_CURRENT_OPENED_POSITION(
           accountId,
@@ -82,7 +84,7 @@ export class BinanceFuturesUSDMExchangeService extends FuturesExchangeService {
   ): Promise<number> => {
     const position = await this.getTickerPosition(account, ticker);
     if (position) {
-      return this.getTokenAmountInDollars(ticker, Number(position.notional));
+      return getTradeSize(ticker, Number(position.notional));
     }
   };
 
@@ -108,12 +110,13 @@ export class BinanceFuturesUSDMExchangeService extends FuturesExchangeService {
 
   getCloseOrderOptions = async (
     account: Account,
-    ticker: Ticker
+    ticker: Ticker,
+    trade: Trade
   ): Promise<IOrderOptions> => {
     const position = await this.getTickerPosition(account, ticker);
     const size = Number(position.positionAmt);
     return {
-      size: Math.abs(size),
+      size: getCloseOrderSize(trade.size, Math.abs(size)),
       side: size > 0 ? Side.Sell : Side.Buy
     };
   };
@@ -146,10 +149,7 @@ export class BinanceFuturesUSDMExchangeService extends FuturesExchangeService {
     const accountId = getAccountId(account);
     const side = getTradeSide(direction);
     const current = await this.getTickerPositionSize(account, ticker);
-    if (
-      current + this.getTokenAmountInDollars(ticker, orderSize) >
-      Number(max)
-    ) {
+    if (current + getTradeSize(ticker, orderSize) > Number(max)) {
       error(
         OPEN_TRADE_ERROR_MAX_SIZE(this.exchangeId, accountId, symbol, side, max)
       );

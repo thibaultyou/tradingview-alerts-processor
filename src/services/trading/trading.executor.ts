@@ -23,23 +23,7 @@ import {
   ExchangeId
 } from '../../constants/exchanges.constants';
 import { ExchangeService } from '../../types/exchanges.types';
-import { BinanceFuturesUSDMExchangeService } from '../exchanges/binance-usdm.futures.exchange.service';
-import { BinanceSpotExchangeService } from '../exchanges/binance.spot.exchange.service';
-import { FTXExchangeService } from '../exchanges/ftx.exchange.service';
-
-export const initExchangeService = (
-  exchangeId: ExchangeId
-): ExchangeService => {
-  switch (exchangeId) {
-    case ExchangeId.Binance:
-      return new BinanceSpotExchangeService();
-    case ExchangeId.BinanceFuturesUSD:
-      return new BinanceFuturesUSDMExchangeService();
-    case ExchangeId.FTX:
-    default:
-      return new FTXExchangeService();
-  }
-};
+import { initExchangeService } from '../../utils/exchanges/common.exchange.utils';
 
 export class TradingExecutor {
   private isStarted = false;

@@ -1,8 +1,8 @@
 import { CommonExchangeService } from './common.exchange.service';
 import { Exchange, Ticker } from 'ccxt';
 import { Account } from '../../../entities/account.entities';
-import { IFuturesExchange } from '../../../interfaces/exchanges.interfaces';
 import { FuturesPosition } from '../../../types/exchanges.types';
+import { IFuturesExchange } from '../../../interfaces/exchanges/common.exchange.interfaces';
 
 export abstract class FuturesExchangeService
   extends CommonExchangeService

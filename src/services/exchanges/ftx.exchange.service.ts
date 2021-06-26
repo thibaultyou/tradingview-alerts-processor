@@ -1,9 +1,13 @@
 import { ExchangeId } from '../../constants/exchanges.constants';
 import { Account } from '../../entities/account.entities';
-import { IFTXFuturesPosition } from '../../interfaces/exchanges.interfaces';
 import { getAccountId } from '../../utils/account.utils';
 import { Exchange, Ticker } from 'ccxt';
-import { getInvertedTradeSide, getTradeSide } from '../../utils/trading.utils';
+import {
+  getCloseOrderSize,
+  getInvertedTradeSide,
+  getTradeSize,
+  getTradeSide
+} from '../../utils/trading.utils';
 import { Side } from '../../constants/trading.constants';
 import { IOrderOptions } from '../../interfaces/trading.interfaces';
 import {
@@ -13,7 +17,7 @@ import {
   POSITIONS_READ_SUCCESS,
   TICKER_BALANCE_READ_ERROR,
   TICKER_BALANCE_READ_SUCCESS
-} from '../../messages/exchange.messages';
+} from '../../messages/exchanges.messages';
 import { debug, error } from '../logger.service';
 import {
   ExchangeInstanceInitError,
@@ -32,6 +36,7 @@ import {
 } from '../../messages/trading.messages';
 import { OpenPositionError } from '../../errors/trading.errors';
 import { CompositeExchangeService } from './base/composite.exchange.service';
+import { IFTXFuturesPosition } from '../../interfaces/exchanges/ftx.exchange.interfaces';
 
 export class FTXExchangeService extends CompositeExchangeService {
   constructor() {
@@ -55,13 +60,6 @@ export class FTXExchangeService extends CompositeExchangeService {
     return true;
   };
 
-  getTokenAmountInDollars = (ticker: Ticker, size: number): number => {
-    const { ask, bid } = ticker;
-    let dollars = Number(size) * ((ask + bid) / 2);
-    dollars = +dollars.toFixed(2);
-    return dollars;
-  };
-
   getTickerBalance = async (
     account: Account,
     ticker: Ticker
@@ -71,7 +69,7 @@ export class FTXExchangeService extends CompositeExchangeService {
     try {
       const balances = await this.getBalances(account);
       const balance = balances.filter((b) => b.coin === symbol).pop();
-      const size = this.getTokenAmountInDollars(ticker, Number(balance.free));
+      const size = getTradeSize(ticker, Number(balance.free));
       debug(TICKER_BALANCE_READ_SUCCESS(this.exchangeId, accountId, symbol));
       return size;
     } catch (err) {
@@ -84,7 +82,8 @@ export class FTXExchangeService extends CompositeExchangeService {
 
   getCloseOrderOptions = async (
     account: Account,
-    ticker: Ticker
+    ticker: Ticker,
+    trade: Trade
   ): Promise<IOrderOptions> => {
     let options: IOrderOptions = {
       size: 0,
@@ -96,14 +95,14 @@ export class FTXExchangeService extends CompositeExchangeService {
       if (balance) {
         options = {
           side: Side.Sell,
-          size: balance
+          size: getCloseOrderSize(trade.size, balance)
         };
       }
     } else {
       const position = await this.getTickerPosition(account, ticker);
       if (position) {
         options = {
-          size: Number(position.size),
+          size: getCloseOrderSize(trade.size, Number(position.size)),
           side: getInvertedTradeSide(position.side as Side)
         };
       }
@@ -137,7 +136,7 @@ export class FTXExchangeService extends CompositeExchangeService {
   ): Promise<number> => {
     const position = await this.getTickerPosition(account, ticker);
     if (position) {
-      return this.getTokenAmountInDollars(ticker, Number(position.size));
+      return getTradeSize(ticker, Number(position.size));
     }
   };
 
@@ -169,10 +168,7 @@ export class FTXExchangeService extends CompositeExchangeService {
     // TODO handle err
     const position = await this.getTickerPosition(account, ticker);
     if (position) {
-      const positionSize = this.getTokenAmountInDollars(
-        ticker,
-        Number(position.size)
-      );
+      const positionSize = getTradeSize(ticker, Number(position.size));
       const positionSide = getTradeSide(position.side as Side);
       if (positionSize && positionSide !== side) {
         debug(REVERSING_TRADE(this.exchangeId, accountId, ticker.symbol));
@@ -195,10 +191,7 @@ export class FTXExchangeService extends CompositeExchangeService {
     const current = isFTXSpot(ticker)
       ? await this.getTickerBalance(account, ticker)
       : await this.getTickerPositionSize(account, ticker);
-    if (
-      current + this.getTokenAmountInDollars(ticker, orderSize) >
-      Number(max)
-    ) {
+    if (current + getTradeSize(ticker, orderSize) > Number(max)) {
       error(OPEN_TRADE_ERROR_MAX_SIZE(exchange, id, symbol, side, max));
       throw new OpenPositionError(
         OPEN_TRADE_ERROR_MAX_SIZE(exchange, id, symbol, side, max)

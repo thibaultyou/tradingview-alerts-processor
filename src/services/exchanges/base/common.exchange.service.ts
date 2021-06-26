@@ -8,7 +8,7 @@ import {
   EXCHANGE_INIT_SUCCESS,
   TICKER_READ_ERROR,
   TICKER_READ_SUCCESS
-} from '../../../messages/exchange.messages';
+} from '../../../messages/exchanges.messages';
 import { close, debug, error, long, short } from '../../logger.service';
 import {
   ExchangeInstanceInitError,
@@ -28,15 +28,12 @@ import {
   OpenPositionError
 } from '../../../errors/trading.errors';
 import { Side, TradingMode } from '../../../constants/trading.constants';
-import {
-  getAverageTradeSize,
-  getTradeSide
-} from '../../../utils/trading.utils';
+import { getTradeSize, getTradeSide } from '../../../utils/trading.utils';
 import { getExchangeOptions } from '../../../utils/exchanges/common.exchange.utils';
 import {
   ICommonExchange,
   ISession
-} from '../../../interfaces/exchanges.interfaces';
+} from '../../../interfaces/exchanges/common.exchange.interfaces';
 
 export abstract class CommonExchangeService implements ICommonExchange {
   exchangeId: ExchangeId;
@@ -49,11 +46,10 @@ export abstract class CommonExchangeService implements ICommonExchange {
     this.defaultExchange = new ccxt[exchangeId]();
   }
 
-  abstract getTokenAmountInDollars(ticker: Ticker, size: number): number;
-
   abstract getCloseOrderOptions(
     account: Account,
-    ticker: Ticker
+    ticker: Ticker,
+    trade: Trade
   ): Promise<IOrderOptions>;
 
   abstract checkCredentials(
@@ -137,12 +133,12 @@ export abstract class CommonExchangeService implements ICommonExchange {
       if (!ticker) {
         ticker = await this.getTicker(symbol);
       }
-      const options = await this.getCloseOrderOptions(account, ticker);
+      const options = await this.getCloseOrderOptions(account, ticker, trade);
       const order = await this.sessions
         .get(accountId)
         .exchange.createMarketOrder(symbol, options.side, options.size);
       const percentage = size && size.includes('%') ? size : '100%';
-      const absoluteSize = this.getTokenAmountInDollars(ticker, options.size);
+      const absoluteSize = getTradeSize(ticker, options.size);
 
       close(
         CLOSE_TRADE_SUCCESS(
@@ -175,7 +171,7 @@ export abstract class CommonExchangeService implements ICommonExchange {
           return;
         }
       }
-      const orderSize = getAverageTradeSize(this.exchangeId, ticker, size);
+      const orderSize = getTradeSize(ticker, Number(size));
       if (max) {
         await this.handleMaxBudget(account, ticker, trade, orderSize);
       }

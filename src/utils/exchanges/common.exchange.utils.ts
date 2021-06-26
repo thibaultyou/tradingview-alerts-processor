@@ -5,7 +5,11 @@ import {
   FTX_SUBACCOUNT_HEADER
 } from '../../constants/exchanges.constants';
 import { Account } from '../../entities/account.entities';
-import { IBalance } from '../../interfaces/exchanges.interfaces';
+import { IBalance } from '../../interfaces/exchanges/common.exchange.interfaces';
+import { BinanceFuturesUSDMExchangeService } from '../../services/exchanges/binance-usdm.futures.exchange.service';
+import { BinanceSpotExchangeService } from '../../services/exchanges/binance.spot.exchange.service';
+import { FTXExchangeService } from '../../services/exchanges/ftx.exchange.service';
+import { ExchangeService } from '../../types/exchanges.types';
 import { formatBinanceSpotBalances } from './binance.exchange.utils';
 import { formatFTXSpotBalances } from './ftx.exchange.utils';
 
@@ -32,4 +36,18 @@ export const getExchangeOptions = (
     options['headers'] = { [FTX_SUBACCOUNT_HEADER]: subaccount };
   }
   return options;
+};
+
+export const initExchangeService = (
+  exchangeId: ExchangeId
+): ExchangeService => {
+  switch (exchangeId) {
+    case ExchangeId.Binance:
+      return new BinanceSpotExchangeService();
+    case ExchangeId.BinanceFuturesUSD:
+      return new BinanceFuturesUSDMExchangeService();
+    case ExchangeId.FTX:
+    default:
+      return new FTXExchangeService();
+  }
 };

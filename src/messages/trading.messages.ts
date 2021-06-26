@@ -1,3 +1,4 @@
+import { Ticker } from 'ccxt';
 import { ExchangeId } from '../constants/exchanges.constants';
 import { Side } from '../constants/trading.constants';
 import { formatExchange } from '../utils/exchanges/common.exchange.utils';
@@ -142,3 +143,10 @@ export const OPEN_TRADE_NO_CURRENT_OPENED_POSITION = (
   `Exchanges - ${formatExchange(
     exchange
   )}/${accountId} - No current position opened for ${symbol}.`;
+
+export const TOKEN_CALCULATED_SIZE_IN_DOLLARS = (
+  symbol: string,
+  sizeInTokens: number,
+  sizeInDollars: string
+): string =>
+  `Trading - Calculated ${sizeInDollars} $US equivalent for ${sizeInTokens} ${symbol}.`;

@@ -1,4 +1,5 @@
 import { ExchangeId } from '../constants/exchanges.constants';
+import { FuturesPosition } from '../types/exchanges.types';
 import { formatExchange } from '../utils/exchanges/common.exchange.utils';
 
 export const TICKER_BALANCE_READ_SUCCESS = (
@@ -110,6 +111,18 @@ export const POSITIONS_READ_SUCCESS = (
   `Exchanges - ${formatExchange(
     exchange
   )}/${accountId} - Current positions succesfully fetched.`;
+
+export const POSITION_READ_SUCCESS = (
+  accountId: string,
+  exchange: ExchangeId,
+  symbol: string,
+  position: FuturesPosition
+): string =>
+  `Exchanges - ${formatExchange(
+    exchange
+  )}/${accountId} - Current position for ${symbol} succesfully fetched. -> ${JSON.stringify(
+    position
+  )}`;
 
 export const POSITIONS_READ_ERROR = (
   accountId: string,

@@ -4,11 +4,11 @@ import { BalancesFetchError } from '../../../errors/exchange.errors';
 import {
   IBalance,
   ISpotExchange
-} from '../../../interfaces/exchanges.interfaces';
+} from '../../../interfaces/exchanges/common.exchange.interfaces';
 import {
   BALANCES_READ_ERROR,
   BALANCES_READ_SUCCESS
-} from '../../../messages/exchange.messages';
+} from '../../../messages/exchanges.messages';
 import { getAccountId } from '../../../utils/account.utils';
 import { formatBalances } from '../../../utils/exchanges/common.exchange.utils';
 import { debug, error } from '../../logger.service';

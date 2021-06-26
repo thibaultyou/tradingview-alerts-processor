@@ -6,7 +6,7 @@ import { Side } from '../../constants/trading.constants';
 import { Trade } from '../../entities/trade.entities';
 import { formatBinanceSpotSymbol } from '../../utils/exchanges/binance.exchange.utils';
 import { getAccountId } from '../../utils/account.utils';
-import { getTradeSide } from '../../utils/trading.utils';
+import { getCloseOrderSize, getTradeSide } from '../../utils/trading.utils';
 import {
   OPEN_TRADE_ERROR_MAX_SIZE,
   REVERSING_TRADE_ERROR
@@ -19,7 +19,7 @@ import {
   EXCHANGE_AUTHENTICATION_SUCCESS,
   TICKER_BALANCE_READ_ERROR,
   TICKER_BALANCE_READ_SUCCESS
-} from '../../messages/exchange.messages';
+} from '../../messages/exchanges.messages';
 import {
   ExchangeInstanceInitError,
   TickerFetchError
@@ -76,12 +76,13 @@ export class BinanceSpotExchangeService extends SpotExchangeService {
 
   getCloseOrderOptions = async (
     account: Account,
-    ticker: Ticker
+    ticker: Ticker,
+    trade: Trade
   ): Promise<IOrderOptions> => {
     const balance = await this.getTickerBalance(account, ticker);
     return {
       side: Side.Sell,
-      size: balance
+      size: getCloseOrderSize(trade.size, balance)
     };
   };
 

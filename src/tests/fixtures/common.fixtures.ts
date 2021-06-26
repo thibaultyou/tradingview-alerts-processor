@@ -1,11 +1,8 @@
 import { Exchange } from 'ccxt';
-import {
-  ExchangeId,
-  FTX_SUBACCOUNT_HEADER
-} from '../constants/exchanges.constants';
-import { Account } from '../entities/account.entities';
-import { IBalance } from '../interfaces/exchange.interfaces';
-import { Market } from '../entities/market.entities';
+import { ExchangeId } from '../../constants/exchanges.constants';
+import { Account } from '../../entities/account.entities';
+import { Market } from '../../entities/market.entities';
+import { IBalance } from '../../interfaces/exchanges/common.exchange.interfaces';
 
 export const sampleAccount: Account = {
   apiKey: 'apiKey',
@@ -22,11 +19,6 @@ export const sampleSubaccount: Account = {
 export const sampleExchangeOptions: Exchange['options'] = {
   apiKey: sampleAccount.apiKey,
   secret: sampleAccount.secret
-};
-
-export const sampleFTXExchangeOptions: Exchange['options'] = {
-  ...sampleExchangeOptions,
-  headers: { [FTX_SUBACCOUNT_HEADER]: sampleSubaccount.subaccount }
 };
 
 export const sampleSymbol = 'BTC-PERP';

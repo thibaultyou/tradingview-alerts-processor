@@ -1,9 +1,9 @@
 import { Exchange, Order, Ticker } from 'ccxt';
-import { ExchangeId } from '../constants/exchanges.constants';
-import { Account } from '../entities/account.entities';
-import { Trade } from '../entities/trade.entities';
-import { FuturesPosition } from '../types/exchanges.types';
-import { IOrderOptions } from './trading.interfaces';
+import { ExchangeId } from '../../constants/exchanges.constants';
+import { Account } from '../../entities/account.entities';
+import { Trade } from '../../entities/trade.entities';
+import { FuturesPosition } from '../../types/exchanges.types';
+import { IOrderOptions } from '../trading.interfaces';
 
 export interface IBalance {
   coin: string;
@@ -22,11 +22,10 @@ export interface ICommonExchange {
   sessions: Map<string, ISession>;
   tickers: Map<string, Ticker>;
 
-  getTokenAmountInDollars(ticker: Ticker, size: number): number;
-
   getCloseOrderOptions(
     account: Account,
-    ticker: Ticker
+    ticker: Ticker,
+    trade: Trade
   ): Promise<IOrderOptions>;
 
   checkCredentials(account: Account, instance: Exchange): Promise<boolean>;
@@ -68,40 +67,4 @@ export interface ISpotExchange {
   getTickerBalance(account: Account, ticker: Ticker): Promise<number>;
 
   getBalances(account: Account, instance?: Exchange): Promise<IBalance[]>;
-}
-
-export interface IFTXFuturesPosition {
-  future: string;
-  size: string;
-  side: string;
-  netSize: string;
-  longOrderSize: string;
-  shortOrderSize: string;
-  cost: string;
-  entryPrice: number;
-  unrealizedPnl: string;
-  realizedPnl: string;
-  initialMarginRequirement: string;
-  maintenanceMarginRequirement: string;
-  openSize: string;
-  collateralUsed: string;
-  estimatedLiquidationPrice: number;
-}
-
-export interface IBinanceFuturesUSDPosition {
-  symbol: string;
-  initialMargin: string;
-  maintMargin: string;
-  unrealizedProfit: string;
-  positionInitialMargin: string;
-  openOrderInitialMargin: string;
-  leverage: string;
-  isolated: boolean;
-  entryPrice: string;
-  maxNotional: string;
-  positionSide: string;
-  positionAmt: string;
-  notional: string;
-  isolatedWallet: string;
-  updateTime: string;
 }
