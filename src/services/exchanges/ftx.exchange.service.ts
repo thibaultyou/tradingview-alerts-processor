@@ -3,9 +3,9 @@ import { Account } from '../../entities/account.entities';
 import { IFTXFuturesPosition } from '../../interfaces/exchange.interfaces';
 import { getAccountId } from '../../utils/account.utils';
 import { Exchange, Ticker } from 'ccxt';
-import { getInvertedTradeSide, getTradeSide } from '../../utils/trade.utils';
-import { Side } from '../../constants/trade.constants';
-import { IOrderOptions } from '../../interfaces/trade.interface';
+import { getInvertedTradeSide, getTradeSide } from '../../utils/trading.utils';
+import { Side } from '../../constants/trading.constants';
+import { IOrderOptions } from '../../interfaces/trading.interfaces';
 import {
   EXCHANGE_AUTHENTICATION_ERROR,
   EXCHANGE_AUTHENTICATION_SUCCESS,
@@ -29,8 +29,8 @@ import {
   OPEN_TRADE_ERROR_MAX_SIZE,
   OPEN_TRADE_NO_CURRENT_OPENED_POSITION,
   REVERSING_TRADE
-} from '../../messages/trade.messages';
-import { OpenPositionError } from '../../errors/trade.errors';
+} from '../../messages/trading.messages';
+import { OpenPositionError } from '../../errors/trading.errors';
 import { CompositeExchangeService } from './base/composite.exchange.service';
 
 export class FTXExchangeService extends CompositeExchangeService {

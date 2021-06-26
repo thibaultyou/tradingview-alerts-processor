@@ -1,8 +1,8 @@
 import { Ticker } from 'ccxt';
 import { ExchangeId } from '../constants/exchanges.constants';
-import { Side } from '../constants/trade.constants';
-import { OrderSizeError } from '../errors/trade.errors';
-import { TRADE_ERROR_SIZE } from '../messages/trade.messages';
+import { Side } from '../constants/trading.constants';
+import { OrderSizeError } from '../errors/trading.errors';
+import { TRADE_ERROR_SIZE } from '../messages/trading.messages';
 import { error } from '../services/logger.service';
 
 export const getTradeSide = (side: Side): Side =>

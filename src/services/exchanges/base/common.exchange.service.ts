@@ -15,25 +15,28 @@ import {
   TickerFetchError
 } from '../../../errors/exchange.errors';
 import { Trade } from '../../../entities/trade.entities';
-import { IOrderOptions } from '../../../interfaces/trade.interface';
+import { IOrderOptions } from '../../../interfaces/trading.interfaces';
 import {
   CLOSE_TRADE_ERROR,
   CLOSE_TRADE_SUCCESS,
   OPEN_LONG_TRADE_SUCCESS,
   OPEN_SHORT_TRADE_SUCCESS,
   OPEN_TRADE_ERROR
-} from '../../../messages/trade.messages';
+} from '../../../messages/trading.messages';
 import {
   ClosePositionError,
   OpenPositionError
-} from '../../../errors/trade.errors';
-import { Side, TradingMode } from '../../../constants/trade.constants';
-import { getAverageTradeSize, getTradeSide } from '../../../utils/trade.utils';
+} from '../../../errors/trading.errors';
+import { Side, TradingMode } from '../../../constants/trading.constants';
+import {
+  getAverageTradeSize,
+  getTradeSide
+} from '../../../utils/trading.utils';
 import { getExchangeOptions } from '../../../utils/exchanges/common.exchange.utils';
 import {
   ICommonExchange,
   ISession
-} from '../../../interfaces/exchange.interfaces';
+} from '../../../interfaces/exchanges.interfaces';
 
 export abstract class CommonExchangeService implements ICommonExchange {
   exchangeId: ExchangeId;

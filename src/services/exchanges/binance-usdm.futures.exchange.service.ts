@@ -1,15 +1,15 @@
 import { Exchange, Ticker } from 'ccxt';
 import { ExchangeId } from '../../constants/exchanges.constants';
-import { Side } from '../../constants/trade.constants';
+import { Side } from '../../constants/trading.constants';
 import { Account } from '../../entities/account.entities';
 import { Trade } from '../../entities/trade.entities';
 import {
   ExchangeInstanceInitError,
   PositionsFetchError
 } from '../../errors/exchange.errors';
-import { OpenPositionError } from '../../errors/trade.errors';
+import { OpenPositionError } from '../../errors/trading.errors';
 import { IBinanceFuturesUSDPosition } from '../../interfaces/exchange.interfaces';
-import { IOrderOptions } from '../../interfaces/trade.interface';
+import { IOrderOptions } from '../../interfaces/trading.interfaces';
 import {
   EXCHANGE_AUTHENTICATION_ERROR,
   EXCHANGE_AUTHENTICATION_SUCCESS,
@@ -20,10 +20,10 @@ import {
   OPEN_TRADE_ERROR_MAX_SIZE,
   OPEN_TRADE_NO_CURRENT_OPENED_POSITION,
   REVERSING_TRADE
-} from '../../messages/trade.messages';
+} from '../../messages/trading.messages';
 import { getAccountId } from '../../utils/account.utils';
 import { formatBinanceFuturesSymbol } from '../../utils/exchanges/binance.exchange.utils';
-import { getTradeSide } from '../../utils/trade.utils';
+import { getTradeSide } from '../../utils/trading.utils';
 import { debug, error } from '../logger.service';
 import { FuturesExchangeService } from './base/futures.exchange.service';
 

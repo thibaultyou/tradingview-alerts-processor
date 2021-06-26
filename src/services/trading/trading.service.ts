@@ -1,5 +1,5 @@
-import { ExchangeId } from '../constants/exchanges.constants';
-import { TradingExecutor } from './trade.executor';
+import { ExchangeId } from '../../constants/exchanges.constants';
+import { TradingExecutor } from './trading.executor';
 
 export class TradingService {
   static executors = new Map<ExchangeId, TradingExecutor>();

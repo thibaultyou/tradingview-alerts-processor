@@ -1,5 +1,5 @@
 import { ExchangeId } from '../constants/exchanges.constants';
-import { Side } from '../constants/trade.constants';
+import { Side } from '../constants/trading.constants';
 import { formatExchange } from '../utils/exchanges/common.exchange.utils';
 
 export const TRADE_EXECUTION_SUCCESS = (

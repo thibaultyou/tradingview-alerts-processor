@@ -3,7 +3,7 @@ import { ExchangeId } from '../constants/exchanges.constants';
 import { Account } from '../entities/account.entities';
 import { Trade } from '../entities/trade.entities';
 import { FuturesPosition } from '../types/exchanges.types';
-import { IOrderOptions } from './trade.interface';
+import { IOrderOptions } from './trading.interfaces';
 
 export interface IBalance {
   coin: string;

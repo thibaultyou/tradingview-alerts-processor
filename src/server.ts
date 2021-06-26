@@ -16,7 +16,7 @@ import {
 import { checkHealth } from './routes/health.routes';
 import { loggingMiddleware } from './utils/logger.utils';
 import { SERVER_RUNNING } from './messages/server.messages';
-import { DatabaseService } from './services/db.service';
+import { DatabaseService } from './services/db/db.service';
 
 const app = express();
 

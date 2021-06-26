@@ -6,26 +6,26 @@ import {
   TRADE_SERVICE_ADD,
   TRADE_SERVICE_START,
   TRADE_SERVICE_STOP
-} from '../messages/trade.messages';
-import { Side } from '../constants/trade.constants';
-import { Account } from '../entities/account.entities';
-import { Trade } from '../entities/trade.entities';
-import { ITradeInfo } from '../interfaces/trade.interface';
+} from '../../messages/trading.messages';
+import { Side } from '../../constants/trading.constants';
+import { Account } from '../../entities/account.entities';
+import { Trade } from '../../entities/trade.entities';
+import { ITradeInfo } from '../../interfaces/trading.interfaces';
 
-import { error, debug, info } from './logger.service';
-import { TradeExecutionError } from '../errors/exchange.errors';
+import { error, debug, info } from '../logger.service';
+import { TradeExecutionError } from '../../errors/exchange.errors';
 import {
   TRADE_SERVICE_ALREADY_STARTED,
   TRADE_SERVICE_ALREADY_STOPPED
-} from '../messages/trade.messages';
+} from '../../messages/trading.messages';
 import {
   DELAY_BETWEEN_TRADES,
   ExchangeId
-} from '../constants/exchanges.constants';
-import { ExchangeService } from '../types/exchanges.types';
-import { BinanceFuturesUSDMExchangeService } from '../services/exchanges/binance-usdm.futures.exchange.service';
-import { BinanceSpotExchangeService } from '../services/exchanges/binance.spot.exchange.service';
-import { FTXExchangeService } from '../services/exchanges/ftx.exchange.service';
+} from '../../constants/exchanges.constants';
+import { ExchangeService } from '../../types/exchanges.types';
+import { BinanceFuturesUSDMExchangeService } from '../exchanges/binance-usdm.futures.exchange.service';
+import { BinanceSpotExchangeService } from '../exchanges/binance.spot.exchange.service';
+import { FTXExchangeService } from '../exchanges/ftx.exchange.service';
 
 export const initExchangeService = (
   exchangeId: ExchangeId

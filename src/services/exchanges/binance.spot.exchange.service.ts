@@ -1,17 +1,17 @@
 import { Exchange, Ticker } from 'ccxt';
 import { ExchangeId } from '../../constants/exchanges.constants';
 import { Account } from '../../entities/account.entities';
-import { IOrderOptions } from '../../interfaces/trade.interface';
-import { Side } from '../../constants/trade.constants';
+import { IOrderOptions } from '../../interfaces/trading.interfaces';
+import { Side } from '../../constants/trading.constants';
 import { Trade } from '../../entities/trade.entities';
 import { formatBinanceSpotSymbol } from '../../utils/exchanges/binance.exchange.utils';
 import { getAccountId } from '../../utils/account.utils';
-import { getTradeSide } from '../../utils/trade.utils';
+import { getTradeSide } from '../../utils/trading.utils';
 import {
   OPEN_TRADE_ERROR_MAX_SIZE,
   REVERSING_TRADE_ERROR
-} from '../../messages/trade.messages';
-import { OpenPositionError } from '../../errors/trade.errors';
+} from '../../messages/trading.messages';
+import { OpenPositionError } from '../../errors/trading.errors';
 import { debug, error } from '../logger.service';
 import { SpotExchangeService } from './base/spot.exchange.service';
 import {

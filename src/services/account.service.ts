@@ -10,8 +10,8 @@ import {
   ACCOUNT_WRITE_ERROR_ALREADY_EXISTS
 } from '../messages/account.messages';
 import { AccountReadError, AccountWriteError } from '../errors/account.errors';
-import { DatabaseService } from './db.service';
-import { TradingService } from './trade.service';
+import { DatabaseService } from './db/db.service';
+import { TradingService } from './trading/trading.service';
 import { getAccountId } from '../utils/account.utils';
 
 const accounts = new Map<string, Account>();
