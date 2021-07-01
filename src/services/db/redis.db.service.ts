@@ -15,7 +15,6 @@ import {
 import { createNodeRedisClient, WrappedNodeRedisClient } from 'handy-redis';
 import { RedisClient } from 'redis';
 import { REDIS_HOST, REDIS_PORT } from '../../constants/env.constants';
-import { BaseDatabaseService } from './base.db.service';
 import {
   DatabaseCreateError,
   DatabaseDeleteError,
@@ -23,15 +22,15 @@ import {
   DatabaseReadError,
   DatabaseUpdateError
 } from '../../errors/db.errors';
+import { IDatabase } from '../../interfaces/db.interfaces';
 
 const PORT = process.env.REDIS_PORT || REDIS_PORT;
 const HOST = process.env.REDIS_HOST || REDIS_HOST;
 
-export class RedisDatabaseService extends BaseDatabaseService {
+export class RedisDatabaseService implements IDatabase {
   private instance: WrappedNodeRedisClient;
 
   constructor() {
-    super();
     try {
       debug(REDIS_DATABASE_LOADING);
       this.instance = createNodeRedisClient(

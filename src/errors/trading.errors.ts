@@ -15,3 +15,15 @@ export class OrderSizeError extends Error {
     super(message);
   }
 }
+
+export class TradeExecutionError extends Error {
+  constructor(message: string) {
+    super(message);
+  }
+}
+
+export class NoOpenPositionError extends Error {
+  constructor(message: string) {
+    super(message);
+  }
+}

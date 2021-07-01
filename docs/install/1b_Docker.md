@@ -48,29 +48,11 @@
 ### 🚀 Install and configure app
 
 - Open a terminal session with your instance
-- Refresh packages and install updates :
+- Install dependencies and run the app :
 
     ```sh
-    sudo apt update -y && sudo apt upgrade -y
-    ```
-
-- Install Docker and Docker-compose :
-
-    ```sh
-    sudo apt install -y docker.io
-    sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-    sudo chmod +x /usr/local/bin/docker-compose
-    sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
-    sudo systemctl enable docker
-    ```
-
-- Download and run the app :
-
-    ```sh
-    curl https://raw.githubusercontent.com/thibaultyou/tradingview-alerts-processor/master/docker-compose.yml --output docker-compose.yml
-    mkdir -p docker/db
-    sudo chown 1001 docker/db
-    sudo docker-compose up -d
+    curl https://raw.githubusercontent.com/thibaultyou/tradingview-alerts-processor/master/install.docker.sh --output install.docker.sh
+    sudo sh install.docker.sh
     ```
 
 - Once done you can check from your browser that everything is running fine on _http://YOUR.STATIC.IP.ADDRESS/health_
@@ -96,8 +78,7 @@
 - Update the app :
 
     ```sh
-    sudo docker-compose pull
-    sudo docker-compose up -d
+    sudo docker-compose pull && sudo docker-compose up -d
     ```
 
 - Restrict commands to Tradingview alerts system only, __once activated you'll not be able to send commands from your computer with HTTP requests, please [add your accounts](./1c_Keys.md) before using this__ :

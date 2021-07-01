@@ -1,7 +1,7 @@
-import { DatabaseId } from '../constants/db.constants';
-import { JSONDatabaseService } from './db/json.db.service';
-import { RedisDatabaseService } from './db/redis.db.service';
-import { Database } from '../types/db.types';
+import { DatabaseId } from '../../constants/db.constants';
+import { JSONDatabaseService } from './json.db.service';
+import { RedisDatabaseService } from './redis.db.service';
+import { Database } from '../../types/db.types';
 
 const DATABASE = process.env.DATABASE_TYPE || DatabaseId.JSON;
 

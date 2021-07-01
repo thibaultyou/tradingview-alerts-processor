@@ -40,12 +40,11 @@ You can use the bot with :
 - close a position or a percentage of it
 - close a position and open another in the opposite direction (Futures only)
 - close a position while reducing on oversell / overbuy (Futures only)
-- set a maximum budget
-- list account balances
-- list exchange markets
+- set a maximum budget (for a coin on Futures / for account on Spot)
 
 Coming soon :
 
+- CLI
 - trading modes for spot markets
 - leverage config for Binance
 - additional tickers / account and exchanges checks

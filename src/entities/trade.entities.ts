@@ -4,7 +4,7 @@ import {
   Side,
   TRADING_MODES,
   TradingMode
-} from '../constants/trade.constants';
+} from '../constants/trading.constants';
 
 export class Trade {
   @IsString()

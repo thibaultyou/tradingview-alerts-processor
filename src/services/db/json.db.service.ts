@@ -18,7 +18,6 @@ import {
   DATABASE_UPDATE_ERROR
 } from '../../messages/db.messages';
 import { debug, error } from '../logger.service';
-import { BaseDatabaseService } from './base.db.service';
 import {
   DatabaseCreateError,
   DatabaseDeleteError,
@@ -26,12 +25,12 @@ import {
   DatabaseReadError,
   DatabaseUpdateError
 } from '../../errors/db.errors';
+import { IDatabase } from '../../interfaces/db.interfaces';
 
-export class JSONDatabaseService extends BaseDatabaseService {
+export class JSONDatabaseService implements IDatabase {
   private instance: JsonDB;
 
   constructor() {
-    super();
     try {
       debug(JSON_DATABASE_LOADING);
       this.instance = new JsonDB(

@@ -5,35 +5,19 @@ import {
   ACCOUNT_WRITE_ERROR,
   ACCOUNT_READ_SUCCESS,
   ACCOUNT_READ_ERROR,
-  ACCOUNT_DELETE_ERROR,
   ACCOUNT_DELETE_SUCCESS,
   ACCOUNT_WRITE_ERROR_ALREADY_EXISTS
 } from '../messages/account.messages';
 import { AccountReadError, AccountWriteError } from '../errors/account.errors';
-import { refreshExchange } from './exchange.service';
-import { getAccountId, formatBalances } from '../utils/account.utils';
-import {
-  BALANCE_READ_ERROR,
-  BALANCE_READ_SUCCESS,
-  EXCHANGE_AUTHENTICATION_ERROR,
-  EXCHANGE_AUTHENTICATION_SUCCESS
-} from '../messages/exchange.messages';
-import {
-  BalancesFetchError,
-  ExchangeInstanceInitError
-} from '../errors/exchange.errors';
-import { IBalance } from '../interfaces/exchange.interfaces';
-import { Exchange } from 'ccxt';
-import { DatabaseService } from './db.service';
-import { ExchangeId } from '../constants/exchanges.constants';
-import { formatFTXSpotSymbol } from '../utils/exchanges/ftx.utils';
+import { DatabaseService } from './db/db.service';
+import { TradingService } from './trading/trading.service';
+import { getAccountId } from '../utils/account.utils';
 
 const accounts = new Map<string, Account>();
 
 export const writeAccount = async (account: Account): Promise<Account> => {
-  const { stub } = account;
-  const id = stub.toUpperCase();
-
+  const { exchange } = account;
+  const id = getAccountId(account);
   let db;
   try {
     db = DatabaseService.getDatabaseInstance();
@@ -44,7 +28,9 @@ export const writeAccount = async (account: Account): Promise<Account> => {
     }
   } catch (err) {
     try {
-      await refreshExchange(account);
+      await TradingService.getTradeExecutor(exchange)
+        .getExchangeService()
+        .refreshSession(account);
     } catch (err) {
       error(ACCOUNT_WRITE_ERROR(id), err);
       throw new AccountWriteError(ACCOUNT_WRITE_ERROR(id, err.message));
@@ -94,55 +80,9 @@ export const removeAccount = async (accountId: string): Promise<boolean> => {
     accounts.delete(id);
     await db.delete(id);
   } catch (err) {
-    error(ACCOUNT_DELETE_ERROR(id), err);
-    throw new AccountWriteError(ACCOUNT_DELETE_ERROR(id, err.message));
+    error(ACCOUNT_READ_ERROR(id), err);
+    throw new AccountWriteError(ACCOUNT_READ_ERROR(id, err.message));
   }
   info(ACCOUNT_DELETE_SUCCESS(id));
   return true;
-};
-
-export const checkAccountCredentials = async (
-  instance: Exchange,
-  account: Account
-): Promise<boolean> => {
-  const { exchange } = account;
-  const id = getAccountId(account);
-  try {
-    await getAccountBalances(instance, account);
-    debug(EXCHANGE_AUTHENTICATION_SUCCESS(id, exchange));
-  } catch (err) {
-    error(EXCHANGE_AUTHENTICATION_ERROR(id, exchange), err);
-    throw new ExchangeInstanceInitError(
-      EXCHANGE_AUTHENTICATION_ERROR(id, exchange, err.message)
-    );
-  }
-  return true;
-};
-
-export const getAccountBalances = async (
-  instance: Exchange,
-  account: Account
-): Promise<IBalance[]> => {
-  const { exchange } = account;
-  const id = getAccountId(account);
-  try {
-    // we don't use fetchBalance() because coin is not returned
-    const balances = await instance.fetch_balance();
-    debug(BALANCE_READ_SUCCESS(exchange, id));
-    return formatBalances(exchange, balances);
-  } catch (err) {
-    error(BALANCE_READ_ERROR(exchange, id), err);
-    throw new BalancesFetchError(BALANCE_READ_ERROR(exchange, id, err.message));
-  }
-};
-
-export const getAccountTickerBalance = async (
-  instance: Exchange,
-  account: Account,
-  symbol: string
-): Promise<IBalance> => {
-  const balances = await getAccountBalances(instance, account);
-  const formattedSymbol =
-    account.exchange === ExchangeId.FTX ? formatFTXSpotSymbol(symbol) : symbol;
-  return balances.filter((b) => b.coin === formattedSymbol).pop();
 };

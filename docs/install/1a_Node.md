@@ -62,7 +62,7 @@
 
     ```sh
     cd tradingview-alerts-processor/
-    sh install.sh
+    sh install.node.sh
     ```
 
 - You should see npm entry with `online` status, if this is not the case reconfigure PM2 and check again with :
@@ -95,7 +95,7 @@
 
     ```sh
     cd tradingview-alerts-processor/
-    sh update.sh
+    sh update.node.sh
     ```
 
 - Restrict commands to Tradingview alerts system only, __once activated you'll not be able to send commands from your computer with HTTP requests, please [add your accounts](./1c_Keys.md) before using this__ :
