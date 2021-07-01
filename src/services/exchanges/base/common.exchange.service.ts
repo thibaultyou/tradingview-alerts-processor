@@ -38,7 +38,7 @@ import {
 export abstract class CommonExchangeService implements ICommonExchange {
   exchangeId: ExchangeId;
   defaultExchange: Exchange;
-  sessions = new Map<string, ISession>(); // account id, exchange session`
+  sessions = new Map<string, ISession>(); // account id, exchange session
   tickers = new Map<string, Ticker>(); // symbol, ticker infos
 
   constructor(exchangeId: ExchangeId) {
@@ -117,7 +117,7 @@ export abstract class CommonExchangeService implements ICommonExchange {
       error(TICKER_READ_ERROR(this.exchangeId, symbol));
       throw new TickerFetchError(TICKER_READ_ERROR(this.exchangeId, symbol));
     }
-    debug(TICKER_READ_SUCCESS(this.exchangeId, symbol));
+    debug(TICKER_READ_SUCCESS(this.exchangeId, symbol, ticker));
     return ticker;
   };
 
@@ -137,16 +137,13 @@ export abstract class CommonExchangeService implements ICommonExchange {
       const order = await this.sessions
         .get(accountId)
         .exchange.createMarketOrder(symbol, options.side, options.size);
-      const percentage = size && size.includes('%') ? size : '100%';
-      const absoluteSize = getTradeSize(ticker, options.size);
-
       close(
         CLOSE_TRADE_SUCCESS(
           this.exchangeId,
           accountId,
           symbol,
-          absoluteSize,
-          percentage
+          options.size,
+          size
         )
       );
       return order;

@@ -5,7 +5,8 @@ import {
   TRADE_EXECUTION_TIME,
   TRADE_SERVICE_ADD,
   TRADE_SERVICE_START,
-  TRADE_SERVICE_STOP
+  TRADE_SERVICE_STOP,
+  TRADE_PROCESSING
 } from '../../messages/trading.messages';
 import { Side } from '../../constants/trading.constants';
 import { Account } from '../../entities/account.entities';
@@ -13,7 +14,7 @@ import { Trade } from '../../entities/trade.entities';
 import { ITradeInfo } from '../../interfaces/trading.interfaces';
 
 import { error, debug, info } from '../logger.service';
-import { TradeExecutionError } from '../../errors/exchange.errors';
+import { TradeExecutionError } from '../../errors/trading.errors';
 import {
   TRADE_SERVICE_ALREADY_STARTED,
   TRADE_SERVICE_ALREADY_STOPPED
@@ -24,6 +25,7 @@ import {
 } from '../../constants/exchanges.constants';
 import { ExchangeService } from '../../types/exchanges.types';
 import { initExchangeService } from '../../utils/exchanges/common.exchange.utils';
+import { v4 as uuidv4 } from 'uuid';
 
 export class TradingExecutor {
   private isStarted = false;
@@ -47,8 +49,7 @@ export class TradingExecutor {
       this.executionLoop = setInterval(() => {
         const tradeInfo = this.trades.shift();
         if (tradeInfo) {
-          const { account, trade } = tradeInfo;
-          this.processTrade(account, trade);
+          this.processTrade(tradeInfo);
         }
       }, DELAY_BETWEEN_TRADES[this.id]);
       this.isStarted = true;
@@ -72,7 +73,12 @@ export class TradingExecutor {
     const { symbol, direction } = trade;
     try {
       debug(TRADE_SERVICE_ADD(exchange));
-      this.trades.push({ account, trade });
+      const info: ITradeInfo = {
+        account,
+        trade,
+        id: uuidv4()
+      };
+      this.trades.push(info);
       debug(TRADE_EXECUTION_SUCCESS(exchange, stub, symbol, direction));
     } catch (err) {
       error(TRADE_EXECUTION_ERROR(exchange, stub, symbol, direction), err);
@@ -83,16 +89,18 @@ export class TradingExecutor {
     return true;
   };
 
-  processTrade = async (account: Account, trade: Trade): Promise<Order> => {
+  processTrade = async (tradeInfo: ITradeInfo): Promise<Order> => {
+    const { account, trade, id } = tradeInfo;
     const { direction } = trade;
     try {
       const start = new Date();
+      debug(TRADE_PROCESSING(id));
       const order =
         direction === Side.Close
           ? await this.exchangeService.closeOrder(account, trade)
           : await this.exchangeService.openOrder(account, trade);
       const end = new Date();
-      info(TRADE_EXECUTION_TIME(start, end));
+      info(TRADE_EXECUTION_TIME(start, end, id));
       return order;
     } catch (err) {
       // ignore

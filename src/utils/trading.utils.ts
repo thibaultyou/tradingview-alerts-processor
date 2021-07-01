@@ -2,12 +2,14 @@ import { Ticker } from 'ccxt';
 import { Side } from '../constants/trading.constants';
 import { OrderSizeError } from '../errors/trading.errors';
 import {
-  TOKEN_CALCULATED_SIZE_IN_DOLLARS,
-  TRADE_ERROR_SIZE
+  TRADE_CALCULATED_TOKEN_SIZE,
+  TRADE_CALCULATED_CLOSING_SIZE,
+  TRADE_ERROR_SIZE,
+  TRADE_CALCULATED_TOKEN_SIZE_ERROR
 } from '../messages/trading.messages';
 import { debug, error } from '../services/logger.service';
 
-// we have to do this mapping for ccxt order
+// we have to do this mapping for ccxt order, disgusting right ?
 export const getTradeSide = (side: Side): Side =>
   side === Side.Close
     ? Side.Close
@@ -18,21 +20,25 @@ export const getTradeSide = (side: Side): Side =>
 export const getInvertedTradeSide = (side: Side): 'buy' | 'sell' =>
   side === Side.Sell || side === Side.Short ? Side.Buy : Side.Sell;
 
-export const getTradeSize = (ticker: Ticker, size: number): number => {
-  const { ask, bid, high, low } = ticker;
-  const sizeInDollars =
-    high && low ? size / ((high + low) / 2) : size / ((ask + bid) / 2);
+// TODO refacto specific
+export const getTradeSize = (ticker: Ticker, sizeInDollars: number): number => {
+  const { info, symbol } = ticker;
+  const sizeInTokens = info.price
+    ? sizeInDollars / Number(info.price) // FTX
+    : sizeInDollars / Number(info.lastPrice); // Binance
+  if (isNaN(sizeInTokens)) {
+    error(TRADE_CALCULATED_TOKEN_SIZE_ERROR(symbol));
+    throw new OrderSizeError(TRADE_CALCULATED_TOKEN_SIZE_ERROR(symbol));
+  }
   debug(
-    TOKEN_CALCULATED_SIZE_IN_DOLLARS(
-      ticker.symbol,
-      size,
-      sizeInDollars.toFixed(2)
-    )
+    TRADE_CALCULATED_TOKEN_SIZE(symbol, sizeInTokens.toFixed(2), sizeInDollars)
   );
-  return sizeInDollars;
+  return sizeInTokens;
 };
 
+// TODO allow absolute closing size ?
 export const getCloseOrderSize = (
+  ticker: Ticker,
   closingSize: string,
   currentSize: number
 ): number => {
@@ -45,5 +51,6 @@ export const getCloseOrderSize = (
     }
     orderSize = (orderSize * percent) / 100;
   }
+  debug(TRADE_CALCULATED_CLOSING_SIZE(ticker.symbol, orderSize, currentSize));
   return orderSize;
 };

@@ -5,7 +5,6 @@ import {
   ACCOUNT_WRITE_ERROR,
   ACCOUNT_READ_SUCCESS,
   ACCOUNT_READ_ERROR,
-  ACCOUNT_DELETE_ERROR,
   ACCOUNT_DELETE_SUCCESS,
   ACCOUNT_WRITE_ERROR_ALREADY_EXISTS
 } from '../messages/account.messages';
@@ -81,8 +80,8 @@ export const removeAccount = async (accountId: string): Promise<boolean> => {
     accounts.delete(id);
     await db.delete(id);
   } catch (err) {
-    error(ACCOUNT_DELETE_ERROR(id), err);
-    throw new AccountWriteError(ACCOUNT_DELETE_ERROR(id, err.message));
+    error(ACCOUNT_READ_ERROR(id), err);
+    throw new AccountWriteError(ACCOUNT_READ_ERROR(id, err.message));
   }
   info(ACCOUNT_DELETE_SUCCESS(id));
   return true;

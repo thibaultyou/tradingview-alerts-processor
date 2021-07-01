@@ -4,6 +4,7 @@ import { Trade } from '../entities/trade.entities';
 export interface ITradeInfo {
   account: Account;
   trade: Trade;
+  id: string;
 }
 
 export interface IOrderOptions {

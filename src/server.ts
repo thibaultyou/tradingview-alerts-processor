@@ -1,7 +1,12 @@
 import express = require('express');
 import { NODE_PORT } from './constants/env.constants';
-import { info } from './services/logger.service';
-import { SERVER_RUNNING } from './messages/server.messages';
+import { info, warning } from './services/logger.service';
+import {
+  SERVER_RUNNING,
+  GREETINGS,
+  ISSUES,
+  DISCLAIMER
+} from './messages/server.messages';
 import { DatabaseService } from './services/db/db.service';
 import { errorMiddleware } from './utils/errors.utils';
 import routes from './routes';
@@ -19,6 +24,9 @@ app.use(routes.trading);
 app.use(routes.health);
 
 app.listen(PORT, () => {
+  info(GREETINGS);
+  warning(ISSUES);
+  warning(DISCLAIMER);
   DatabaseService.getDatabaseInstance();
   info(SERVER_RUNNING);
 });

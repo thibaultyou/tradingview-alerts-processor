@@ -19,7 +19,9 @@ export const consoleLoggerOptions: transports.ConsoleTransportOptions = {
   level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
   format: combine(
     colorize(),
-    timestamp(),
+    timestamp({
+      format: 'YYYY-MM-DD HH:mm:ss'
+    }),
     format.printf(({ level, message, timestamp }) => {
       return `${timestamp}:${level}:${message}`;
     })
@@ -38,3 +40,6 @@ export const debugLogFileLoggerOptions: transports.FileTransportOptions = {
 export const tradesLogFileLoggerOptions: transports.FileTransportOptions = {
   filename: 'logs/trades.log'
 };
+
+export const messageWrapper = (prefix: string, message: string): string =>
+  `${prefix}|${message}`;

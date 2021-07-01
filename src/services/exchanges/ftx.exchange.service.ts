@@ -15,6 +15,7 @@ import {
   EXCHANGE_AUTHENTICATION_SUCCESS,
   POSITIONS_READ_ERROR,
   POSITIONS_READ_SUCCESS,
+  POSITION_NOT_CURRENT,
   TICKER_BALANCE_READ_ERROR,
   TICKER_BALANCE_READ_SUCCESS
 } from '../../messages/exchanges.messages';
@@ -31,10 +32,12 @@ import {
 } from '../../utils/exchanges/ftx.exchange.utils';
 import {
   OPEN_TRADE_ERROR_MAX_SIZE,
-  OPEN_TRADE_NO_CURRENT_OPENED_POSITION,
   REVERSING_TRADE
 } from '../../messages/trading.messages';
-import { OpenPositionError } from '../../errors/trading.errors';
+import {
+  NoOpenPositionError,
+  OpenPositionError
+} from '../../errors/trading.errors';
 import { CompositeExchangeService } from './base/composite.exchange.service';
 import { IFTXFuturesPosition } from '../../interfaces/exchanges/ftx.exchange.interfaces';
 
@@ -70,7 +73,9 @@ export class FTXExchangeService extends CompositeExchangeService {
       const balances = await this.getBalances(account);
       const balance = balances.filter((b) => b.coin === symbol).pop();
       const size = getTradeSize(ticker, Number(balance.free));
-      debug(TICKER_BALANCE_READ_SUCCESS(this.exchangeId, accountId, symbol));
+      debug(
+        TICKER_BALANCE_READ_SUCCESS(this.exchangeId, accountId, symbol, balance)
+      );
       return size;
     } catch (err) {
       error(TICKER_BALANCE_READ_ERROR(this.exchangeId, accountId, symbol, err));
@@ -95,14 +100,14 @@ export class FTXExchangeService extends CompositeExchangeService {
       if (balance) {
         options = {
           side: Side.Sell,
-          size: getCloseOrderSize(trade.size, balance)
+          size: getCloseOrderSize(ticker, trade.size, balance)
         };
       }
     } else {
       const position = await this.getTickerPosition(account, ticker);
       if (position) {
         options = {
-          size: getCloseOrderSize(trade.size, Number(position.size)),
+          size: getCloseOrderSize(ticker, trade.size, Number(position.size)),
           side: getInvertedTradeSide(position.side as Side)
         };
       }
@@ -119,12 +124,9 @@ export class FTXExchangeService extends CompositeExchangeService {
     const positions = await this.getPositions(account);
     const position = positions.filter((p) => p.future === ticker.symbol).pop();
     if (!position) {
-      debug(
-        OPEN_TRADE_NO_CURRENT_OPENED_POSITION(
-          accountId,
-          this.exchangeId,
-          ticker.symbol
-        )
+      error(POSITION_NOT_CURRENT(accountId, this.exchangeId, ticker.symbol));
+      throw new NoOpenPositionError(
+        POSITION_NOT_CURRENT(accountId, this.exchangeId, ticker.symbol)
       );
     }
     return position;
@@ -146,8 +148,10 @@ export class FTXExchangeService extends CompositeExchangeService {
       const accountInfos = await this.sessions
         .get(accountId)
         .exchange.privateGetAccount();
-      const positions = accountInfos.result.positions;
-      debug(POSITIONS_READ_SUCCESS(accountId, this.exchangeId));
+      const positions = accountInfos.result.positions.filter(
+        (p: IFTXFuturesPosition) => Number(p.size)
+      );
+      debug(POSITIONS_READ_SUCCESS(accountId, this.exchangeId, positions));
       return positions;
     } catch (err) {
       error(POSITIONS_READ_ERROR(accountId, this.exchangeId), err);

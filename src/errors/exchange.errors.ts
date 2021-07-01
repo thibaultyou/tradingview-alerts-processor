@@ -22,12 +22,6 @@ export class TickerFetchError extends Error {
   }
 }
 
-export class TradeExecutionError extends Error {
-  constructor(message: string) {
-    super(message);
-  }
-}
-
 export class PositionsFetchError extends Error {
   constructor(message: string) {
     super(message);

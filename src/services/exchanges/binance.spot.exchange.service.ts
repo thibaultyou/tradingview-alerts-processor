@@ -64,7 +64,9 @@ export class BinanceSpotExchangeService extends SpotExchangeService {
       const balances = await this.getBalances(account);
       const balance = balances.filter((b) => b.coin === symbol).pop();
       const size = this.getTokenAmountInDollars(ticker, Number(balance.free));
-      debug(TICKER_BALANCE_READ_SUCCESS(this.exchangeId, accountId, symbol));
+      debug(
+        TICKER_BALANCE_READ_SUCCESS(this.exchangeId, accountId, symbol, balance)
+      );
       return size;
     } catch (err) {
       error(TICKER_BALANCE_READ_ERROR(this.exchangeId, accountId, symbol, err));
@@ -82,7 +84,7 @@ export class BinanceSpotExchangeService extends SpotExchangeService {
     const balance = await this.getTickerBalance(account, ticker);
     return {
       side: Side.Sell,
-      size: getCloseOrderSize(trade.size, balance)
+      size: getCloseOrderSize(ticker, trade.size, balance)
     };
   };
 

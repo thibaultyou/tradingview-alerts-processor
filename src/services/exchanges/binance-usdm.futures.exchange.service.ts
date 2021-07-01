@@ -15,11 +15,11 @@ import {
   EXCHANGE_AUTHENTICATION_SUCCESS,
   POSITIONS_READ_ERROR,
   POSITIONS_READ_SUCCESS,
+  POSITION_NOT_CURRENT,
   POSITION_READ_SUCCESS
 } from '../../messages/exchanges.messages';
 import {
   OPEN_TRADE_ERROR_MAX_SIZE,
-  OPEN_TRADE_NO_CURRENT_OPENED_POSITION,
   REVERSING_TRADE
 } from '../../messages/trading.messages';
 import { getAccountId } from '../../utils/account.utils';
@@ -43,7 +43,7 @@ export class BinanceFuturesUSDMExchangeService extends FuturesExchangeService {
   ): Promise<boolean> => {
     const accountId = getAccountId(account);
     try {
-      await this.getPositions(account, instance);
+      await instance.fetch_balance();
       debug(EXCHANGE_AUTHENTICATION_SUCCESS(accountId, this.exchangeId));
     } catch (err) {
       error(EXCHANGE_AUTHENTICATION_ERROR(accountId, this.exchangeId), err);
@@ -67,13 +67,7 @@ export class BinanceFuturesUSDMExchangeService extends FuturesExchangeService {
         POSITION_READ_SUCCESS(accountId, this.exchangeId, symbol, position)
       );
     } else {
-      debug(
-        OPEN_TRADE_NO_CURRENT_OPENED_POSITION(
-          accountId,
-          this.exchangeId,
-          ticker.symbol
-        )
-      );
+      debug(POSITION_NOT_CURRENT(accountId, this.exchangeId, ticker.symbol));
     }
     return position;
   };
@@ -97,8 +91,10 @@ export class BinanceFuturesUSDMExchangeService extends FuturesExchangeService {
       if (!instance) {
         instance = (await this.refreshSession(account)).exchange;
       }
-      const positions = await instance.fetchPositions();
-      debug(POSITIONS_READ_SUCCESS(accountId, this.exchangeId));
+      const positions = await instance
+        .fetchPositions()
+        .filter((p: IBinanceFuturesUSDPosition) => Number(p.positionAmt));
+      debug(POSITIONS_READ_SUCCESS(accountId, this.exchangeId, positions));
       return positions;
     } catch (err) {
       error(POSITIONS_READ_ERROR(accountId, this.exchangeId), err);
@@ -116,7 +112,7 @@ export class BinanceFuturesUSDMExchangeService extends FuturesExchangeService {
     const position = await this.getTickerPosition(account, ticker);
     const size = Number(position.positionAmt);
     return {
-      size: getCloseOrderSize(trade.size, Math.abs(size)),
+      size: getCloseOrderSize(ticker, trade.size, Math.abs(size)),
       side: size > 0 ? Side.Sell : Side.Buy
     };
   };

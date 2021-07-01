@@ -33,26 +33,26 @@ describe('Trading utils', () => {
   });
 
   describe('getTradeSize', () => {
-    it('should return trade size with high / low', () => {
-      expect(getTradeSize(sampleBinanceTicker, 50)).toEqual(205.7316847367663);
+    it('should return trade size for Binance tickers', () => {
+      expect(getTradeSize(sampleBinanceTicker, 50)).toEqual(210.19001177064067);
     });
 
-    it('should return trade size with bid / ask', () => {
-      expect(getTradeSize(sampleFTXTicker, 50)).toEqual(210.73416622500298);
+    it('should return trade size for FTX', () => {
+      expect(getTradeSize(sampleFTXTicker, 50)).toEqual(210.75481838203527);
     });
   });
 
   describe('getCloseOrderSize', () => {
     it('should return close order size if percent size is provided', () => {
-      expect(getCloseOrderSize('33%', 100)).toEqual(33);
+      expect(getCloseOrderSize(sampleFTXTicker, '33%', 100)).toEqual(33);
     });
 
     it('should return 100% if absolute size is provided', () => {
-      expect(getCloseOrderSize('123', 100)).toEqual(100);
+      expect(getCloseOrderSize(sampleFTXTicker, '123', 100)).toEqual(100);
     });
 
     it('should return 100% if nothing is provided', () => {
-      expect(getCloseOrderSize(undefined, 100)).toEqual(100);
+      expect(getCloseOrderSize(sampleFTXTicker, undefined, 100)).toEqual(100);
     });
   });
 });
