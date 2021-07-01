@@ -6,11 +6,12 @@ import { Side } from '../../constants/trading.constants';
 import { Trade } from '../../entities/trade.entities';
 import { formatBinanceSpotSymbol } from '../../utils/exchanges/binance.exchange.utils';
 import { getAccountId } from '../../utils/account.utils';
-import { getCloseOrderSize, getTradeSide } from '../../utils/trading.utils';
 import {
-  OPEN_TRADE_ERROR_MAX_SIZE,
-  REVERSING_TRADE_ERROR
-} from '../../messages/trading.messages';
+  getCloseOrderSize,
+  getDollarsSize,
+  getTradeSide
+} from '../../utils/trading.utils';
+import { OPEN_TRADE_ERROR_MAX_SIZE } from '../../messages/trading.messages';
 import { OpenPositionError } from '../../errors/trading.errors';
 import { debug, error } from '../logger.service';
 import { SpotExchangeService } from './base/spot.exchange.service';
@@ -47,13 +48,6 @@ export class BinanceSpotExchangeService extends SpotExchangeService {
     return true;
   };
 
-  getTokenAmountInDollars = (ticker: Ticker, size: number): number => {
-    const { ask, bid } = ticker;
-    let dollars = Number(size) * ((ask + bid) / 2);
-    dollars = +dollars.toFixed(2);
-    return dollars;
-  };
-
   getTickerBalance = async (
     account: Account,
     ticker: Ticker
@@ -63,7 +57,7 @@ export class BinanceSpotExchangeService extends SpotExchangeService {
     try {
       const balances = await this.getBalances(account);
       const balance = balances.filter((b) => b.coin === symbol).pop();
-      const size = this.getTokenAmountInDollars(ticker, Number(balance.free));
+      const size = Number(balance.free);
       debug(
         TICKER_BALANCE_READ_SUCCESS(this.exchangeId, accountId, symbol, balance)
       );
@@ -91,17 +85,13 @@ export class BinanceSpotExchangeService extends SpotExchangeService {
   handleMaxBudget = async (
     account: Account,
     ticker: Ticker,
-    trade: Trade,
-    orderSize: number
+    trade: Trade
   ): Promise<void> => {
-    const { symbol, max, direction } = trade;
+    const { symbol, max, direction, size } = trade;
     const accountId = getAccountId(account);
     const side = getTradeSide(direction);
     const current = await this.getTickerBalance(account, ticker);
-    if (
-      current + this.getTokenAmountInDollars(ticker, orderSize) >
-      Number(max)
-    ) {
+    if (getDollarsSize(ticker, current) + Number(size) > Number(max)) {
       error(
         OPEN_TRADE_ERROR_MAX_SIZE(this.exchangeId, accountId, symbol, side, max)
       );
@@ -111,14 +101,20 @@ export class BinanceSpotExchangeService extends SpotExchangeService {
     }
   };
 
-  // TODO implement ?
   handleReverseOrder = async (
-    account: Account,
-    ticker: Ticker,
+    _account: Account,
+    _ticker: Ticker,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _trade: Trade
   ): Promise<void> => {
-    const accountId = getAccountId(account);
-    error(REVERSING_TRADE_ERROR(this.exchangeId, accountId, ticker.symbol));
+    throw new Error('Not implemented');
+  };
+
+  handleOverflow = async (
+    _account: Account,
+    _ticker: Ticker,
+    _trade: Trade
+  ): Promise<boolean> => {
+    throw new Error('Not implemented');
   };
 }

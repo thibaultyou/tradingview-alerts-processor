@@ -174,7 +174,7 @@ export const POSITIONS_READ_ERROR = (
     }.`
   );
 
-export const POSITION_NOT_CURRENT = (
+export const NO_CURRENT_POSITION = (
   accountId: string,
   exchange: ExchangeId,
   symbol: string

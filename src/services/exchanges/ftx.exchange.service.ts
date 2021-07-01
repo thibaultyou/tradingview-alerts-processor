@@ -4,9 +4,10 @@ import { getAccountId } from '../../utils/account.utils';
 import { Exchange, Ticker } from 'ccxt';
 import {
   getCloseOrderSize,
+  getDollarsSize,
   getInvertedTradeSide,
-  getTradeSize,
-  getTradeSide
+  getTradeSide,
+  isSideDifferent
 } from '../../utils/trading.utils';
 import { Side } from '../../constants/trading.constants';
 import { IOrderOptions } from '../../interfaces/trading.interfaces';
@@ -15,11 +16,12 @@ import {
   EXCHANGE_AUTHENTICATION_SUCCESS,
   POSITIONS_READ_ERROR,
   POSITIONS_READ_SUCCESS,
-  POSITION_NOT_CURRENT,
+  NO_CURRENT_POSITION,
+  POSITION_READ_SUCCESS,
   TICKER_BALANCE_READ_ERROR,
   TICKER_BALANCE_READ_SUCCESS
 } from '../../messages/exchanges.messages';
-import { debug, error } from '../logger.service';
+import { debug, error, info } from '../logger.service';
 import {
   ExchangeInstanceInitError,
   PositionsFetchError,
@@ -32,7 +34,8 @@ import {
 } from '../../utils/exchanges/ftx.exchange.utils';
 import {
   OPEN_TRADE_ERROR_MAX_SIZE,
-  REVERSING_TRADE
+  REVERSING_TRADE,
+  TRADE_OVERFLOW
 } from '../../messages/trading.messages';
 import {
   NoOpenPositionError,
@@ -72,7 +75,7 @@ export class FTXExchangeService extends CompositeExchangeService {
     try {
       const balances = await this.getBalances(account);
       const balance = balances.filter((b) => b.coin === symbol).pop();
-      const size = getTradeSize(ticker, Number(balance.free));
+      const size = Number(balance.free);
       debug(
         TICKER_BALANCE_READ_SUCCESS(this.exchangeId, accountId, symbol, balance)
       );
@@ -120,13 +123,18 @@ export class FTXExchangeService extends CompositeExchangeService {
     account: Account,
     ticker: Ticker
   ): Promise<IFTXFuturesPosition> => {
+    const { symbol } = ticker;
     const accountId = getAccountId(account);
     const positions = await this.getPositions(account);
-    const position = positions.filter((p) => p.future === ticker.symbol).pop();
+    const position = positions.filter((p) => p.future === symbol).pop();
     if (!position) {
-      error(POSITION_NOT_CURRENT(accountId, this.exchangeId, ticker.symbol));
+      error(NO_CURRENT_POSITION(accountId, this.exchangeId, symbol));
       throw new NoOpenPositionError(
-        POSITION_NOT_CURRENT(accountId, this.exchangeId, ticker.symbol)
+        NO_CURRENT_POSITION(accountId, this.exchangeId, symbol)
+      );
+    } else {
+      debug(
+        POSITION_READ_SUCCESS(accountId, this.exchangeId, symbol, position)
       );
     }
     return position;
@@ -137,9 +145,7 @@ export class FTXExchangeService extends CompositeExchangeService {
     ticker: Ticker
   ): Promise<number> => {
     const position = await this.getTickerPosition(account, ticker);
-    if (position) {
-      return getTradeSize(ticker, Number(position.size));
-    }
+    return Number(position.cost);
   };
 
   getPositions = async (account: Account): Promise<IFTXFuturesPosition[]> => {
@@ -168,38 +174,81 @@ export class FTXExchangeService extends CompositeExchangeService {
   ): Promise<void> => {
     const { direction } = trade;
     const accountId = getAccountId(account);
-    const side = getTradeSide(direction);
-    // TODO handle err
-    const position = await this.getTickerPosition(account, ticker);
-    if (position) {
-      const positionSize = getTradeSize(ticker, Number(position.size));
-      const positionSide = getTradeSide(position.side as Side);
-      if (positionSize && positionSide !== side) {
-        debug(REVERSING_TRADE(this.exchangeId, accountId, ticker.symbol));
+    try {
+      const position = await this.getTickerPosition(account, ticker);
+      if (position && isSideDifferent(position.side as Side, direction)) {
+        info(REVERSING_TRADE(this.exchangeId, accountId, ticker.symbol));
         await this.closeOrder(account, trade, ticker);
       }
+    } catch (err) {
+      // ignore throw
     }
   };
 
   handleMaxBudget = async (
     account: Account,
     ticker: Ticker,
-    trade: Trade,
-    orderSize: number
+    trade: Trade
   ): Promise<void> => {
-    const { symbol, max, direction } = trade;
-    const { exchange } = account;
-    const id = getAccountId(account);
+    const { symbol, max, direction, size } = trade;
+    const accountId = getAccountId(account);
     const side = getTradeSide(direction);
     // we add a check since FTX is a composite exchange
     const current = isFTXSpot(ticker)
-      ? await this.getTickerBalance(account, ticker)
+      ? getDollarsSize(ticker, await this.getTickerBalance(account, ticker))
       : await this.getTickerPositionSize(account, ticker);
-    if (current + getTradeSize(ticker, orderSize) > Number(max)) {
-      error(OPEN_TRADE_ERROR_MAX_SIZE(exchange, id, symbol, side, max));
+    if (Math.abs(current) + Number(size) > Number(max)) {
+      error(
+        OPEN_TRADE_ERROR_MAX_SIZE(this.exchangeId, accountId, symbol, side, max)
+      );
       throw new OpenPositionError(
-        OPEN_TRADE_ERROR_MAX_SIZE(exchange, id, symbol, side, max)
+        OPEN_TRADE_ERROR_MAX_SIZE(this.exchangeId, accountId, symbol, side, max)
       );
     }
+  };
+
+  handleOverflow = async (
+    account: Account,
+    ticker: Ticker,
+    trade: Trade
+  ): Promise<boolean> => {
+    const { direction, size } = trade;
+    const accountId = getAccountId(account);
+    try {
+      // TODO refacto
+      if (isFTXSpot(ticker)) {
+        const balance = getDollarsSize(
+          ticker,
+          await this.getTickerBalance(account, ticker)
+        );
+        if (
+          balance &&
+          getTradeSide(direction) === Side.Sell &&
+          balance < Number(size)
+        ) {
+          info(TRADE_OVERFLOW(this.exchangeId, accountId, ticker.symbol));
+          await this.closeOrder(
+            account,
+            { ...trade, size: balance.toString() }, // TODO replace this crap
+            ticker
+          );
+          return true;
+        }
+      } else {
+        const position = await this.getTickerPosition(account, ticker);
+        if (
+          position &&
+          isSideDifferent(position.side as Side, direction) &&
+          Number(size) > Math.abs(Number(position.cost))
+        ) {
+          info(TRADE_OVERFLOW(this.exchangeId, accountId, ticker.symbol));
+          await this.closeOrder(account, trade, ticker);
+          return true;
+        }
+      }
+    } catch (err) {
+      // ignore throw
+    }
+    return false;
   };
 }

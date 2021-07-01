@@ -64,16 +64,12 @@ export const CLOSE_TRADE_SUCCESS = (
   symbol: string,
   sizeInTokens: number,
   closingSize: string
-): string => {
-  const closingSizeMessage = closingSize.includes('%')
-    ? closingSize
-    : `${closingSize} $US`;
-  return tradingMessageWrapper(
+): string =>
+  tradingMessageWrapper(
     `${formatExchange(
       exchange
-    )}/${accountId} - $$$ Closing ${closingSizeMessage} of open position / available balance (~ ${sizeInTokens} ${symbol}).`
+    )}/${accountId} - $$$ Closing ${sizeInTokens} ${symbol} of open position / available balance (~ ${closingSize} $US).`
   );
-};
 
 export const CLOSE_TRADE_ERROR_NOT_FOUND = (
   exchange: ExchangeId,
@@ -129,7 +125,18 @@ export const REVERSING_TRADE = (
   tradingMessageWrapper(
     `${formatExchange(
       exchange
-    )}/${accountId} - xxx Reversing / closing if overflow position on ${symbol}.`
+    )}/${accountId} - xxx Reversing position on ${symbol}.`
+  );
+
+export const TRADE_OVERFLOW = (
+  exchange: ExchangeId,
+  accountId: string,
+  symbol: string
+): string =>
+  tradingMessageWrapper(
+    `${formatExchange(
+      exchange
+    )}/${accountId} - xxx Trade is overflowing current position on ${symbol}.`
   );
 
 export const REVERSING_TRADE_ERROR = (
@@ -185,16 +192,16 @@ export const TRADE_EXECUTION_TIME = (
 export const TRADE_PROCESSING = (id: string): string =>
   tradingMessageWrapper(`Processing ${id} trade.`);
 
-export const TRADE_CALCULATED_TOKEN_SIZE = (
+export const TRADE_CALCULATED_SIZE = (
   symbol: string,
   sizeInTokens: string,
-  sizeInDollars: number
+  sizeInDollars: string
 ): string =>
   tradingMessageWrapper(
     `Calculated ${sizeInTokens} ${symbol} equivalent for ${sizeInDollars} $US.`
   );
 
-export const TRADE_CALCULATED_TOKEN_SIZE_ERROR = (symbol: string): string =>
+export const TRADE_CALCULATED_SIZE_ERROR = (symbol: string): string =>
   tradingMessageWrapper(`Failed to convert ${symbol} equivalent.`);
 
 export const TRADE_CALCULATED_CLOSING_SIZE = (

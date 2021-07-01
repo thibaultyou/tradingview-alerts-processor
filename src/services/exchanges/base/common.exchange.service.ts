@@ -28,7 +28,11 @@ import {
   OpenPositionError
 } from '../../../errors/trading.errors';
 import { Side, TradingMode } from '../../../constants/trading.constants';
-import { getTradeSize, getTradeSide } from '../../../utils/trading.utils';
+import {
+  getTradeSize,
+  getTradeSide,
+  getDollarsSize
+} from '../../../utils/trading.utils';
 import { getExchangeOptions } from '../../../utils/exchanges/common.exchange.utils';
 import {
   ICommonExchange,
@@ -39,7 +43,6 @@ export abstract class CommonExchangeService implements ICommonExchange {
   exchangeId: ExchangeId;
   defaultExchange: Exchange;
   sessions = new Map<string, ISession>(); // account id, exchange session
-  tickers = new Map<string, Ticker>(); // symbol, ticker infos
 
   constructor(exchangeId: ExchangeId) {
     this.exchangeId = exchangeId;
@@ -60,8 +63,7 @@ export abstract class CommonExchangeService implements ICommonExchange {
   abstract handleMaxBudget(
     account: Account,
     ticker: Ticker,
-    trade: Trade,
-    orderSize: number
+    trade: Trade
   ): Promise<void>;
 
   abstract handleReverseOrder(
@@ -69,6 +71,12 @@ export abstract class CommonExchangeService implements ICommonExchange {
     ticker: Ticker,
     trade: Trade
   ): Promise<void>;
+
+  abstract handleOverflow(
+    account: Account,
+    ticker: Ticker,
+    trade: Trade
+  ): Promise<boolean>;
 
   refreshSession = async (account: Account): Promise<ISession> => {
     const accountId = getAccountId(account);
@@ -99,26 +107,16 @@ export abstract class CommonExchangeService implements ICommonExchange {
   };
 
   getTicker = async (symbol: string): Promise<Ticker> => {
-    let ticker = this.tickers.get(symbol);
-    if (!ticker) {
-      try {
-        const ticker: Ticker = await this.defaultExchange.fetchTicker(symbol);
-        this.tickers.set(symbol, ticker);
-      } catch (err) {
-        error(TICKER_READ_ERROR(this.exchangeId, symbol), err);
-        throw new TickerFetchError(
-          TICKER_READ_ERROR(this.exchangeId, symbol, err.message)
-        );
-      }
+    try {
+      const ticker: Ticker = await this.defaultExchange.fetchTicker(symbol);
+      debug(TICKER_READ_SUCCESS(this.exchangeId, symbol, ticker));
+      return ticker;
+    } catch (err) {
+      error(TICKER_READ_ERROR(this.exchangeId, symbol), err);
+      throw new TickerFetchError(
+        TICKER_READ_ERROR(this.exchangeId, symbol, err.message)
+      );
     }
-    // we double check here
-    ticker = this.tickers.get(symbol);
-    if (!ticker) {
-      error(TICKER_READ_ERROR(this.exchangeId, symbol));
-      throw new TickerFetchError(TICKER_READ_ERROR(this.exchangeId, symbol));
-    }
-    debug(TICKER_READ_SUCCESS(this.exchangeId, symbol, ticker));
-    return ticker;
   };
 
   closeOrder = async (
@@ -127,7 +125,7 @@ export abstract class CommonExchangeService implements ICommonExchange {
     ticker?: Ticker
   ): Promise<Order> => {
     await this.refreshSession(account);
-    const { symbol, size } = trade;
+    const { symbol } = trade;
     const accountId = getAccountId(account);
     try {
       if (!ticker) {
@@ -143,7 +141,7 @@ export abstract class CommonExchangeService implements ICommonExchange {
           accountId,
           symbol,
           options.size,
-          size
+          getDollarsSize(ticker, order.amount).toFixed(2)
         )
       );
       return order;
@@ -162,16 +160,22 @@ export abstract class CommonExchangeService implements ICommonExchange {
     const side = getTradeSide(direction);
     try {
       const ticker = await this.getTicker(symbol);
-      if (mode === TradingMode.Reverse || mode === TradingMode.Overflow) {
+      const orderSize = getTradeSize(ticker, Number(size));
+
+      // TODO relocate this
+      ///
+      if (mode === TradingMode.Reverse) {
         await this.handleReverseOrder(account, ticker, trade);
-        if (mode === TradingMode.Overflow) {
-          return;
+      } else if (mode === TradingMode.Overflow) {
+        const isOverflowing = await this.handleOverflow(account, ticker, trade);
+        if (isOverflowing) {
+          return; // on overflow we only close position
         }
       }
-      const orderSize = getTradeSize(ticker, Number(size));
       if (max) {
-        await this.handleMaxBudget(account, ticker, trade, orderSize);
+        await this.handleMaxBudget(account, ticker, trade);
       }
+      ///
       const order: Order = await this.sessions
         .get(accountId)
         .exchange.createMarketOrder(symbol, side as 'buy' | 'sell', orderSize);

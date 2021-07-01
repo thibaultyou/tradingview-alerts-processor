@@ -1,9 +1,9 @@
+import { Account } from '../../entities/account.entities';
 import { Exchange, Order, Ticker } from 'ccxt';
 import { ExchangeId } from '../../constants/exchanges.constants';
-import { Account } from '../../entities/account.entities';
-import { Trade } from '../../entities/trade.entities';
 import { FuturesPosition } from '../../types/exchanges.types';
 import { IOrderOptions } from '../trading.interfaces';
+import { Trade } from '../../entities/trade.entities';
 
 export interface IBalance {
   coin: string;
@@ -20,7 +20,6 @@ export interface ICommonExchange {
   exchangeId: ExchangeId;
   defaultExchange: Exchange;
   sessions: Map<string, ISession>;
-  tickers: Map<string, Ticker>;
 
   getCloseOrderOptions(
     account: Account,
@@ -33,9 +32,14 @@ export interface ICommonExchange {
   handleMaxBudget(
     account: Account,
     ticker: Ticker,
-    trade: Trade,
-    orderSize: number
+    trade: Trade
   ): Promise<void>;
+
+  handleOverflow(
+    account: Account,
+    ticker: Ticker,
+    trade: Trade
+  ): Promise<boolean>;
 
   refreshSession(account: Account): Promise<ISession>;
 
