@@ -2,10 +2,8 @@ import { Ticker } from 'ccxt';
 import { Side } from '../constants/trading.constants';
 import { OrderSizeError } from '../errors/trading.errors';
 import {
-  TRADE_CALCULATED_SIZE,
   TRADE_CALCULATED_CLOSING_SIZE,
-  TRADE_ERROR_SIZE,
-  TRADE_CALCULATED_SIZE_ERROR
+  TRADE_ERROR_SIZE
 } from '../messages/trading.messages';
 import { debug, error } from '../services/logger.service';
 
@@ -20,43 +18,8 @@ export const getTradeSide = (side: Side): Side =>
 export const getInvertedTradeSide = (side: Side): 'buy' | 'sell' =>
   side === Side.Sell || side === Side.Short ? Side.Buy : Side.Sell;
 
-// TODO refacto specific
-export const getTradeSize = (ticker: Ticker, sizeInDollars: number): number => {
-  const { info, symbol } = ticker;
-  const sizeInTokens = info.price
-    ? sizeInDollars / Number(info.price) // FTX
-    : sizeInDollars / Number(info.lastPrice); // Binance
-  if (isNaN(sizeInTokens)) {
-    error(TRADE_CALCULATED_SIZE_ERROR(symbol));
-    throw new OrderSizeError(TRADE_CALCULATED_SIZE_ERROR(symbol));
-  }
-  debug(
-    TRADE_CALCULATED_SIZE(
-      symbol,
-      sizeInTokens.toString(),
-      sizeInDollars.toString()
-    )
-  );
-  return sizeInTokens;
-};
-
-// TOOD rename
-export const getDollarsSize = (ticker: Ticker, amount: number): number => {
-  const { info, symbol } = ticker;
-  const sizeInDollars = info.price
-    ? Number(info.price) * amount // FTX
-    : Number(info.lastPrice) * amount; // Binance
-  if (isNaN(sizeInDollars)) {
-    error(TRADE_CALCULATED_SIZE_ERROR(symbol));
-    throw new OrderSizeError(TRADE_CALCULATED_SIZE_ERROR(symbol));
-  }
-  debug(
-    TRADE_CALCULATED_SIZE(symbol, amount.toString(), sizeInDollars.toString())
-  );
-  return sizeInDollars;
-};
-
 // TODO allow absolute closing size ?
+// TODO refacto
 export const getCloseOrderSize = (
   ticker: Ticker,
   closingSize: string,

@@ -194,8 +194,8 @@ export const TRADE_PROCESSING = (id: string): string =>
 
 export const TRADE_CALCULATED_SIZE = (
   symbol: string,
-  sizeInTokens: string,
-  sizeInDollars: string
+  sizeInTokens: number,
+  sizeInDollars: number
 ): string =>
   tradingMessageWrapper(
     `Calculated ${sizeInTokens} ${symbol} equivalent for ${sizeInDollars} $US.`

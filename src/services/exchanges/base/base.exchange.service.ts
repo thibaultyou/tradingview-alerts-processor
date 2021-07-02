@@ -28,18 +28,12 @@ import {
   OpenPositionError
 } from '../../../errors/trading.errors';
 import { Side, TradingMode } from '../../../constants/trading.constants';
-import {
-  getTradeSize,
-  getTradeSide,
-  getDollarsSize
-} from '../../../utils/trading.utils';
+import { getTradeSide } from '../../../utils/trading.utils';
 import { getExchangeOptions } from '../../../utils/exchanges/common.exchange.utils';
-import {
-  ICommonExchange,
-  ISession
-} from '../../../interfaces/exchanges/common.exchange.interfaces';
+import { ISession } from '../../../interfaces/exchanges/common.exchange.interfaces';
+import { IBaseExchange } from '../../../interfaces/exchanges/base/base.exchange.interface';
 
-export abstract class CommonExchangeService implements ICommonExchange {
+export abstract class BaseExchangeService implements IBaseExchange {
   exchangeId: ExchangeId;
   defaultExchange: Exchange;
   sessions = new Map<string, ISession>(); // account id, exchange session
@@ -77,6 +71,10 @@ export abstract class CommonExchangeService implements ICommonExchange {
     ticker: Ticker,
     trade: Trade
   ): Promise<boolean>;
+
+  abstract getTokensAmount(ticker: Ticker, dollars: number): number;
+
+  abstract getTokensPrice(ticker: Ticker, tokens: number): number;
 
   refreshSession = async (account: Account): Promise<ISession> => {
     const accountId = getAccountId(account);
@@ -141,7 +139,7 @@ export abstract class CommonExchangeService implements ICommonExchange {
           accountId,
           symbol,
           options.size,
-          getDollarsSize(ticker, order.amount).toFixed(2)
+          this.getTokensPrice(ticker, order.amount).toFixed(2)
         )
       );
       return order;
@@ -153,40 +151,56 @@ export abstract class CommonExchangeService implements ICommonExchange {
     }
   };
 
+  handleTradingOptions = async (
+    account: Account,
+    ticker: Ticker,
+    trade: Trade
+  ): Promise<boolean> => {
+    const { max, mode } = trade;
+    if (mode === TradingMode.Reverse) {
+      await this.handleReverseOrder(account, ticker, trade);
+    } else if (mode === TradingMode.Overflow) {
+      const isOverflowing = await this.handleOverflow(account, ticker, trade);
+      if (isOverflowing) {
+        return false; // on overflow we only close position
+      }
+    }
+    if (max) {
+      await this.handleMaxBudget(account, ticker, trade);
+    }
+    return true;
+  };
+
   openOrder = async (account: Account, trade: Trade): Promise<Order> => {
     await this.refreshSession(account);
-    const { direction, size, max, symbol, mode } = trade;
+    const { direction, size, symbol } = trade;
     const accountId = getAccountId(account);
     const side = getTradeSide(direction);
     try {
       const ticker = await this.getTicker(symbol);
-      const orderSize = getTradeSize(ticker, Number(size));
-
-      // TODO relocate this
-      ///
-      if (mode === TradingMode.Reverse) {
-        await this.handleReverseOrder(account, ticker, trade);
-      } else if (mode === TradingMode.Overflow) {
-        const isOverflowing = await this.handleOverflow(account, ticker, trade);
-        if (isOverflowing) {
-          return; // on overflow we only close position
-        }
-      }
-      if (max) {
-        await this.handleMaxBudget(account, ticker, trade);
-      }
-      ///
-      const order: Order = await this.sessions
-        .get(accountId)
-        .exchange.createMarketOrder(symbol, side as 'buy' | 'sell', orderSize);
-      side === Side.Buy
-        ? long(
-            OPEN_LONG_TRADE_SUCCESS(this.exchangeId, accountId, symbol, size)
-          )
-        : short(
-            OPEN_SHORT_TRADE_SUCCESS(this.exchangeId, accountId, symbol, size)
+      const orderSize = this.getTokensAmount(ticker, Number(size));
+      const isOpenOrderAllowed = await this.handleTradingOptions(
+        account,
+        ticker,
+        trade
+      );
+      if (isOpenOrderAllowed) {
+        const order: Order = await this.sessions
+          .get(accountId)
+          .exchange.createMarketOrder(
+            symbol,
+            side as 'buy' | 'sell',
+            orderSize
           );
-      return order;
+        side === Side.Buy
+          ? long(
+              OPEN_LONG_TRADE_SUCCESS(this.exchangeId, accountId, symbol, size)
+            )
+          : short(
+              OPEN_SHORT_TRADE_SUCCESS(this.exchangeId, accountId, symbol, size)
+            );
+        return order;
+      }
     } catch (err) {
       error(OPEN_TRADE_ERROR(this.exchangeId, accountId, symbol, side), err);
       throw new OpenPositionError(

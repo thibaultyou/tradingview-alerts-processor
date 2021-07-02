@@ -1,8 +1,6 @@
 import { Side } from '../../constants/trading.constants';
 import { sampleFTXTicker } from '../../tests/fixtures/ftx.fixtures';
-import { sampleBinanceTicker } from '../../tests/fixtures/binance.fixtures';
 import {
-  getTradeSize,
   getCloseOrderSize,
   getInvertedTradeSide,
   getTradeSide
@@ -29,16 +27,6 @@ describe('Trading utils', () => {
     it('should return inverted side', () => {
       expect(getInvertedTradeSide(Side.Buy)).toEqual(Side.Sell);
       expect(getInvertedTradeSide(Side.Sell)).toEqual(Side.Buy);
-    });
-  });
-
-  describe('getTradeSize', () => {
-    it('should return trade size for Binance tickers', () => {
-      expect(getTradeSize(sampleBinanceTicker, 50)).toEqual(210.19001177064067);
-    });
-
-    it('should return trade size for FTX', () => {
-      expect(getTradeSize(sampleFTXTicker, 50)).toEqual(210.75481838203527);
     });
   });
 

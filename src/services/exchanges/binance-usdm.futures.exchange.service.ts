@@ -4,6 +4,7 @@ import { Side } from '../../constants/trading.constants';
 import { Account } from '../../entities/account.entities';
 import { Trade } from '../../entities/trade.entities';
 import {
+  ConversionError,
   ExchangeInstanceInitError,
   PositionsFetchError
 } from '../../errors/exchange.errors';
@@ -24,6 +25,8 @@ import {
 import {
   OPEN_TRADE_ERROR_MAX_SIZE,
   REVERSING_TRADE,
+  TRADE_CALCULATED_SIZE,
+  TRADE_CALCULATED_SIZE_ERROR,
   TRADE_OVERFLOW
 } from '../../messages/trading.messages';
 import { getAccountId } from '../../utils/account.utils';
@@ -185,5 +188,27 @@ export class BinanceFuturesUSDMExchangeService extends FuturesExchangeService {
       // ignore throw
     }
     return false;
+  };
+
+  getTokensAmount = (ticker: Ticker, dollars: number): number => {
+    const { info, symbol } = ticker;
+    const tokens = dollars / Number(info.lastPrice);
+    if (isNaN(tokens)) {
+      error(TRADE_CALCULATED_SIZE_ERROR(symbol));
+      throw new ConversionError(TRADE_CALCULATED_SIZE_ERROR(symbol));
+    }
+    debug(TRADE_CALCULATED_SIZE(symbol, tokens, dollars));
+    return tokens;
+  };
+
+  getTokensPrice = (ticker: Ticker, tokens: number): number => {
+    const { info, symbol } = ticker;
+    const price = Number(info.lastPrice) * tokens;
+    if (isNaN(price)) {
+      error(TRADE_CALCULATED_SIZE_ERROR(symbol));
+      throw new ConversionError(TRADE_CALCULATED_SIZE_ERROR(symbol));
+    }
+    debug(TRADE_CALCULATED_SIZE(symbol, tokens, price));
+    return price;
   };
 }

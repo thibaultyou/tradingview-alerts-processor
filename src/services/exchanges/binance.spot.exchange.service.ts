@@ -6,12 +6,12 @@ import { Side } from '../../constants/trading.constants';
 import { Trade } from '../../entities/trade.entities';
 import { formatBinanceSpotSymbol } from '../../utils/exchanges/binance.exchange.utils';
 import { getAccountId } from '../../utils/account.utils';
+import { getCloseOrderSize, getTradeSide } from '../../utils/trading.utils';
 import {
-  getCloseOrderSize,
-  getDollarsSize,
-  getTradeSide
-} from '../../utils/trading.utils';
-import { OPEN_TRADE_ERROR_MAX_SIZE } from '../../messages/trading.messages';
+  OPEN_TRADE_ERROR_MAX_SIZE,
+  TRADE_CALCULATED_SIZE,
+  TRADE_CALCULATED_SIZE_ERROR
+} from '../../messages/trading.messages';
 import { OpenPositionError } from '../../errors/trading.errors';
 import { debug, error } from '../logger.service';
 import { SpotExchangeService } from './base/spot.exchange.service';
@@ -22,6 +22,7 @@ import {
   TICKER_BALANCE_READ_SUCCESS
 } from '../../messages/exchanges.messages';
 import {
+  ConversionError,
   ExchangeInstanceInitError,
   TickerFetchError
 } from '../../errors/exchange.errors';
@@ -91,7 +92,7 @@ export class BinanceSpotExchangeService extends SpotExchangeService {
     const accountId = getAccountId(account);
     const side = getTradeSide(direction);
     const current = await this.getTickerBalance(account, ticker);
-    if (getDollarsSize(ticker, current) + Number(size) > Number(max)) {
+    if (this.getTokensPrice(ticker, current) + Number(size) > Number(max)) {
       error(
         OPEN_TRADE_ERROR_MAX_SIZE(this.exchangeId, accountId, symbol, side, max)
       );
@@ -101,8 +102,33 @@ export class BinanceSpotExchangeService extends SpotExchangeService {
     }
   };
 
+  getTokensAmount = (ticker: Ticker, dollars: number): number => {
+    const { info, symbol } = ticker;
+    const tokens = dollars / Number(info.lastPrice);
+    if (isNaN(tokens)) {
+      error(TRADE_CALCULATED_SIZE_ERROR(symbol));
+      throw new ConversionError(TRADE_CALCULATED_SIZE_ERROR(symbol));
+    }
+    debug(TRADE_CALCULATED_SIZE(symbol, tokens, dollars));
+    return tokens;
+  };
+
+  getTokensPrice = (ticker: Ticker, tokens: number): number => {
+    const { info, symbol } = ticker;
+    const price = Number(info.lastPrice) * tokens;
+    if (isNaN(price)) {
+      error(TRADE_CALCULATED_SIZE_ERROR(symbol));
+      throw new ConversionError(TRADE_CALCULATED_SIZE_ERROR(symbol));
+    }
+    debug(TRADE_CALCULATED_SIZE(symbol, tokens, price));
+    return price;
+  };
+
+  // TODO implement
   handleReverseOrder = async (
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _account: Account,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _ticker: Ticker,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _trade: Trade
@@ -110,9 +136,13 @@ export class BinanceSpotExchangeService extends SpotExchangeService {
     throw new Error('Not implemented');
   };
 
+  // TODO implement
   handleOverflow = async (
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _account: Account,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _ticker: Ticker,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _trade: Trade
   ): Promise<boolean> => {
     throw new Error('Not implemented');

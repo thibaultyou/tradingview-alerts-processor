@@ -1,10 +1,8 @@
 import { Exchange, Ticker } from 'ccxt';
 import { Account } from '../../../entities/account.entities';
 import { BalancesFetchError } from '../../../errors/exchange.errors';
-import {
-  IBalance,
-  ISpotExchange
-} from '../../../interfaces/exchanges/common.exchange.interfaces';
+import { ISpotExchange } from '../../../interfaces/exchanges/base/spot.exchange.interface';
+import { IBalance } from '../../../interfaces/exchanges/common.exchange.interfaces';
 import {
   BALANCES_READ_ERROR,
   BALANCES_READ_SUCCESS
@@ -12,10 +10,10 @@ import {
 import { getAccountId } from '../../../utils/account.utils';
 import { formatBalances } from '../../../utils/exchanges/common.exchange.utils';
 import { debug, error } from '../../logger.service';
-import { CommonExchangeService } from './common.exchange.service';
+import { BaseExchangeService } from './base.exchange.service';
 
 export abstract class SpotExchangeService
-  extends CommonExchangeService
+  extends BaseExchangeService
   implements ISpotExchange
 {
   abstract getTickerBalance(account: Account, ticker: Ticker): Promise<number>;

@@ -4,7 +4,6 @@ import { getAccountId } from '../../utils/account.utils';
 import { Exchange, Ticker } from 'ccxt';
 import {
   getCloseOrderSize,
-  getDollarsSize,
   getInvertedTradeSide,
   getTradeSide,
   isSideDifferent
@@ -23,6 +22,7 @@ import {
 } from '../../messages/exchanges.messages';
 import { debug, error, info } from '../logger.service';
 import {
+  ConversionError,
   ExchangeInstanceInitError,
   PositionsFetchError,
   TickerFetchError
@@ -35,6 +35,8 @@ import {
 import {
   OPEN_TRADE_ERROR_MAX_SIZE,
   REVERSING_TRADE,
+  TRADE_CALCULATED_SIZE,
+  TRADE_CALCULATED_SIZE_ERROR,
   TRADE_OVERFLOW
 } from '../../messages/trading.messages';
 import {
@@ -195,7 +197,10 @@ export class FTXExchangeService extends CompositeExchangeService {
     const side = getTradeSide(direction);
     // we add a check since FTX is a composite exchange
     const current = isFTXSpot(ticker)
-      ? getDollarsSize(ticker, await this.getTickerBalance(account, ticker))
+      ? this.getTokensPrice(
+          ticker,
+          await this.getTickerBalance(account, ticker)
+        )
       : await this.getTickerPositionSize(account, ticker);
     if (Math.abs(current) + Number(size) > Number(max)) {
       error(
@@ -207,48 +212,85 @@ export class FTXExchangeService extends CompositeExchangeService {
     }
   };
 
-  handleOverflow = async (
+  handleSpotOverflow = async (
     account: Account,
     ticker: Ticker,
     trade: Trade
   ): Promise<boolean> => {
     const { direction, size } = trade;
     const accountId = getAccountId(account);
+    const balance = this.getTokensPrice(
+      ticker,
+      await this.getTickerBalance(account, ticker)
+    );
+    if (
+      balance &&
+      getTradeSide(direction) === Side.Sell &&
+      balance < Number(size)
+    ) {
+      info(TRADE_OVERFLOW(this.exchangeId, accountId, ticker.symbol));
+      await this.closeOrder(
+        account,
+        { ...trade, size: balance.toString() }, // TODO replace this crap
+        ticker
+      );
+      return true;
+    }
+  };
+
+  handleFuturesOverflow = async (
+    account: Account,
+    ticker: Ticker,
+    trade: Trade
+  ): Promise<boolean> => {
+    const { direction, size } = trade;
+    const accountId = getAccountId(account);
+    const position = await this.getTickerPosition(account, ticker);
+    if (
+      position &&
+      isSideDifferent(position.side as Side, direction) &&
+      Number(size) > Math.abs(Number(position.cost))
+    ) {
+      info(TRADE_OVERFLOW(this.exchangeId, accountId, ticker.symbol));
+      await this.closeOrder(account, trade, ticker);
+      return true;
+    }
+  };
+
+  handleOverflow = async (
+    account: Account,
+    ticker: Ticker,
+    trade: Trade
+  ): Promise<boolean> => {
     try {
-      // TODO refacto
-      if (isFTXSpot(ticker)) {
-        const balance = getDollarsSize(
-          ticker,
-          await this.getTickerBalance(account, ticker)
-        );
-        if (
-          balance &&
-          getTradeSide(direction) === Side.Sell &&
-          balance < Number(size)
-        ) {
-          info(TRADE_OVERFLOW(this.exchangeId, accountId, ticker.symbol));
-          await this.closeOrder(
-            account,
-            { ...trade, size: balance.toString() }, // TODO replace this crap
-            ticker
-          );
-          return true;
-        }
-      } else {
-        const position = await this.getTickerPosition(account, ticker);
-        if (
-          position &&
-          isSideDifferent(position.side as Side, direction) &&
-          Number(size) > Math.abs(Number(position.cost))
-        ) {
-          info(TRADE_OVERFLOW(this.exchangeId, accountId, ticker.symbol));
-          await this.closeOrder(account, trade, ticker);
-          return true;
-        }
-      }
+      isFTXSpot(ticker)
+        ? this.handleSpotOverflow(account, ticker, trade)
+        : this.handleFuturesOverflow(account, ticker, trade);
     } catch (err) {
       // ignore throw
     }
     return false;
+  };
+
+  getTokensAmount = (ticker: Ticker, dollars: number): number => {
+    const { info, symbol } = ticker;
+    const tokens = dollars / Number(info.price);
+    if (isNaN(tokens)) {
+      error(TRADE_CALCULATED_SIZE_ERROR(symbol));
+      throw new ConversionError(TRADE_CALCULATED_SIZE_ERROR(symbol));
+    }
+    debug(TRADE_CALCULATED_SIZE(symbol, tokens, dollars));
+    return tokens;
+  };
+
+  getTokensPrice = (ticker: Ticker, tokens: number): number => {
+    const { info, symbol } = ticker;
+    const price = Number(info.price) * tokens;
+    if (isNaN(price)) {
+      error(TRADE_CALCULATED_SIZE_ERROR(symbol));
+      throw new ConversionError(TRADE_CALCULATED_SIZE_ERROR(symbol));
+    }
+    debug(TRADE_CALCULATED_SIZE(symbol, tokens, price));
+    return price;
   };
 }
