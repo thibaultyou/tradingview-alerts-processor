@@ -1,3 +1,7 @@
-export const ACCOUNTS_ROUTE = `/accounts`;
-export const TRADES_ROUTE = `/trades`;
-export const HEALTH_ROUTE = `/health`;
+export enum Route {
+  Accounts = '/accounts',
+  Trading = '/trades',
+  Health = '/health',
+  Balances = '/balances',
+  Markets = '/markets'
+}

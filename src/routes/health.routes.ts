@@ -1,5 +1,5 @@
 import { Request, Response, Router } from 'express';
-import { HEALTH_ROUTE } from '../constants/routes.constants';
+import { Route } from '../constants/routes.constants';
 import { HEALTHCHECK_SUCCESS } from '../messages/server.messages';
 import { loggingMiddleware } from '../utils/logger.utils';
 
@@ -19,7 +19,7 @@ export const checkHealth = async (
 };
 
 export const healthRouter = router.get(
-  HEALTH_ROUTE,
+  Route.Health,
   loggingMiddleware,
   checkHealth
 );

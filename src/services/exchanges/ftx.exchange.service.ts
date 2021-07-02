@@ -11,19 +11,19 @@ import {
 import { Side } from '../../constants/trading.constants';
 import { IOrderOptions } from '../../interfaces/trading.interfaces';
 import {
-  EXCHANGE_AUTHENTICATION_ERROR,
-  EXCHANGE_AUTHENTICATION_SUCCESS,
   POSITIONS_READ_ERROR,
   POSITIONS_READ_SUCCESS,
   NO_CURRENT_POSITION,
   POSITION_READ_SUCCESS,
   TICKER_BALANCE_READ_ERROR,
-  TICKER_BALANCE_READ_SUCCESS
+  TICKER_BALANCE_READ_SUCCESS,
+  BALANCES_READ_ERROR,
+  BALANCES_READ_SUCCESS
 } from '../../messages/exchanges.messages';
 import { debug, error, info } from '../logger.service';
 import {
+  BalancesFetchError,
   ConversionError,
-  ExchangeInstanceInitError,
   PositionsFetchError,
   TickerFetchError
 } from '../../errors/exchange.errors';
@@ -44,28 +44,41 @@ import {
   OpenPositionError
 } from '../../errors/trading.errors';
 import { CompositeExchangeService } from './base/composite.exchange.service';
-import { IFTXFuturesPosition } from '../../interfaces/exchanges/ftx.exchange.interfaces';
+import {
+  IFTXBalance,
+  IFTXFuturesPosition
+} from '../../interfaces/exchanges/ftx.exchange.interfaces';
+import { IBalance } from '../../interfaces/exchanges/common.exchange.interfaces';
 
 export class FTXExchangeService extends CompositeExchangeService {
   constructor() {
     super(ExchangeId.FTX);
   }
 
-  checkCredentials = async (
+  getBalances = async (
     account: Account,
-    instance: Exchange
-  ): Promise<boolean> => {
+    instance?: Exchange
+  ): Promise<IBalance[]> => {
     const accountId = getAccountId(account);
     try {
-      await this.getBalances(account, instance);
-      debug(EXCHANGE_AUTHENTICATION_SUCCESS(accountId, this.exchangeId));
+      if (!instance) {
+        instance = (await this.refreshSession(account)).exchange;
+      }
+      const balances = await instance.fetch_balance();
+      debug(BALANCES_READ_SUCCESS(this.exchangeId, accountId));
+      return balances.info.result
+        .filter((b: IFTXBalance) => Number(b.total))
+        .map((b: IFTXBalance) => ({
+          coin: b.coin,
+          free: b.free,
+          total: b.total
+        }));
     } catch (err) {
-      error(EXCHANGE_AUTHENTICATION_ERROR(accountId, this.exchangeId), err);
-      throw new ExchangeInstanceInitError(
-        EXCHANGE_AUTHENTICATION_ERROR(accountId, this.exchangeId, err.message)
+      error(BALANCES_READ_ERROR(this.exchangeId, accountId), err);
+      throw new BalancesFetchError(
+        BALANCES_READ_ERROR(this.exchangeId, accountId, err.message)
       );
     }
-    return true;
   };
 
   getTickerBalance = async (

@@ -15,3 +15,26 @@ export interface IBinanceFuturesUSDPosition {
   isolatedWallet: string;
   updateTime: string;
 }
+
+export interface IBinanceFuturesUSDBalance {
+  asset: string;
+  walletBalance: string;
+  unrealizedProfit: string;
+  marginBalance: string;
+  maintMargin: string;
+  initialMargin: string;
+  positionInitialMargin: string;
+  openOrderInitialMargin: string;
+  maxWithdrawAmount: string;
+  crossWalletBalance: string;
+  crossUnPnl: string;
+  availableBalance: string;
+  marginAvailable: boolean;
+  updateTime: string;
+}
+
+export interface IBinanceSpotBalance {
+  asset: string;
+  free: string;
+  locked: string;
+}

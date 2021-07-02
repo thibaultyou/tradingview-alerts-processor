@@ -1,6 +1,7 @@
 import { ExchangeId, Exchange, Ticker, Order } from 'ccxt';
 import { Account } from '../../../entities/account.entities';
 import { Trade } from '../../../entities/trade.entities';
+import { IMarket } from '../../market.interfaces';
 import { IOrderOptions } from '../../trading.interfaces';
 import { ISession } from '../common.exchange.interfaces';
 
@@ -50,4 +51,6 @@ export interface IBaseExchange {
   ): Promise<boolean>;
 
   getTokensAmount(ticker: Ticker, size: number): number;
+
+  getMarkets(): Promise<IMarket[]>;
 }

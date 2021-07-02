@@ -75,3 +75,15 @@
     ```sh
     curl -d '{"stub": "test", "symbol": "ETH-PERP", "direction": "short", "size": "100", "mode": "overflow" }' -X POST http://YOUR.STATIC.IP.ADDRESS/trades -H 'Content-Type: application/json; charset=utf-8'
     ```
+
+- __List balances__ on `sub` account :
+
+    ```sh
+    curl -d '{"stub": "sub" }' -X GET http://YOUR.STATIC.IP.ADDRESS/balances -H 'Content-Type: application/json; charset=utf-8'
+    ```
+
+- __List available markets__ on a specific exchange :
+
+    ```sh
+    curl -d '{"exchange": "ftx" }' -X GET http://YOUR.STATIC.IP.ADDRESS/markets -H 'Content-Type: application/json; charset=utf-8'
+    ```

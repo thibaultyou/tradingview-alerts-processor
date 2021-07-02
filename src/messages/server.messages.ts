@@ -10,7 +10,7 @@ export const GREETINGS = `Thank you for using this software, I hope you'll make 
 
 export const ISSUES = `If you find anything you want me to add, fix or improve, please submit issues here : https://github.com/thibaultyou/tradingview-alerts-processor/issues.`;
 
-export const DISCLAIMER = `Use it at your own risk and trade safe.`;
+export const DISCLAIMER = `Use it at your own risk and trade safely.`;
 
 export const SERVER_RUNNING = `server|${HEALTHCHECK_SUCCESS}`;
 

@@ -4,23 +4,27 @@ import { Side } from '../../constants/trading.constants';
 import { Account } from '../../entities/account.entities';
 import { Trade } from '../../entities/trade.entities';
 import {
+  BalancesFetchError,
   ConversionError,
-  ExchangeInstanceInitError,
   PositionsFetchError
 } from '../../errors/exchange.errors';
 import {
   NoOpenPositionError,
   OpenPositionError
 } from '../../errors/trading.errors';
-import { IBinanceFuturesUSDPosition } from '../../interfaces/exchanges/binance.exchange.interfaces';
+import {
+  IBinanceFuturesUSDBalance,
+  IBinanceFuturesUSDPosition
+} from '../../interfaces/exchanges/binance.exchange.interfaces';
+import { IBalance } from '../../interfaces/exchanges/common.exchange.interfaces';
 import { IOrderOptions } from '../../interfaces/trading.interfaces';
 import {
-  EXCHANGE_AUTHENTICATION_ERROR,
-  EXCHANGE_AUTHENTICATION_SUCCESS,
   POSITIONS_READ_ERROR,
   POSITIONS_READ_SUCCESS,
   NO_CURRENT_POSITION,
-  POSITION_READ_SUCCESS
+  POSITION_READ_SUCCESS,
+  BALANCES_READ_ERROR,
+  BALANCES_READ_SUCCESS
 } from '../../messages/exchanges.messages';
 import {
   OPEN_TRADE_ERROR_MAX_SIZE,
@@ -44,21 +48,30 @@ export class BinanceFuturesUSDMExchangeService extends FuturesExchangeService {
     super(ExchangeId.BinanceFuturesUSD);
   }
 
-  checkCredentials = async (
+  getBalances = async (
     account: Account,
-    instance: Exchange
-  ): Promise<boolean> => {
+    instance?: Exchange
+  ): Promise<IBalance[]> => {
     const accountId = getAccountId(account);
     try {
-      await instance.fetch_balance();
-      debug(EXCHANGE_AUTHENTICATION_SUCCESS(accountId, this.exchangeId));
+      if (!instance) {
+        instance = (await this.refreshSession(account)).exchange;
+      }
+      const balances = await instance.fetch_balance();
+      debug(BALANCES_READ_SUCCESS(this.exchangeId, accountId));
+      return balances.info.assets
+        .filter((b: IBinanceFuturesUSDBalance) => Number(b.availableBalance))
+        .map((b: IBinanceFuturesUSDBalance) => ({
+          coin: b.asset,
+          free: b.availableBalance,
+          total: b.walletBalance
+        }));
     } catch (err) {
-      error(EXCHANGE_AUTHENTICATION_ERROR(accountId, this.exchangeId), err);
-      throw new ExchangeInstanceInitError(
-        EXCHANGE_AUTHENTICATION_ERROR(accountId, this.exchangeId, err.message)
+      error(BALANCES_READ_ERROR(this.exchangeId, accountId), err);
+      throw new BalancesFetchError(
+        BALANCES_READ_ERROR(this.exchangeId, accountId, err.message)
       );
     }
-    return true;
   };
 
   getTickerPosition = async (

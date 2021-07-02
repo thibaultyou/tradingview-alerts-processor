@@ -15,3 +15,12 @@ export interface IFTXFuturesPosition {
   collateralUsed: string;
   estimatedLiquidationPrice: number;
 }
+
+export interface IFTXBalance {
+  coin: string;
+  free: string;
+  total: string;
+  availableWithoutBorrow: string;
+  usdValue: string;
+  spotBorrow: string;
+}

@@ -4,14 +4,19 @@ import { ExchangeId } from '../../../constants/exchanges.constants';
 import { getAccountId } from '../../../utils/account.utils';
 import ccxt = require('ccxt');
 import {
+  EXCHANGE_AUTHENTICATION_ERROR,
+  EXCHANGE_AUTHENTICATION_SUCCESS,
   EXCHANGE_INIT_ERROR,
   EXCHANGE_INIT_SUCCESS,
+  MARKETS_READ_ERROR,
+  MARKETS_READ_SUCCESS,
   TICKER_READ_ERROR,
   TICKER_READ_SUCCESS
 } from '../../../messages/exchanges.messages';
 import { close, debug, error, long, short } from '../../logger.service';
 import {
   ExchangeInstanceInitError,
+  MarketsFetchError,
   TickerFetchError
 } from '../../../errors/exchange.errors';
 import { Trade } from '../../../entities/trade.entities';
@@ -30,8 +35,12 @@ import {
 import { Side, TradingMode } from '../../../constants/trading.constants';
 import { getTradeSide } from '../../../utils/trading.utils';
 import { getExchangeOptions } from '../../../utils/exchanges/common.exchange.utils';
-import { ISession } from '../../../interfaces/exchanges/common.exchange.interfaces';
+import {
+  IBalance,
+  ISession
+} from '../../../interfaces/exchanges/common.exchange.interfaces';
 import { IBaseExchange } from '../../../interfaces/exchanges/base/base.exchange.interface';
+import { IMarket } from '../../../interfaces/market.interfaces';
 
 export abstract class BaseExchangeService implements IBaseExchange {
   exchangeId: ExchangeId;
@@ -48,11 +57,6 @@ export abstract class BaseExchangeService implements IBaseExchange {
     ticker: Ticker,
     trade: Trade
   ): Promise<IOrderOptions>;
-
-  abstract checkCredentials(
-    account: Account,
-    instance: Exchange
-  ): Promise<boolean>;
 
   abstract handleMaxBudget(
     account: Account,
@@ -72,9 +76,31 @@ export abstract class BaseExchangeService implements IBaseExchange {
     trade: Trade
   ): Promise<boolean>;
 
+  abstract getBalances(
+    account: Account,
+    instance?: Exchange
+  ): Promise<IBalance[]>;
+
   abstract getTokensAmount(ticker: Ticker, dollars: number): number;
 
   abstract getTokensPrice(ticker: Ticker, tokens: number): number;
+
+  checkCredentials = async (
+    account: Account,
+    instance: Exchange
+  ): Promise<boolean> => {
+    const accountId = getAccountId(account);
+    try {
+      await this.getBalances(account, instance);
+      debug(EXCHANGE_AUTHENTICATION_SUCCESS(accountId, this.exchangeId));
+    } catch (err) {
+      error(EXCHANGE_AUTHENTICATION_ERROR(accountId, this.exchangeId), err);
+      throw new ExchangeInstanceInitError(
+        EXCHANGE_AUTHENTICATION_ERROR(accountId, this.exchangeId, err.message)
+      );
+    }
+    return true;
+  };
 
   refreshSession = async (account: Account): Promise<ISession> => {
     const accountId = getAccountId(account);
@@ -205,6 +231,30 @@ export abstract class BaseExchangeService implements IBaseExchange {
       error(OPEN_TRADE_ERROR(this.exchangeId, accountId, symbol, side), err);
       throw new OpenPositionError(
         OPEN_TRADE_ERROR(this.exchangeId, accountId, symbol, side)
+      );
+    }
+  };
+
+  getMarkets = async (): Promise<IMarket[]> => {
+    try {
+      const markets: ccxt.Market[] = await this.defaultExchange.fetchMarkets();
+      const availableMarkets = markets.flatMap((m) =>
+        m.active
+          ? {
+              id: m.id,
+              symbol: m.symbol,
+              base: m.base,
+              quote: m.quote,
+              type: m.type
+            }
+          : undefined
+      );
+      debug(MARKETS_READ_SUCCESS(this.exchangeId));
+      return availableMarkets;
+    } catch (err) {
+      error(MARKETS_READ_ERROR(this.exchangeId), err);
+      throw new MarketsFetchError(
+        MARKETS_READ_ERROR(this.exchangeId, err.message)
       );
     }
   };

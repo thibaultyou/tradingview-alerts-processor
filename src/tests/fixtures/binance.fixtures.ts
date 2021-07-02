@@ -1,5 +1,9 @@
 import { Ticker } from 'ccxt';
 import { IBinanceFuturesUSDPosition } from '../../interfaces/exchanges/binance.exchange.interfaces';
+import {
+  IBinanceSpotBalance,
+  IBinanceFuturesUSDBalance
+} from '../../../dist/interfaces/exchanges/binance.exchange.interfaces';
 
 // doge is crap, this is just for testing purposes
 export const sampleBinanceTicker: Ticker = {
@@ -59,4 +63,27 @@ export const sampleBinanceFuturesUSDPosition: IBinanceFuturesUSDPosition = {
   notional: '14.96061000',
   isolatedWallet: '0',
   updateTime: '1624739968269'
+};
+
+export const sampleBinanceSpotBalance: IBinanceSpotBalance = {
+  asset: 'USDT',
+  free: '21.50783772',
+  locked: '0.00000000'
+};
+
+export const sampleBinanceFuturesUSDBalance: IBinanceFuturesUSDBalance = {
+  asset: 'USDT',
+  walletBalance: '24.72399527',
+  unrealizedProfit: '0.00000000',
+  marginBalance: '24.72399527',
+  maintMargin: '0.00000000',
+  initialMargin: '0.00000000',
+  positionInitialMargin: '0.00000000',
+  openOrderInitialMargin: '0.00000000',
+  maxWithdrawAmount: '24.72399527',
+  crossWalletBalance: '24.72399527',
+  crossUnPnl: '0.00000000',
+  availableBalance: '24.72399527',
+  marginAvailable: true,
+  updateTime: '1625180601439'
 };

@@ -16,37 +16,48 @@ import { OpenPositionError } from '../../errors/trading.errors';
 import { debug, error } from '../logger.service';
 import { SpotExchangeService } from './base/spot.exchange.service';
 import {
-  EXCHANGE_AUTHENTICATION_ERROR,
-  EXCHANGE_AUTHENTICATION_SUCCESS,
+  BALANCES_READ_ERROR,
+  BALANCES_READ_SUCCESS,
   TICKER_BALANCE_READ_ERROR,
   TICKER_BALANCE_READ_SUCCESS
 } from '../../messages/exchanges.messages';
 import {
+  BalancesFetchError,
   ConversionError,
-  ExchangeInstanceInitError,
   TickerFetchError
 } from '../../errors/exchange.errors';
+import { IBalance } from '../../interfaces/exchanges/common.exchange.interfaces';
+import { IBinanceSpotBalance } from '../../interfaces/exchanges/binance.exchange.interfaces';
 
 export class BinanceSpotExchangeService extends SpotExchangeService {
   constructor() {
     super(ExchangeId.Binance);
   }
 
-  checkCredentials = async (
+  getBalances = async (
     account: Account,
-    instance: Exchange
-  ): Promise<boolean> => {
+    instance?: Exchange
+  ): Promise<IBalance[]> => {
     const accountId = getAccountId(account);
     try {
-      await this.getBalances(account, instance);
-      debug(EXCHANGE_AUTHENTICATION_SUCCESS(accountId, this.exchangeId));
+      if (!instance) {
+        instance = (await this.refreshSession(account)).exchange;
+      }
+      const balances = await instance.fetch_balance();
+      debug(BALANCES_READ_SUCCESS(this.exchangeId, accountId));
+      return balances.info.balances
+        .filter((b: IBinanceSpotBalance) => Number(b.free))
+        .map((b: IBinanceSpotBalance) => ({
+          coin: b.asset,
+          free: b.free,
+          total: Number(b.free) + Number(b.locked)
+        }));
     } catch (err) {
-      error(EXCHANGE_AUTHENTICATION_ERROR(accountId, this.exchangeId), err);
-      throw new ExchangeInstanceInitError(
-        EXCHANGE_AUTHENTICATION_ERROR(accountId, this.exchangeId, err.message)
+      error(BALANCES_READ_ERROR(this.exchangeId, accountId), err);
+      throw new BalancesFetchError(
+        BALANCES_READ_ERROR(this.exchangeId, accountId, err.message)
       );
     }
-    return true;
   };
 
   getTickerBalance = async (
