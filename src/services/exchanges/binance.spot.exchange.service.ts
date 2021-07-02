@@ -170,11 +170,12 @@ export class BinanceSpotExchangeService extends SpotExchangeService {
     ticker: Ticker,
     size: string
   ): Promise<number> => {
+    const { symbol } = ticker;
     if (size.includes('%')) {
       const accountId = getAccountId(account);
       try {
         const percent = Number(size.replace(/\D/g, ''));
-        if (percent < 1 || percent > 100) {
+        if (percent <= 0 || percent > 100) {
           error(TRADE_ERROR_SIZE(size));
           throw new OrderSizeError(TRADE_ERROR_SIZE(size));
         }
@@ -195,8 +196,8 @@ export class BinanceSpotExchangeService extends SpotExchangeService {
         debug(TRADE_CALCULATED_OPEN_SIZE(relativeSize.toFixed(2), size));
         return relativeSize;
       } catch (err) {
-        error(TRADE_CALCULATED_SIZE_ERROR(err));
-        throw new OrderSizeError(TRADE_CALCULATED_SIZE_ERROR(err));
+        error(TRADE_CALCULATED_SIZE_ERROR(symbol, err));
+        throw new OrderSizeError(TRADE_CALCULATED_SIZE_ERROR(symbol, err));
       }
     } else {
       return Number(size);

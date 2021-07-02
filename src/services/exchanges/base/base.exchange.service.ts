@@ -159,7 +159,7 @@ export abstract class BaseExchangeService {
     let orderSize = current;
     if (size && size.includes('%')) {
       const percent = Number(size.replace(/\D/g, ''));
-      if (percent < 1 || percent > 100) {
+      if (percent <= 0 || percent > 100) {
         error(TRADE_ERROR_SIZE(size));
         throw new OrderSizeError(TRADE_ERROR_SIZE(size));
       }

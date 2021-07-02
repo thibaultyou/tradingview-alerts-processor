@@ -201,8 +201,13 @@ export const TRADE_CALCULATED_SIZE = (
     `Calculated ${sizeInTokens} ${symbol} equivalent for ${sizeInDollars} $US.`
   );
 
-export const TRADE_CALCULATED_SIZE_ERROR = (symbol: string): string =>
-  tradingMessageWrapper(`Failed to convert ${symbol} equivalent.`);
+export const TRADE_CALCULATED_SIZE_ERROR = (
+  symbol: string,
+  err?: Error
+): string =>
+  tradingMessageWrapper(
+    `Failed to convert ${symbol} equivalent${err ? ' -> ' + err : ''}.`
+  );
 
 export const TRADE_CALCULATED_CLOSING_SIZE = (
   symbol: string,

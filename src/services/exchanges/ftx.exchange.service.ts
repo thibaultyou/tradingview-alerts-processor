@@ -138,7 +138,6 @@ export class FTXExchangeService extends CompositeExchangeService {
         };
       }
     }
-
     return options;
   };
 
@@ -187,53 +186,6 @@ export class FTXExchangeService extends CompositeExchangeService {
       throw new PositionsFetchError(
         POSITIONS_READ_ERROR(accountId, this.exchangeId, err.message)
       );
-    }
-  };
-
-  getOpenOrderSize = async (
-    account: Account,
-    ticker: Ticker,
-    size: string
-  ): Promise<number> => {
-    if (size.includes('%')) {
-      const accountId = getAccountId(account);
-      try {
-        const percent = Number(size.replace(/\D/g, ''));
-        if (percent < 1 || percent > 100) {
-          error(TRADE_ERROR_SIZE(size));
-          throw new OrderSizeError(TRADE_ERROR_SIZE(size));
-        }
-        let availableFunds = 0;
-        if (isFTXSpot(ticker)) {
-          const balances = await this.getBalances(account);
-          const balance = balances
-            .filter((b) => b.coin === ticker.info.quoteCurrency)
-            .pop();
-          availableFunds = Number(balance.free);
-        } else {
-          const accountInfos: IFTXAccountInformations = (
-            await this.sessions.get(accountId).exchange.privateGetAccount()
-          ).result;
-          availableFunds = Number(accountInfos.freeCollateral);
-        }
-        // TODO handle NaN
-        debug(
-          AVAILABLE_FUNDS(
-            accountId,
-            this.exchangeId,
-            ticker.info.quoteCurrency,
-            availableFunds
-          )
-        );
-        const relativeSize = (availableFunds * percent) / 100;
-        debug(TRADE_CALCULATED_OPEN_SIZE(relativeSize.toFixed(2), size));
-        return relativeSize;
-      } catch (err) {
-        error(TRADE_CALCULATED_SIZE_ERROR(err));
-        throw new OrderSizeError(TRADE_CALCULATED_SIZE_ERROR(err));
-      }
-    } else {
-      return Number(size);
     }
   };
 
@@ -360,5 +312,53 @@ export class FTXExchangeService extends CompositeExchangeService {
     }
     debug(TRADE_CALCULATED_SIZE(symbol, tokens, price));
     return price;
+  };
+
+  getOpenOrderSize = async (
+    account: Account,
+    ticker: Ticker,
+    size: string
+  ): Promise<number> => {
+    const { symbol } = ticker;
+    if (size.includes('%')) {
+      const accountId = getAccountId(account);
+      try {
+        const percent = Number(size.replace(/\D/g, ''));
+        if (percent <= 0 || percent > 100) {
+          error(TRADE_ERROR_SIZE(size));
+          throw new OrderSizeError(TRADE_ERROR_SIZE(size));
+        }
+        let availableFunds = 0;
+        if (isFTXSpot(ticker)) {
+          const balances = await this.getBalances(account);
+          const balance = balances
+            .filter((b) => b.coin === ticker.info.quoteCurrency)
+            .pop();
+          availableFunds = Number(balance.free);
+        } else {
+          const accountInfos: IFTXAccountInformations = (
+            await this.sessions.get(accountId).exchange.privateGetAccount()
+          ).result;
+          availableFunds = Number(accountInfos.freeCollateral);
+        }
+        // TODO handle NaN
+        debug(
+          AVAILABLE_FUNDS(
+            accountId,
+            this.exchangeId,
+            ticker.info.quoteCurrency,
+            availableFunds
+          )
+        );
+        const relativeSize = (availableFunds * percent) / 100;
+        debug(TRADE_CALCULATED_OPEN_SIZE(relativeSize.toFixed(2), size));
+        return relativeSize;
+      } catch (err) {
+        error(TRADE_CALCULATED_SIZE_ERROR(symbol, err));
+        throw new OrderSizeError(TRADE_CALCULATED_SIZE_ERROR(symbol, err));
+      }
+    } else {
+      return Number(size);
+    }
   };
 }
