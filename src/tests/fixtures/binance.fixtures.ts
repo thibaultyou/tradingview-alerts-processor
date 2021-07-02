@@ -1,12 +1,14 @@
-import { Ticker } from 'ccxt';
-import { IBinanceFuturesUSDPosition } from '../../interfaces/exchanges/binance.exchange.interfaces';
+import {
+  IBinanceFuturesUSDPosition,
+  IBinanceTicker
+} from '../../interfaces/exchanges/binance.exchange.interfaces';
 import {
   IBinanceSpotBalance,
   IBinanceFuturesUSDBalance
 } from '../../../dist/interfaces/exchanges/binance.exchange.interfaces';
 
 // doge is crap, this is just for testing purposes
-export const sampleBinanceTicker: Ticker = {
+export const sampleBinanceTicker: IBinanceTicker = {
   symbol: 'DOGE/USDT',
   timestamp: 1624739575193,
   datetime: '2021-06-26T20:32:55.193Z',
@@ -28,21 +30,26 @@ export const sampleBinanceTicker: Ticker = {
   quoteVolume: 2566881063.76,
   info: {
     symbol: 'DOGEUSDT',
-    priceChange: '-0.015740',
-    priceChangePercent: '-6.206',
-    weightedAvgPrice: '0.241094',
-    lastPrice: '0.237880',
-    lastQty: '1459',
-    openPrice: '0.253620',
-    highPrice: '0.255500',
-    lowPrice: '0.230570',
-    volume: '10646786525',
-    quoteVolume: '2566881063.760000',
-    openTime: '1624653120000',
-    closeTime: '1624739575193',
-    firstId: '519437063',
-    lastId: '522277798',
-    count: '2840720'
+    priceChange: '-0.00154000',
+    priceChangePercent: '-0.627',
+    weightedAvgPrice: '0.24334159',
+    prevClosePrice: '0.24564000',
+    lastPrice: '0.24410000',
+    lastQty: '717.50000000',
+    bidPrice: '0.24409000',
+    bidQty: '4873.10000000',
+    askPrice: '0.24410000',
+    askQty: '1333.30000000',
+    openPrice: '0.24564000',
+    highPrice: '0.24923000',
+    lowPrice: '0.23839000',
+    volume: '1216590181.00000000',
+    quoteVolume: '296046987.58141100',
+    openTime: '1625158731178',
+    closeTime: '1625245131178',
+    firstId: '283528047',
+    lastId: '283960524',
+    count: '432478'
   }
 };
 

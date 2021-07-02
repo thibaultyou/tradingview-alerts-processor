@@ -26,11 +26,14 @@ import {
   CLOSE_TRADE_SUCCESS,
   OPEN_LONG_TRADE_SUCCESS,
   OPEN_SHORT_TRADE_SUCCESS,
-  OPEN_TRADE_ERROR
+  OPEN_TRADE_ERROR,
+  TRADE_CALCULATED_CLOSING_SIZE,
+  TRADE_ERROR_SIZE
 } from '../../../messages/trading.messages';
 import {
   ClosePositionError,
-  OpenPositionError
+  OpenPositionError,
+  OrderSizeError
 } from '../../../errors/trading.errors';
 import { Side, TradingMode } from '../../../constants/trading.constants';
 import { getTradeSide } from '../../../utils/trading.utils';
@@ -39,10 +42,9 @@ import {
   IBalance,
   ISession
 } from '../../../interfaces/exchanges/common.exchange.interfaces';
-import { IBaseExchange } from '../../../interfaces/exchanges/base/base.exchange.interface';
 import { IMarket } from '../../../interfaces/market.interfaces';
 
-export abstract class BaseExchangeService implements IBaseExchange {
+export abstract class BaseExchangeService {
   exchangeId: ExchangeId;
   defaultExchange: Exchange;
   sessions = new Map<string, ISession>(); // account id, exchange session
@@ -84,6 +86,12 @@ export abstract class BaseExchangeService implements IBaseExchange {
   abstract getTokensAmount(ticker: Ticker, dollars: number): number;
 
   abstract getTokensPrice(ticker: Ticker, tokens: number): number;
+
+  abstract getOpenOrderSize(
+    account: Account,
+    ticker: Ticker,
+    size: string
+  ): Promise<number>;
 
   checkCredentials = async (
     account: Account,
@@ -141,6 +149,30 @@ export abstract class BaseExchangeService implements IBaseExchange {
         TICKER_READ_ERROR(this.exchangeId, symbol, err.message)
       );
     }
+  };
+
+  getCloseOrderSize = (
+    ticker: Ticker,
+    size: string,
+    current: number
+  ): number => {
+    let orderSize = current;
+    if (size && size.includes('%')) {
+      const percent = Number(size.replace(/\D/g, ''));
+      if (percent < 1 || percent > 100) {
+        error(TRADE_ERROR_SIZE(size));
+        throw new OrderSizeError(TRADE_ERROR_SIZE(size));
+      }
+      orderSize = (orderSize * percent) / 100;
+    }
+    debug(
+      TRADE_CALCULATED_CLOSING_SIZE(
+        ticker.symbol,
+        orderSize.toFixed(2),
+        current.toFixed(2)
+      )
+    );
+    return orderSize;
   };
 
   closeOrder = async (
@@ -204,7 +236,8 @@ export abstract class BaseExchangeService implements IBaseExchange {
     const side = getTradeSide(direction);
     try {
       const ticker = await this.getTicker(symbol);
-      const orderSize = this.getTokensAmount(ticker, Number(size));
+      const orderCost = await this.getOpenOrderSize(account, ticker, size);
+      const orderSize = this.getTokensAmount(ticker, orderCost);
       const isOpenOrderAllowed = await this.handleTradingOptions(
         account,
         ticker,
@@ -220,10 +253,20 @@ export abstract class BaseExchangeService implements IBaseExchange {
           );
         side === Side.Buy
           ? long(
-              OPEN_LONG_TRADE_SUCCESS(this.exchangeId, accountId, symbol, size)
+              OPEN_LONG_TRADE_SUCCESS(
+                this.exchangeId,
+                accountId,
+                symbol,
+                orderCost.toFixed(2)
+              )
             )
           : short(
-              OPEN_SHORT_TRADE_SUCCESS(this.exchangeId, accountId, symbol, size)
+              OPEN_SHORT_TRADE_SUCCESS(
+                this.exchangeId,
+                accountId,
+                symbol,
+                orderCost.toFixed(2)
+              )
             );
         return order;
       }

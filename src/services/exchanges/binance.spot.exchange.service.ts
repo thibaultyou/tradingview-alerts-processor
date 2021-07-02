@@ -4,18 +4,24 @@ import { Account } from '../../entities/account.entities';
 import { IOrderOptions } from '../../interfaces/trading.interfaces';
 import { Side } from '../../constants/trading.constants';
 import { Trade } from '../../entities/trade.entities';
-import { formatBinanceSpotSymbol } from '../../utils/exchanges/binance.exchange.utils';
+import {
+  formatBinanceSpotSymbol,
+  getBinanceSpotQuoteCurrency
+} from '../../utils/exchanges/binance.exchange.utils';
 import { getAccountId } from '../../utils/account.utils';
-import { getCloseOrderSize, getTradeSide } from '../../utils/trading.utils';
+import { getTradeSide } from '../../utils/trading.utils';
 import {
   OPEN_TRADE_ERROR_MAX_SIZE,
+  TRADE_CALCULATED_OPEN_SIZE,
   TRADE_CALCULATED_SIZE,
-  TRADE_CALCULATED_SIZE_ERROR
+  TRADE_CALCULATED_SIZE_ERROR,
+  TRADE_ERROR_SIZE
 } from '../../messages/trading.messages';
-import { OpenPositionError } from '../../errors/trading.errors';
+import { OpenPositionError, OrderSizeError } from '../../errors/trading.errors';
 import { debug, error } from '../logger.service';
 import { SpotExchangeService } from './base/spot.exchange.service';
 import {
+  AVAILABLE_FUNDS,
   BALANCES_READ_ERROR,
   BALANCES_READ_SUCCESS,
   TICKER_BALANCE_READ_ERROR,
@@ -90,7 +96,7 @@ export class BinanceSpotExchangeService extends SpotExchangeService {
     const balance = await this.getTickerBalance(account, ticker);
     return {
       side: Side.Sell,
-      size: getCloseOrderSize(ticker, trade.size, balance)
+      size: this.getCloseOrderSize(ticker, trade.size, balance)
     };
   };
 
@@ -157,5 +163,43 @@ export class BinanceSpotExchangeService extends SpotExchangeService {
     _trade: Trade
   ): Promise<boolean> => {
     throw new Error('Not implemented');
+  };
+
+  getOpenOrderSize = async (
+    account: Account,
+    ticker: Ticker,
+    size: string
+  ): Promise<number> => {
+    if (size.includes('%')) {
+      const accountId = getAccountId(account);
+      try {
+        const percent = Number(size.replace(/\D/g, ''));
+        if (percent < 1 || percent > 100) {
+          error(TRADE_ERROR_SIZE(size));
+          throw new OrderSizeError(TRADE_ERROR_SIZE(size));
+        }
+        const balances = await this.getBalances(account);
+        const quoteCurrency = getBinanceSpotQuoteCurrency(ticker.symbol);
+        const balance = balances.filter((b) => b.coin === quoteCurrency).pop();
+        const availableFunds = Number(balance.free);
+        // TODO handle NaN
+        debug(
+          AVAILABLE_FUNDS(
+            accountId,
+            this.exchangeId,
+            quoteCurrency,
+            availableFunds
+          )
+        );
+        const relativeSize = (availableFunds * percent) / 100;
+        debug(TRADE_CALCULATED_OPEN_SIZE(relativeSize.toFixed(2), size));
+        return relativeSize;
+      } catch (err) {
+        error(TRADE_CALCULATED_SIZE_ERROR(err));
+        throw new OrderSizeError(TRADE_CALCULATED_SIZE_ERROR(err));
+      }
+    } else {
+      return Number(size);
+    }
   };
 }

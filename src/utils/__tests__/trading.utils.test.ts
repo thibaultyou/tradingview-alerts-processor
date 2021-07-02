@@ -1,10 +1,5 @@
 import { Side } from '../../constants/trading.constants';
-import { sampleFTXTicker } from '../../tests/fixtures/ftx.fixtures';
-import {
-  getCloseOrderSize,
-  getInvertedTradeSide,
-  getTradeSide
-} from '../trading.utils';
+import { getInvertedTradeSide, getTradeSide } from '../trading.utils';
 
 describe('Trading utils', () => {
   describe('getTradeSide', () => {
@@ -27,20 +22,6 @@ describe('Trading utils', () => {
     it('should return inverted side', () => {
       expect(getInvertedTradeSide(Side.Buy)).toEqual(Side.Sell);
       expect(getInvertedTradeSide(Side.Sell)).toEqual(Side.Buy);
-    });
-  });
-
-  describe('getCloseOrderSize', () => {
-    it('should return close order size if percent size is provided', () => {
-      expect(getCloseOrderSize(sampleFTXTicker, '33%', 100)).toEqual(33);
-    });
-
-    it('should return 100% if absolute size is provided', () => {
-      expect(getCloseOrderSize(sampleFTXTicker, '123', 100)).toEqual(100);
-    });
-
-    it('should return 100% if nothing is provided', () => {
-      expect(getCloseOrderSize(sampleFTXTicker, undefined, 100)).toEqual(100);
     });
   });
 });

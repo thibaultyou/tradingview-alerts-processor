@@ -3,3 +3,6 @@ export const formatBinanceSpotSymbol = (symbol: string): string =>
 
 export const formatBinanceFuturesSymbol = (symbol: string): string =>
   symbol.replace('/', '');
+
+export const getBinanceSpotQuoteCurrency = (symbol: string): string =>
+  symbol.split('/')[1];

@@ -36,7 +36,7 @@ You can use the bot with :
 ### 🚧 Features
 
 - add / read / delete account (or subaccount for FTX) configuration
-- open a Long / Short position (futures) or Buy / Sell a token (spot) in $US
+- open a Long / Short position (futures) or Buy / Sell a token (spot) in $US or with a percentage of your account collateral / balance
 - close a position or a percentage of it
 - close a position and open another in the opposite direction (Futures only)
 - close a position while reducing on oversell / overbuy (Futures only)
@@ -53,7 +53,6 @@ Coming soon :
 - AWS container service install
 - missing endpoints : logs, orders, positions
 - better logging system
-- relative account position sizing
 - Kucoin support
 - Kraken support
 - limit orders
