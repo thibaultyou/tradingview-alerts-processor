@@ -5,7 +5,7 @@ import { getTradeSide } from '../utils/trading.utils';
 import { HttpCode } from '../constants/http.constants';
 import { TRADE_EXECUTION_SUCCESS } from '../messages/trading.messages';
 import { TradingService } from '../services/trading/trading.service';
-import { TRADES_ROUTE } from '../constants/routes.constants';
+import { Route } from '../constants/routes.constants';
 import { loggingMiddleware } from '../utils/logger.utils';
 import { validateTrade } from '../validators/trade.validators';
 
@@ -37,7 +37,7 @@ export const postTrade = async (req: Request, res: Response): Promise<void> => {
 };
 
 export const tradingRouter = router.post(
-  TRADES_ROUTE,
+  Route.Trading,
   loggingMiddleware,
   validateTrade,
   postTrade

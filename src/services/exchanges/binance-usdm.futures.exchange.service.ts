@@ -4,35 +4,45 @@ import { Side } from '../../constants/trading.constants';
 import { Account } from '../../entities/account.entities';
 import { Trade } from '../../entities/trade.entities';
 import {
-  ExchangeInstanceInitError,
+  BalancesFetchError,
+  ConversionError,
   PositionsFetchError
 } from '../../errors/exchange.errors';
 import {
   NoOpenPositionError,
-  OpenPositionError
+  OpenPositionError,
+  OrderSizeError
 } from '../../errors/trading.errors';
-import { IBinanceFuturesUSDPosition } from '../../interfaces/exchanges/binance.exchange.interfaces';
+import {
+  IBinanceFuturesUSDBalance,
+  IBinanceFuturesUSDPosition
+} from '../../interfaces/exchanges/binance.exchange.interfaces';
+import { IBalance } from '../../interfaces/exchanges/common.exchange.interfaces';
 import { IOrderOptions } from '../../interfaces/trading.interfaces';
 import {
-  EXCHANGE_AUTHENTICATION_ERROR,
-  EXCHANGE_AUTHENTICATION_SUCCESS,
   POSITIONS_READ_ERROR,
   POSITIONS_READ_SUCCESS,
   NO_CURRENT_POSITION,
-  POSITION_READ_SUCCESS
+  POSITION_READ_SUCCESS,
+  BALANCES_READ_ERROR,
+  BALANCES_READ_SUCCESS,
+  AVAILABLE_FUNDS
 } from '../../messages/exchanges.messages';
 import {
   OPEN_TRADE_ERROR_MAX_SIZE,
   REVERSING_TRADE,
+  TRADE_CALCULATED_OPEN_SIZE,
+  TRADE_CALCULATED_SIZE,
+  TRADE_CALCULATED_SIZE_ERROR,
+  TRADE_ERROR_SIZE,
   TRADE_OVERFLOW
 } from '../../messages/trading.messages';
 import { getAccountId } from '../../utils/account.utils';
-import { formatBinanceFuturesSymbol } from '../../utils/exchanges/binance.exchange.utils';
 import {
-  getCloseOrderSize,
-  getTradeSide,
-  isSideDifferent
-} from '../../utils/trading.utils';
+  formatBinanceFuturesSymbol,
+  getBinanceSpotQuoteCurrency
+} from '../../utils/exchanges/binance.exchange.utils';
+import { getTradeSide, isSideDifferent } from '../../utils/trading.utils';
 import { debug, error, info } from '../logger.service';
 import { FuturesExchangeService } from './base/futures.exchange.service';
 
@@ -41,21 +51,30 @@ export class BinanceFuturesUSDMExchangeService extends FuturesExchangeService {
     super(ExchangeId.BinanceFuturesUSD);
   }
 
-  checkCredentials = async (
+  getBalances = async (
     account: Account,
-    instance: Exchange
-  ): Promise<boolean> => {
+    instance?: Exchange
+  ): Promise<IBalance[]> => {
     const accountId = getAccountId(account);
     try {
-      await instance.fetch_balance();
-      debug(EXCHANGE_AUTHENTICATION_SUCCESS(accountId, this.exchangeId));
+      if (!instance) {
+        instance = (await this.refreshSession(account)).exchange;
+      }
+      const balances = await instance.fetch_balance();
+      debug(BALANCES_READ_SUCCESS(this.exchangeId, accountId));
+      return balances.info.assets
+        .filter((b: IBinanceFuturesUSDBalance) => Number(b.availableBalance))
+        .map((b: IBinanceFuturesUSDBalance) => ({
+          coin: b.asset,
+          free: b.availableBalance,
+          total: b.walletBalance
+        }));
     } catch (err) {
-      error(EXCHANGE_AUTHENTICATION_ERROR(accountId, this.exchangeId), err);
-      throw new ExchangeInstanceInitError(
-        EXCHANGE_AUTHENTICATION_ERROR(accountId, this.exchangeId, err.message)
+      error(BALANCES_READ_ERROR(this.exchangeId, accountId), err);
+      throw new BalancesFetchError(
+        BALANCES_READ_ERROR(this.exchangeId, accountId, err.message)
       );
     }
-    return true;
   };
 
   getTickerPosition = async (
@@ -116,7 +135,7 @@ export class BinanceFuturesUSDMExchangeService extends FuturesExchangeService {
     const position = await this.getTickerPosition(account, ticker);
     const size = Number(position.positionAmt);
     return {
-      size: getCloseOrderSize(ticker, trade.size, Math.abs(size)),
+      size: this.getCloseOrderSize(ticker, trade.size, Math.abs(size)),
       side: size > 0 ? Side.Sell : Side.Buy
     };
   };
@@ -185,5 +204,66 @@ export class BinanceFuturesUSDMExchangeService extends FuturesExchangeService {
       // ignore throw
     }
     return false;
+  };
+
+  getTokensAmount = (ticker: Ticker, dollars: number): number => {
+    const { info, symbol } = ticker;
+    const tokens = dollars / Number(info.lastPrice);
+    if (isNaN(tokens)) {
+      error(TRADE_CALCULATED_SIZE_ERROR(symbol));
+      throw new ConversionError(TRADE_CALCULATED_SIZE_ERROR(symbol));
+    }
+    debug(TRADE_CALCULATED_SIZE(symbol, tokens, dollars));
+    return tokens;
+  };
+
+  getTokensPrice = (ticker: Ticker, tokens: number): number => {
+    const { info, symbol } = ticker;
+    const price = Number(info.lastPrice) * tokens;
+    if (isNaN(price)) {
+      error(TRADE_CALCULATED_SIZE_ERROR(symbol));
+      throw new ConversionError(TRADE_CALCULATED_SIZE_ERROR(symbol));
+    }
+    debug(TRADE_CALCULATED_SIZE(symbol, tokens, price));
+    return price;
+  };
+
+  getOpenOrderSize = async (
+    account: Account,
+    ticker: Ticker,
+    size: string
+  ): Promise<number> => {
+    const { symbol } = ticker;
+    if (size.includes('%')) {
+      const accountId = getAccountId(account);
+      try {
+        const percent = Number(size.replace(/\D/g, ''));
+        if (percent <= 0 || percent > 100) {
+          error(TRADE_ERROR_SIZE(size));
+          throw new OrderSizeError(TRADE_ERROR_SIZE(size));
+        }
+        const balances = await this.getBalances(account);
+        const quoteCurrency = getBinanceSpotQuoteCurrency(ticker.symbol);
+        const balance = balances.filter((b) => b.coin === quoteCurrency).pop();
+        const availableFunds = Number(balance.free);
+        // TODO handle NaN
+        debug(
+          AVAILABLE_FUNDS(
+            accountId,
+            this.exchangeId,
+            quoteCurrency,
+            availableFunds
+          )
+        );
+        const relativeSize = (availableFunds * percent) / 100;
+        debug(TRADE_CALCULATED_OPEN_SIZE(relativeSize.toFixed(2), size));
+        return relativeSize;
+      } catch (err) {
+        error(TRADE_CALCULATED_SIZE_ERROR(symbol, err));
+        throw new OrderSizeError(TRADE_CALCULATED_SIZE_ERROR(symbol, err));
+      }
+    } else {
+      return Number(size);
+    }
   };
 }

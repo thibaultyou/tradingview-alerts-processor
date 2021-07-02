@@ -194,24 +194,44 @@ export const TRADE_PROCESSING = (id: string): string =>
 
 export const TRADE_CALCULATED_SIZE = (
   symbol: string,
-  sizeInTokens: string,
-  sizeInDollars: string
+  sizeInTokens: number,
+  sizeInDollars: number
 ): string =>
   tradingMessageWrapper(
     `Calculated ${sizeInTokens} ${symbol} equivalent for ${sizeInDollars} $US.`
   );
 
-export const TRADE_CALCULATED_SIZE_ERROR = (symbol: string): string =>
-  tradingMessageWrapper(`Failed to convert ${symbol} equivalent.`);
+export const TRADE_CALCULATED_SIZE_ERROR = (
+  symbol: string,
+  err?: Error
+): string =>
+  tradingMessageWrapper(
+    `Failed to convert ${symbol} equivalent${err ? ' -> ' + err : ''}.`
+  );
 
 export const TRADE_CALCULATED_CLOSING_SIZE = (
   symbol: string,
-  orderSize: number,
-  currentSize: number
+  orderSize: string,
+  currentSize: string
 ): string => {
   const size =
     orderSize !== currentSize ? `${orderSize} of ${currentSize}` : orderSize;
   return tradingMessageWrapper(
     `Calculated ${size} ${symbol} closing order size.`
+  );
+};
+
+export const TRADE_CALCULATED_OPEN_SIZE_ERROR = (err?: Error): string =>
+  tradingMessageWrapper(
+    `Failed to find relative account size${err ? ' -> ' + err : ''}.`
+  );
+
+export const TRADE_CALCULATED_OPEN_SIZE = (
+  size: string,
+  percent?: string
+): string => {
+  const portion = percent ? ` (${percent} of account)` : '';
+  return tradingMessageWrapper(
+    `Calculated ${size} $US open order size${portion}.`
   );
 };

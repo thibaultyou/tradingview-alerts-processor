@@ -19,9 +19,11 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(errorMiddleware);
 
-app.use(routes.account);
+app.use(routes.accounts);
 app.use(routes.trading);
 app.use(routes.health);
+app.use(routes.markets);
+app.use(routes.balances);
 
 app.listen(PORT, () => {
   info(GREETINGS);

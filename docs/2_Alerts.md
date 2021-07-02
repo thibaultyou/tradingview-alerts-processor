@@ -25,10 +25,22 @@
         { "stub": "dev", "direction": "close", "symbol": "ETH-PERP" }
         ```
 
-    - Close a fraction of a position in percent (⚠️ WATCH OUT, the fraction must be greater or equal than the minimum tradable amount set by the exchange for the pair ! Size must be between 1 and 100 with a percent sign, otherwise 100% will be closed) :
+    - Close a fraction of a position in percent (⚠️ WATCH OUT, the fraction must be greater or equal than the minimum tradable amount set by the exchange for selected pair ! Size must be between 1 and 100 with a percent sign, otherwise 100% will be closed) :
 
         ```json
         { "stub": "dev", "direction": "close", "symbol": "ETH-PERP", "size": "50%" }
+        ```
+
+    - Open a long position with 5% of available collateral (Futures) or available balance (Spot) (⚠️ WATCH OUT, the fraction must be greater or equal than the minimum tradable amount set by the exchange for selected pair !) :
+
+        ```json
+        { "stub": "dev", "direction": "long", "symbol": "ETH-PERP", "size": "5%" }
+        ```
+
+    - Open a short position with 5% of available collateral (Futures) or available balance (Spot) (⚠️ WATCH OUT, the fraction must be greater or equal than the minimum tradable amount set by the exchange for selected pair !) :
+
+        ```json
+        { "stub": "dev", "direction": "short", "symbol": "ETH-PERP", "size": "5%" }
         ```
 
     - Short position and close opened Long position if any :

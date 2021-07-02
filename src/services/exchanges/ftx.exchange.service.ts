@@ -3,8 +3,6 @@ import { Account } from '../../entities/account.entities';
 import { getAccountId } from '../../utils/account.utils';
 import { Exchange, Ticker } from 'ccxt';
 import {
-  getCloseOrderSize,
-  getDollarsSize,
   getInvertedTradeSide,
   getTradeSide,
   isSideDifferent
@@ -12,18 +10,20 @@ import {
 import { Side } from '../../constants/trading.constants';
 import { IOrderOptions } from '../../interfaces/trading.interfaces';
 import {
-  EXCHANGE_AUTHENTICATION_ERROR,
-  EXCHANGE_AUTHENTICATION_SUCCESS,
   POSITIONS_READ_ERROR,
   POSITIONS_READ_SUCCESS,
   NO_CURRENT_POSITION,
   POSITION_READ_SUCCESS,
   TICKER_BALANCE_READ_ERROR,
-  TICKER_BALANCE_READ_SUCCESS
+  TICKER_BALANCE_READ_SUCCESS,
+  BALANCES_READ_ERROR,
+  BALANCES_READ_SUCCESS,
+  AVAILABLE_FUNDS
 } from '../../messages/exchanges.messages';
 import { debug, error, info } from '../logger.service';
 import {
-  ExchangeInstanceInitError,
+  BalancesFetchError,
+  ConversionError,
   PositionsFetchError,
   TickerFetchError
 } from '../../errors/exchange.errors';
@@ -35,35 +35,54 @@ import {
 import {
   OPEN_TRADE_ERROR_MAX_SIZE,
   REVERSING_TRADE,
+  TRADE_CALCULATED_SIZE,
+  TRADE_CALCULATED_SIZE_ERROR,
+  TRADE_ERROR_SIZE,
   TRADE_OVERFLOW
 } from '../../messages/trading.messages';
 import {
   NoOpenPositionError,
-  OpenPositionError
+  OpenPositionError,
+  OrderSizeError
 } from '../../errors/trading.errors';
 import { CompositeExchangeService } from './base/composite.exchange.service';
-import { IFTXFuturesPosition } from '../../interfaces/exchanges/ftx.exchange.interfaces';
+import {
+  IFTXAccountInformations,
+  IFTXBalance,
+  IFTXFuturesPosition
+} from '../../interfaces/exchanges/ftx.exchange.interfaces';
+import { IBalance } from '../../interfaces/exchanges/common.exchange.interfaces';
+import { TRADE_CALCULATED_OPEN_SIZE } from '../../messages/trading.messages';
 
 export class FTXExchangeService extends CompositeExchangeService {
   constructor() {
     super(ExchangeId.FTX);
   }
 
-  checkCredentials = async (
+  getBalances = async (
     account: Account,
-    instance: Exchange
-  ): Promise<boolean> => {
+    instance?: Exchange
+  ): Promise<IBalance[]> => {
     const accountId = getAccountId(account);
     try {
-      await this.getBalances(account, instance);
-      debug(EXCHANGE_AUTHENTICATION_SUCCESS(accountId, this.exchangeId));
+      if (!instance) {
+        instance = (await this.refreshSession(account)).exchange;
+      }
+      const balances = await instance.fetch_balance();
+      debug(BALANCES_READ_SUCCESS(this.exchangeId, accountId));
+      return balances.info.result
+        .filter((b: IFTXBalance) => Number(b.total))
+        .map((b: IFTXBalance) => ({
+          coin: b.coin,
+          free: b.free,
+          total: b.total
+        }));
     } catch (err) {
-      error(EXCHANGE_AUTHENTICATION_ERROR(accountId, this.exchangeId), err);
-      throw new ExchangeInstanceInitError(
-        EXCHANGE_AUTHENTICATION_ERROR(accountId, this.exchangeId, err.message)
+      error(BALANCES_READ_ERROR(this.exchangeId, accountId), err);
+      throw new BalancesFetchError(
+        BALANCES_READ_ERROR(this.exchangeId, accountId, err.message)
       );
     }
-    return true;
   };
 
   getTickerBalance = async (
@@ -103,19 +122,22 @@ export class FTXExchangeService extends CompositeExchangeService {
       if (balance) {
         options = {
           side: Side.Sell,
-          size: getCloseOrderSize(ticker, trade.size, balance)
+          size: this.getCloseOrderSize(ticker, trade.size, balance)
         };
       }
     } else {
       const position = await this.getTickerPosition(account, ticker);
       if (position) {
         options = {
-          size: getCloseOrderSize(ticker, trade.size, Number(position.size)),
+          size: this.getCloseOrderSize(
+            ticker,
+            trade.size,
+            Number(position.size)
+          ),
           side: getInvertedTradeSide(position.side as Side)
         };
       }
     }
-
     return options;
   };
 
@@ -195,7 +217,10 @@ export class FTXExchangeService extends CompositeExchangeService {
     const side = getTradeSide(direction);
     // we add a check since FTX is a composite exchange
     const current = isFTXSpot(ticker)
-      ? getDollarsSize(ticker, await this.getTickerBalance(account, ticker))
+      ? this.getTokensPrice(
+          ticker,
+          await this.getTickerBalance(account, ticker)
+        )
       : await this.getTickerPositionSize(account, ticker);
     if (Math.abs(current) + Number(size) > Number(max)) {
       error(
@@ -207,48 +232,133 @@ export class FTXExchangeService extends CompositeExchangeService {
     }
   };
 
-  handleOverflow = async (
+  handleSpotOverflow = async (
     account: Account,
     ticker: Ticker,
     trade: Trade
   ): Promise<boolean> => {
     const { direction, size } = trade;
     const accountId = getAccountId(account);
+    const balance = this.getTokensPrice(
+      ticker,
+      await this.getTickerBalance(account, ticker)
+    );
+    if (
+      balance &&
+      getTradeSide(direction) === Side.Sell &&
+      balance < Number(size)
+    ) {
+      info(TRADE_OVERFLOW(this.exchangeId, accountId, ticker.symbol));
+      await this.closeOrder(
+        account,
+        { ...trade, size: balance.toString() }, // TODO replace this crap
+        ticker
+      );
+      return true;
+    }
+  };
+
+  handleFuturesOverflow = async (
+    account: Account,
+    ticker: Ticker,
+    trade: Trade
+  ): Promise<boolean> => {
+    const { direction, size } = trade;
+    const accountId = getAccountId(account);
+    const position = await this.getTickerPosition(account, ticker);
+    if (
+      position &&
+      isSideDifferent(position.side as Side, direction) &&
+      Number(size) > Math.abs(Number(position.cost))
+    ) {
+      info(TRADE_OVERFLOW(this.exchangeId, accountId, ticker.symbol));
+      await this.closeOrder(account, trade, ticker);
+      return true;
+    }
+  };
+
+  handleOverflow = async (
+    account: Account,
+    ticker: Ticker,
+    trade: Trade
+  ): Promise<boolean> => {
     try {
-      // TODO refacto
-      if (isFTXSpot(ticker)) {
-        const balance = getDollarsSize(
-          ticker,
-          await this.getTickerBalance(account, ticker)
-        );
-        if (
-          balance &&
-          getTradeSide(direction) === Side.Sell &&
-          balance < Number(size)
-        ) {
-          info(TRADE_OVERFLOW(this.exchangeId, accountId, ticker.symbol));
-          await this.closeOrder(
-            account,
-            { ...trade, size: balance.toString() }, // TODO replace this crap
-            ticker
-          );
-          return true;
-        }
-      } else {
-        const position = await this.getTickerPosition(account, ticker);
-        if (
-          position &&
-          isSideDifferent(position.side as Side, direction) &&
-          Number(size) > Math.abs(Number(position.cost))
-        ) {
-          info(TRADE_OVERFLOW(this.exchangeId, accountId, ticker.symbol));
-          await this.closeOrder(account, trade, ticker);
-          return true;
-        }
-      }
+      isFTXSpot(ticker)
+        ? this.handleSpotOverflow(account, ticker, trade)
+        : this.handleFuturesOverflow(account, ticker, trade);
     } catch (err) {
       // ignore throw
     }
     return false;
+  };
+
+  getTokensAmount = (ticker: Ticker, dollars: number): number => {
+    const { info, symbol } = ticker;
+    const tokens = dollars / Number(info.price);
+    if (isNaN(tokens)) {
+      error(TRADE_CALCULATED_SIZE_ERROR(symbol));
+      throw new ConversionError(TRADE_CALCULATED_SIZE_ERROR(symbol));
+    }
+    debug(TRADE_CALCULATED_SIZE(symbol, tokens, dollars));
+    return tokens;
+  };
+
+  getTokensPrice = (ticker: Ticker, tokens: number): number => {
+    const { info, symbol } = ticker;
+    const price = Number(info.price) * tokens;
+    if (isNaN(price)) {
+      error(TRADE_CALCULATED_SIZE_ERROR(symbol));
+      throw new ConversionError(TRADE_CALCULATED_SIZE_ERROR(symbol));
+    }
+    debug(TRADE_CALCULATED_SIZE(symbol, tokens, price));
+    return price;
+  };
+
+  getOpenOrderSize = async (
+    account: Account,
+    ticker: Ticker,
+    size: string
+  ): Promise<number> => {
+    const { symbol } = ticker;
+    if (size.includes('%')) {
+      const accountId = getAccountId(account);
+      try {
+        const percent = Number(size.replace(/\D/g, ''));
+        if (percent <= 0 || percent > 100) {
+          error(TRADE_ERROR_SIZE(size));
+          throw new OrderSizeError(TRADE_ERROR_SIZE(size));
+        }
+        let availableFunds = 0;
+        if (isFTXSpot(ticker)) {
+          const balances = await this.getBalances(account);
+          const balance = balances
+            .filter((b) => b.coin === ticker.info.quoteCurrency)
+            .pop();
+          availableFunds = Number(balance.free);
+        } else {
+          const accountInfos: IFTXAccountInformations = (
+            await this.sessions.get(accountId).exchange.privateGetAccount()
+          ).result;
+          availableFunds = Number(accountInfos.freeCollateral);
+        }
+        // TODO handle NaN
+        debug(
+          AVAILABLE_FUNDS(
+            accountId,
+            this.exchangeId,
+            ticker.info.quoteCurrency,
+            availableFunds
+          )
+        );
+        const relativeSize = (availableFunds * percent) / 100;
+        debug(TRADE_CALCULATED_OPEN_SIZE(relativeSize.toFixed(2), size));
+        return relativeSize;
+      } catch (err) {
+        error(TRADE_CALCULATED_SIZE_ERROR(symbol, err));
+        throw new OrderSizeError(TRADE_CALCULATED_SIZE_ERROR(symbol, err));
+      }
+    } else {
+      return Number(size);
+    }
   };
 }

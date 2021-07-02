@@ -1,6 +1,7 @@
 import { Exchange, Ticker } from 'ccxt';
 import { FTX_SUBACCOUNT_HEADER } from '../../constants/exchanges.constants';
 import { sampleExchangeOptions, sampleSubaccount } from './common.fixtures';
+import { IFTXBalance } from '../../interfaces/exchanges/ftx.exchange.interfaces';
 
 export const sampleFTXExchangeOptions: Exchange['options'] = {
   ...sampleExchangeOptions,
@@ -51,4 +52,13 @@ export const sampleFTXTicker: Ticker = {
     quoteVolume24h: '268879491.7975035',
     volumeUsd24h: '268879491.7975035'
   }
+};
+
+export const sampleFTXBalance: IFTXBalance = {
+  coin: 'DOGE',
+  total: '0.7922939',
+  free: '0.7922939',
+  availableWithoutBorrow: '0.7922939',
+  usdValue: '0.194515504937392',
+  spotBorrow: '0.0'
 };

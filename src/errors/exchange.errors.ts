@@ -27,3 +27,9 @@ export class PositionsFetchError extends Error {
     super(message);
   }
 }
+
+export class ConversionError extends Error {
+  constructor(message: string) {
+    super(message);
+  }
+}

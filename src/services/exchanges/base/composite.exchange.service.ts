@@ -1,26 +1,28 @@
-import { Exchange, Ticker } from 'ccxt';
+import { Ticker } from 'ccxt';
 import { Account } from '../../../entities/account.entities';
-import { IFuturesExchange } from '../../../interfaces/exchanges/common.exchange.interfaces';
-import { FuturesPosition } from '../../../types/exchanges.types';
-import { SpotExchangeService } from './spot.exchange.service';
+import { Trade } from '../../../entities/trade.entities';
+import { ICompositeExchange } from '../../../interfaces/exchanges/base/composite.exchange.interface';
+import { FuturesExchangeService } from './futures.exchange.service';
+import { ISpotExchange } from '../../../interfaces/exchanges/base/spot.exchange.interface';
 
 // FIXME can be replaced by a mixin
 export abstract class CompositeExchangeService
-  extends SpotExchangeService
-  implements IFuturesExchange
+  extends FuturesExchangeService
+  implements ISpotExchange, ICompositeExchange
 {
-  abstract getPositions(
-    account: Account,
-    instance?: Exchange
-  ): Promise<FuturesPosition[]>;
+  abstract getTickerBalance(account: Account, ticker: Ticker): Promise<number>;
 
-  abstract getTickerPosition(
-    account: Account,
-    ticker: Ticker
-  ): Promise<FuturesPosition>;
+  // above is the same as SpotExchangeService since I'm not playing with mixins for now
 
-  abstract getTickerPositionSize(
+  abstract handleSpotOverflow(
     account: Account,
-    ticker: Ticker
-  ): Promise<number>;
+    ticker: Ticker,
+    trade: Trade
+  ): Promise<boolean>;
+
+  abstract handleFuturesOverflow(
+    account: Account,
+    ticker: Ticker,
+    trade: Trade
+  ): Promise<boolean>;
 }

@@ -11,12 +11,12 @@ import {
   removeAccount
 } from '../services/account.service';
 import { HttpCode } from '../constants/http.constants';
-import { ACCOUNTS_ROUTE } from '../constants/routes.constants';
 import { loggingMiddleware } from '../utils/logger.utils';
 import {
   validateAccount,
   validateAccountStub
 } from '../validators/account.validators';
+import { Route } from '../constants/routes.constants';
 
 const router = Router();
 
@@ -79,11 +79,11 @@ export const deleteAccount = async (
   res.end();
 };
 
-export const accountRouter = router
-  .post(ACCOUNTS_ROUTE, loggingMiddleware, validateAccount, postAccount)
-  .get(ACCOUNTS_ROUTE, loggingMiddleware, validateAccountStub, getAccount) // TODO replace with a list of account
+export const accountsRouter = router
+  .post(Route.Accounts, loggingMiddleware, validateAccount, postAccount)
+  .get(Route.Accounts, loggingMiddleware, validateAccountStub, getAccount) // TODO replace with a list of account
   .delete(
-    ACCOUNTS_ROUTE,
+    Route.Accounts,
     loggingMiddleware,
     validateAccountStub,
     deleteAccount

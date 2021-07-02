@@ -184,3 +184,17 @@ export const NO_CURRENT_POSITION = (
       exchange
     )}/${accountId} - No current position opened for ${symbol}.`
   );
+
+export const AVAILABLE_FUNDS = (
+  accountId: string,
+  exchange: ExchangeId,
+  symbol: string,
+  size: number
+): string => {
+  const symbolMessage = symbol ? symbol : '$US';
+  return exchangesMessageWrapper(
+    `${formatExchange(
+      exchange
+    )}/${accountId} - ${size} ${symbolMessage} available to trade.`
+  );
+};
