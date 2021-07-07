@@ -112,23 +112,29 @@ export class FTXExchangeService extends CompositeExchangeService {
     ticker: Ticker,
     trade: Trade
   ): Promise<IOrderOptions> => {
-    let options: IOrderOptions = {
-      size: 0,
-      side: 'sell'
-    };
+    const { size } = trade;
     // we add a check since FTX is a composite exchange
     if (isFTXSpot(ticker)) {
       const balance = await this.getTickerBalance(account, ticker);
-      if (balance) {
-        options = {
-          side: Side.Sell,
-          size: this.getCloseOrderSize(ticker, trade.size, balance)
-        };
+      let orderSize = balance ? balance : 0;
+      if (size.includes('%')) {
+        const percent = Number(size.replace(/%/g, ''));
+        if (percent <= 0 || percent > 100) {
+          error(TRADE_ERROR_SIZE(size));
+          throw new OrderSizeError(TRADE_ERROR_SIZE(size));
+        }
+        orderSize = (balance * percent) / 100;
+      } else {
+        orderSize = this.getTokensAmount(ticker, Number(size));
       }
+      return {
+        side: Side.Sell,
+        size: this.getCloseOrderSize(ticker, trade.size, orderSize)
+      };
     } else {
       const position = await this.getTickerPosition(account, ticker);
       if (position) {
-        options = {
+        return {
           size: this.getCloseOrderSize(
             ticker,
             trade.size,
@@ -138,7 +144,6 @@ export class FTXExchangeService extends CompositeExchangeService {
         };
       }
     }
-    return options;
   };
 
   getTickerPosition = async (

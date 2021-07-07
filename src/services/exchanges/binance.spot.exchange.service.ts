@@ -93,10 +93,22 @@ export class BinanceSpotExchangeService extends SpotExchangeService {
     ticker: Ticker,
     trade: Trade
   ): Promise<IOrderOptions> => {
+    const { size } = trade;
     const balance = await this.getTickerBalance(account, ticker);
+    let orderSize = balance ? balance : 0;
+    if (size.includes('%')) {
+      const percent = Number(size.replace(/%/g, ''));
+      if (percent <= 0 || percent > 100) {
+        error(TRADE_ERROR_SIZE(size));
+        throw new OrderSizeError(TRADE_ERROR_SIZE(size));
+      }
+      orderSize = (balance * percent) / 100;
+    } else {
+      orderSize = this.getTokensAmount(ticker, Number(size));
+    }
     return {
       side: Side.Sell,
-      size: this.getCloseOrderSize(ticker, trade.size, balance)
+      size: this.getCloseOrderSize(ticker, trade.size, orderSize)
     };
   };
 

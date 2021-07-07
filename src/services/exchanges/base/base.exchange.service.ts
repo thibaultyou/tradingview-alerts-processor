@@ -43,6 +43,7 @@ import {
   ISession
 } from '../../../interfaces/exchanges/common.exchange.interfaces';
 import { IMarket } from '../../../interfaces/market.interfaces';
+import { isFTXSpot } from '../../../utils/exchanges/ftx.exchange.utils';
 
 export abstract class BaseExchangeService {
   exchangeId: ExchangeId;
@@ -243,6 +244,17 @@ export abstract class BaseExchangeService {
         ticker,
         trade
       );
+
+      // TODO refacto
+      if (side === Side.Sell) {
+        if (
+          this.exchangeId === ExchangeId.Binance ||
+          (this.exchangeId === ExchangeId.FTX && isFTXSpot(ticker))
+        ) {
+          return await this.closeOrder(account, trade, ticker);
+        }
+      }
+
       if (isOpenOrderAllowed) {
         const order: Order = await this.sessions
           .get(accountId)

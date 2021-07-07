@@ -102,7 +102,7 @@ export const OPEN_LONG_TRADE_SUCCESS = (
   tradingMessageWrapper(
     `${formatExchange(
       exchange
-    )}/${accountId} - ^^^ Opening long position / buying on ${symbol} (~ ${size} $US).`
+    )}/${accountId} - ^^^ Opening long position / buying ${symbol} (~ ${size} $US).`
   );
 
 export const OPEN_SHORT_TRADE_SUCCESS = (
@@ -114,7 +114,7 @@ export const OPEN_SHORT_TRADE_SUCCESS = (
   tradingMessageWrapper(
     `${formatExchange(
       exchange
-    )}/${accountId} - vvv Opening short position / selling on ${symbol} (~ ${size} $US).`
+    )}/${accountId} - vvv Opening short position / selling ${symbol} (~ ${size} $US).`
   );
 
 export const REVERSING_TRADE = (

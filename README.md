@@ -36,7 +36,8 @@ You can use the bot with :
 ### 🚧 Features
 
 - add / read / delete account (or subaccount for FTX) configuration
-- open a Long / Short position (futures) or Buy / Sell a token (spot) in $US or with a percentage of your account collateral / balance
+- open a Long / Short position (Futures) or Buy / Sell a token (Spot) in $US
+- open a Long / Short position (Futures) or Buy / Sell a token (Spot) with a percentage of your available account collateral / balance
 - close a position or a percentage of it
 - close a position and open another in the opposite direction (Futures only)
 - close a position while reducing on oversell / overbuy (Futures only)
