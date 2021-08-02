@@ -170,14 +170,30 @@ export class BinanceFuturesUSDMExchangeService extends FuturesExchangeService {
     const { symbol, max, direction, size } = trade;
     const accountId = getAccountId(account);
     const side = getTradeSide(direction);
-    const current = await this.getTickerPositionSize(account, ticker);
-    if (Math.abs(current) + Number(size) > Number(max)) {
-      error(
-        OPEN_TRADE_ERROR_MAX_SIZE(this.exchangeId, accountId, symbol, side, max)
-      );
-      throw new OpenPositionError(
-        OPEN_TRADE_ERROR_MAX_SIZE(this.exchangeId, accountId, symbol, side, max)
-      );
+    try {
+      const current = await this.getTickerPositionSize(account, ticker);
+      if (Math.abs(current) + Number(size) > Number(max)) {
+        error(
+          OPEN_TRADE_ERROR_MAX_SIZE(
+            this.exchangeId,
+            accountId,
+            symbol,
+            side,
+            max
+          )
+        );
+        throw new OpenPositionError(
+          OPEN_TRADE_ERROR_MAX_SIZE(
+            this.exchangeId,
+            accountId,
+            symbol,
+            side,
+            max
+          )
+        );
+      }
+    } catch (err) {
+      // silent
     }
   };
 

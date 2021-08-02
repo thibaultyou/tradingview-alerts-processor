@@ -221,19 +221,35 @@ export class FTXExchangeService extends CompositeExchangeService {
     const accountId = getAccountId(account);
     const side = getTradeSide(direction);
     // we add a check since FTX is a composite exchange
-    const current = isFTXSpot(ticker)
-      ? this.getTokensPrice(
-          ticker,
-          await this.getTickerBalance(account, ticker)
-        )
-      : await this.getTickerPositionSize(account, ticker);
-    if (Math.abs(current) + Number(size) > Number(max)) {
-      error(
-        OPEN_TRADE_ERROR_MAX_SIZE(this.exchangeId, accountId, symbol, side, max)
-      );
-      throw new OpenPositionError(
-        OPEN_TRADE_ERROR_MAX_SIZE(this.exchangeId, accountId, symbol, side, max)
-      );
+    try {
+      const current = isFTXSpot(ticker)
+        ? this.getTokensPrice(
+            ticker,
+            await this.getTickerBalance(account, ticker)
+          )
+        : await this.getTickerPositionSize(account, ticker);
+      if (Math.abs(current) + Number(size) > Number(max)) {
+        error(
+          OPEN_TRADE_ERROR_MAX_SIZE(
+            this.exchangeId,
+            accountId,
+            symbol,
+            side,
+            max
+          )
+        );
+        throw new OpenPositionError(
+          OPEN_TRADE_ERROR_MAX_SIZE(
+            this.exchangeId,
+            accountId,
+            symbol,
+            side,
+            max
+          )
+        );
+      }
+    } catch (err) {
+      // silent
     }
   };
 
