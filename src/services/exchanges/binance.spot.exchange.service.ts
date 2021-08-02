@@ -96,7 +96,7 @@ export class BinanceSpotExchangeService extends SpotExchangeService {
     const { size } = trade;
     const balance = await this.getTickerBalance(account, ticker);
     let orderSize = balance ? balance : 0;
-    if (size.includes('%')) {
+    if (size && size.includes('%')) {
       const percent = Number(size.replace(/%/g, ''));
       if (percent <= 0 || percent > 100) {
         error(TRADE_ERROR_SIZE(size));
@@ -104,7 +104,7 @@ export class BinanceSpotExchangeService extends SpotExchangeService {
       }
       orderSize = (balance * percent) / 100;
     } else {
-      orderSize = this.getTokensAmount(ticker, Number(size));
+      orderSize = size ? this.getTokensAmount(ticker, Number(size)) : balance;
     }
     return {
       side: Side.Sell,

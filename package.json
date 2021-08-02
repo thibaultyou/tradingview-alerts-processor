@@ -18,7 +18,9 @@
     "build": "npm run clean && tsc --project tsconfig.json",
     "test": "npm run clean && jest",
     "test:cov": "npm run clean && npm run test --coverage",
-    "test:watch": "npm run clean && npm run test:cov --watchAll"
+    "test:watch": "npm run clean && npm run test:cov --watchAll",
+    "docker:build": "docker build -t madamefleur/tradingview-alerts-processor .",
+    "docker:push": "docker push madamefleur/tradingview-alerts-processor"
   },
   "pre-commit": [
     "lint:fix",
