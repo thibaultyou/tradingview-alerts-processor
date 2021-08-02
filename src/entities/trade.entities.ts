@@ -1,4 +1,4 @@
-import { IsIn, IsOptional, IsString, ValidateIf } from 'class-validator';
+import { IsIn, IsOptional, IsString, Matches, ValidateIf } from 'class-validator';
 import {
   SIDES,
   Side,
@@ -24,6 +24,7 @@ export class Trade {
   mode?: TradingMode;
 
   @IsString()
+  @Matches(/.*(PERP|USD).*/)
   symbol: string;
 
   @IsString()
