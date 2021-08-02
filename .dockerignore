@@ -4,3 +4,4 @@ logs
 db.json
 flood.sh
 tests.sh
+node_modules
