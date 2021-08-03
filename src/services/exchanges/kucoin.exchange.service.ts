@@ -2,11 +2,9 @@ import { Exchange, Ticker } from 'ccxt';
 import { ExchangeId } from '../../constants/exchanges.constants';
 import { Account } from '../../entities/account.entities';
 import { IOrderOptions } from '../../interfaces/trading.interfaces';
+import { Side } from '../../constants/trading.constants';
 import { Trade } from '../../entities/trade.entities';
 import { getAccountId } from '../../utils/account.utils';
-import { getTradeSide } from '../../utils/trading.utils';
-import { OPEN_TRADE_ERROR_MAX_SIZE } from '../../messages/trading.messages';
-import { OpenPositionError } from '../../errors/trading.errors';
 import { debug, error } from '../logger.service';
 import { SpotExchangeService } from './base/spot.exchange.service';
 import {
@@ -20,18 +18,18 @@ import {
   TickerFetchError
 } from '../../errors/exchange.errors';
 import { IBalance } from '../../interfaces/exchanges/common.exchange.interfaces';
-import { IBinanceSpotBalance } from '../../interfaces/exchanges/binance.exchange.interfaces';
+import { IKuCoinBalance } from '../../interfaces/exchanges/kucoin.exchange.interfaces';
 import {
   getRelativeTradeSize,
   getSpotSymbol,
   getTokensAmount,
   getTokensPrice
 } from '../../utils/exchanges/common.exchange.utils';
-import { Side } from '../../constants/trading.constants';
 
-export class BinanceSpotExchangeService extends SpotExchangeService {
+// TODO replace by a composite exchange
+export class KuCoinExchangeService extends SpotExchangeService {
   constructor() {
-    super(ExchangeId.Binance);
+    super(ExchangeId.KuCoin);
   }
 
   // TODO implement
@@ -69,13 +67,11 @@ export class BinanceSpotExchangeService extends SpotExchangeService {
       }
       const balances = await instance.fetch_balance();
       debug(BALANCES_READ_SUCCESS(this.exchangeId, accountId));
-      return balances.info.balances
-        .filter((b: IBinanceSpotBalance) => Number(b.free))
-        .map((b: IBinanceSpotBalance) => ({
-          coin: b.asset,
-          free: b.free,
-          total: Number(b.free) + Number(b.locked)
-        }));
+      return balances.info.data.map((b: IKuCoinBalance) => ({
+        coin: b.currency,
+        free: b.available,
+        total: b.balance
+      }));
     } catch (err) {
       error(BALANCES_READ_ERROR(this.exchangeId, accountId), err);
       throw new BalancesFetchError(
@@ -112,43 +108,20 @@ export class BinanceSpotExchangeService extends SpotExchangeService {
     trade: Trade
   ): Promise<IOrderOptions> => {
     const { size } = trade;
-    const { symbol, info } = ticker;
-    const { lastPrice } = info;
+    const { symbol, last } = ticker;
     const balance = await this.getTickerBalance(account, ticker);
     return {
       side: Side.Sell,
       size: size
         ? size.includes('%')
           ? getRelativeTradeSize(ticker, balance, size) // handle percentage
-          : getTokensAmount(symbol, lastPrice, Number(size)) // handle absolute
+          : getTokensAmount(symbol, last, Number(size)) // handle absolute
         : balance // default 100%
     };
   };
 
-  // TODO extract
-  handleMaxBudget = async (
-    account: Account,
-    ticker: Ticker,
-    trade: Trade
-  ): Promise<void> => {
-    const { max, direction, size } = trade;
-    const { symbol } = ticker;
-    const accountId = getAccountId(account);
-    const side = getTradeSide(direction);
-    const current = await this.getTickerBalance(account, ticker);
-    if (this.getOrderCost(ticker, current) + Number(size) > Number(max)) {
-      error(
-        OPEN_TRADE_ERROR_MAX_SIZE(this.exchangeId, accountId, symbol, side, max)
-      );
-      throw new OpenPositionError(
-        OPEN_TRADE_ERROR_MAX_SIZE(this.exchangeId, accountId, symbol, side, max)
-      );
-    }
-  };
-
   getOrderCost = (ticker: Ticker, size: number): number => {
-    const { symbol, info } = ticker;
-    const { lastPrice } = info;
-    return getTokensPrice(symbol, lastPrice, size);
+    const { symbol, last } = ticker;
+    return getTokensPrice(symbol, last, size);
   };
 }

@@ -1,19 +1,22 @@
 export enum ExchangeId {
   Binance = 'binance',
   FTX = 'ftx',
-  BinanceFuturesUSD = 'binanceusdm'
+  BinanceFuturesUSD = 'binanceusdm',
+  KuCoin = 'kucoin'
 }
 
 export const EXCHANGES_NAMES = {
   [ExchangeId.FTX]: 'FTX',
   [ExchangeId.Binance]: 'Binance',
-  [ExchangeId.BinanceFuturesUSD]: 'BinanceFutures'
+  [ExchangeId.BinanceFuturesUSD]: 'BinanceFutures',
+  [ExchangeId.KuCoin]: 'KuCoin'
 };
 
 export const EXCHANGES = [
   ExchangeId.Binance,
   ExchangeId.FTX,
-  ExchangeId.BinanceFuturesUSD
+  ExchangeId.BinanceFuturesUSD,
+  ExchangeId.KuCoin
 ];
 
 export const FTX_SUBACCOUNT_HEADER = 'FTX-SUBACCOUNT';
@@ -21,5 +24,6 @@ export const FTX_SUBACCOUNT_HEADER = 'FTX-SUBACCOUNT';
 export const DELAY_BETWEEN_TRADES = {
   [ExchangeId.Binance]: 200, // 10 orders max per second / we add a 100ms margin between orders
   [ExchangeId.BinanceFuturesUSD]: 200, // 10 orders max per second / we add a 100ms margin between orders
-  [ExchangeId.FTX]: 350 // 2 orders max per 200ms / we add 150ms margin between orders
+  [ExchangeId.FTX]: 350, // 2 orders max per 200ms / we add 150ms margin between orders
+  [ExchangeId.KuCoin]: 200 // 100 orders max per 10 seconds / we add a 100ms margin between orders
 };

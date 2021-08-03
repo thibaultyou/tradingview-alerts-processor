@@ -216,18 +216,6 @@ export const TRADE_CALCULATED_SIZE_ERROR = (
     `Failed to convert ${symbol} equivalent${err ? ' -> ' + err : ''}.`
   );
 
-export const TRADE_CALCULATED_CLOSING_SIZE = (
-  symbol: string,
-  orderSize: string,
-  currentSize: string
-): string => {
-  const size =
-    orderSize !== currentSize ? `${orderSize} of ${currentSize}` : orderSize;
-  return tradingMessageWrapper(
-    `Calculated ${size} ${symbol} closing order size.`
-  );
-};
-
 export const TRADE_CALCULATED_OPEN_SIZE_ERROR = (err?: Error): string =>
   tradingMessageWrapper(
     `Failed to find relative account size${err ? ' -> ' + err : ''}.`

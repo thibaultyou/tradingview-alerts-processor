@@ -4,6 +4,7 @@ import { ExchangeId } from '../../../constants/exchanges.constants';
 import { getAccountId } from '../../../utils/account.utils';
 import ccxt = require('ccxt');
 import {
+  AVAILABLE_FUNDS,
   EXCHANGE_AUTHENTICATION_ERROR,
   EXCHANGE_AUTHENTICATION_SUCCESS,
   EXCHANGE_INIT_ERROR,
@@ -27,8 +28,7 @@ import {
   OPEN_LONG_TRADE_SUCCESS,
   OPEN_SHORT_TRADE_SUCCESS,
   OPEN_TRADE_ERROR,
-  TRADE_CALCULATED_CLOSING_SIZE,
-  TRADE_ERROR_SIZE
+  TRADE_CALCULATED_SIZE_ERROR
 } from '../../../messages/trading.messages';
 import {
   ClosePositionError,
@@ -37,13 +37,19 @@ import {
 } from '../../../errors/trading.errors';
 import { Side, TradingMode } from '../../../constants/trading.constants';
 import { getTradeSide } from '../../../utils/trading.utils';
-import { getExchangeOptions } from '../../../utils/exchanges/common.exchange.utils';
+import {
+  getExchangeOptions,
+  getRelativeTradeSize,
+  getSpotQuote,
+  getTokensAmount
+} from '../../../utils/exchanges/common.exchange.utils';
 import {
   IBalance,
   ISession
 } from '../../../interfaces/exchanges/common.exchange.interfaces';
 import { IMarket } from '../../../interfaces/market.interfaces';
 import { isFTXSpot } from '../../../utils/exchanges/ftx.exchange.utils';
+import { IFTXAccountInformations } from '../../../interfaces/exchanges/ftx.exchange.interfaces';
 
 export abstract class BaseExchangeService {
   exchangeId: ExchangeId;
@@ -60,12 +66,6 @@ export abstract class BaseExchangeService {
     ticker: Ticker,
     trade: Trade
   ): Promise<IOrderOptions>;
-
-  abstract handleMaxBudget(
-    account: Account,
-    ticker: Ticker,
-    trade: Trade
-  ): Promise<void>;
 
   abstract handleReverseOrder(
     account: Account,
@@ -84,15 +84,14 @@ export abstract class BaseExchangeService {
     instance?: Exchange
   ): Promise<IBalance[]>;
 
-  abstract getTokensAmount(ticker: Ticker, dollars: number): number;
+  abstract getOrderCost(ticker: Ticker, size: number): number;
 
-  abstract getTokensPrice(ticker: Ticker, tokens: number): number;
-
-  abstract getOpenOrderSize(
+  abstract handleMaxBudget(
     account: Account,
     ticker: Ticker,
-    size: string
-  ): Promise<number>;
+    trade: Trade,
+    balance: number
+  ): Promise<void>;
 
   checkCredentials = async (
     account: Account,
@@ -152,70 +151,45 @@ export abstract class BaseExchangeService {
     }
   };
 
-  getCloseOrderSize = (
-    ticker: Ticker,
-    size: string,
-    current: number
-  ): number => {
-    let orderSize = current;
-    if (size && size.includes('%')) {
-      const percent = Number(size.replace(/%/g, ''));
-      if (percent <= 0 || percent > 100) {
-        error(TRADE_ERROR_SIZE(size));
-        throw new OrderSizeError(TRADE_ERROR_SIZE(size));
-      }
-      orderSize = (orderSize * percent) / 100;
-    }
-    debug(
-      TRADE_CALCULATED_CLOSING_SIZE(
-        ticker.symbol,
-        orderSize.toFixed(2),
-        current.toFixed(2)
-      )
-    );
-    return orderSize;
-  };
-
-  closeOrder = async (
-    account: Account,
-    trade: Trade,
-    ticker?: Ticker
-  ): Promise<Order> => {
-    await this.refreshSession(account);
-    const { symbol } = trade;
-    const accountId = getAccountId(account);
+  getMarkets = async (): Promise<IMarket[]> => {
     try {
-      if (!ticker) {
-        ticker = await this.getTicker(symbol);
-      }
-      const options = await this.getCloseOrderOptions(account, ticker, trade);
-      const order = await this.sessions
-        .get(accountId)
-        .exchange.createMarketOrder(symbol, options.side, options.size);
-      close(
-        CLOSE_TRADE_SUCCESS(
-          this.exchangeId,
-          accountId,
-          symbol,
-          options.size,
-          this.getTokensPrice(ticker, order.amount).toFixed(2)
-        )
+      const markets: ccxt.Market[] = await this.defaultExchange.fetchMarkets();
+      const availableMarkets = markets.flatMap((m) =>
+        m.active
+          ? {
+              id: m.id,
+              symbol: m.symbol,
+              base: m.base,
+              quote: m.quote,
+              type: m.type
+            }
+          : undefined
       );
-      return order;
+      debug(MARKETS_READ_SUCCESS(this.exchangeId));
+      return availableMarkets;
     } catch (err) {
-      error(CLOSE_TRADE_ERROR(this.exchangeId, accountId, symbol), err);
-      throw new ClosePositionError(
-        CLOSE_TRADE_ERROR(this.exchangeId, accountId, symbol)
+      error(MARKETS_READ_ERROR(this.exchangeId), err);
+      throw new MarketsFetchError(
+        MARKETS_READ_ERROR(this.exchangeId, err.message)
       );
     }
   };
 
-  handleTradingOptions = async (
+  getAvailableFunds = async (
+    account: Account,
+    quote: string
+  ): Promise<number> => {
+    const balances = await this.getBalances(account);
+    const balance = balances.filter((b) => b.coin === quote).pop();
+    return Number(balance.free);
+  };
+
+  handleOrderOptions = async (
     account: Account,
     ticker: Ticker,
     trade: Trade
   ): Promise<boolean> => {
-    const { max, mode } = trade;
+    const { mode } = trade;
     if (mode === TradingMode.Reverse) {
       await this.handleReverseOrder(account, ticker, trade);
     } else if (mode === TradingMode.Overflow) {
@@ -224,27 +198,92 @@ export abstract class BaseExchangeService {
         return false; // on overflow we only close position
       }
     }
-    if (max) {
-      await this.handleMaxBudget(account, ticker, trade);
-    }
     return true;
+  };
+
+  checkOrderPreconditions = async (
+    account: Account,
+    ticker: Ticker,
+    trade: Trade,
+    balance: number,
+    orderSize: number
+  ): Promise<void> => {
+    const { max } = trade;
+    if (orderSize > balance) {
+      // TODO create dedicated error
+      throw new Error('Insufficient funds');
+    }
+    if (max) {
+      await this.handleMaxBudget(account, ticker, trade, balance);
+    }
+  };
+
+  getOpenOrderSize = async (
+    account: Account,
+    ticker: Ticker,
+    trade: Trade
+  ): Promise<number> => {
+    const { symbol, last, info } = ticker;
+    const { size } = trade;
+    const accountId = getAccountId(account);
+    try {
+      const quoteCurrency = getSpotQuote(symbol);
+      let availableFunds = 0;
+      if (this.exchangeId === ExchangeId.FTX && !isFTXSpot(ticker)) {
+        const accountInfos: IFTXAccountInformations = (
+          await this.sessions.get(accountId).exchange.privateGetAccount()
+        ).result;
+        availableFunds = Number(accountInfos.freeCollateral); // FTX futures
+      } else {
+        availableFunds = await this.getAvailableFunds(account, quoteCurrency); // default
+      }
+
+      debug(
+        AVAILABLE_FUNDS(
+          accountId,
+          this.exchangeId,
+          quoteCurrency,
+          availableFunds
+        )
+      );
+      let orderSize = Number(size);
+      if (size.includes('%')) {
+        orderSize = getRelativeTradeSize(ticker, availableFunds, size);
+      }
+      this.checkOrderPreconditions(
+        account,
+        ticker,
+        trade,
+        availableFunds,
+        orderSize
+      );
+
+      const tickerPrice = last
+        ? last // KuCoin
+        : info.price // FTX
+        ? info.price
+        : info.lastPrice; // Binance
+      return getTokensAmount(symbol, tickerPrice, Number(orderSize));
+    } catch (err) {
+      error(TRADE_CALCULATED_SIZE_ERROR(symbol, err));
+      throw new OrderSizeError(TRADE_CALCULATED_SIZE_ERROR(symbol, err));
+    }
   };
 
   openOrder = async (account: Account, trade: Trade): Promise<Order> => {
     await this.refreshSession(account);
-    const { direction, size, symbol } = trade;
+    const { direction, symbol } = trade;
     const accountId = getAccountId(account);
     const side = getTradeSide(direction);
     try {
       const ticker = await this.getTicker(symbol);
-      const orderCost = await this.getOpenOrderSize(account, ticker, size);
-      const orderSize = this.getTokensAmount(ticker, orderCost);
-      const isOpenOrderAllowed = await this.handleTradingOptions(
+      const orderSize = await this.getOpenOrderSize(account, ticker, trade);
+      const cost = this.getOrderCost(ticker, orderSize);
+      const isOpenOrderAllowed = await this.handleOrderOptions(
         account,
         ticker,
         trade
       );
-
       // TODO refacto
       if (side === Side.Sell) {
         if (
@@ -269,7 +308,7 @@ export abstract class BaseExchangeService {
                 this.exchangeId,
                 accountId,
                 symbol,
-                orderCost.toFixed(2)
+                cost.toFixed(2)
               )
             )
           : short(
@@ -277,7 +316,7 @@ export abstract class BaseExchangeService {
                 this.exchangeId,
                 accountId,
                 symbol,
-                orderCost.toFixed(2)
+                cost.toFixed(2)
               )
             );
         return order;
@@ -290,26 +329,37 @@ export abstract class BaseExchangeService {
     }
   };
 
-  getMarkets = async (): Promise<IMarket[]> => {
+  closeOrder = async (
+    account: Account,
+    trade: Trade,
+    ticker?: Ticker
+  ): Promise<Order> => {
+    await this.refreshSession(account);
+    const { symbol } = trade;
+    const accountId = getAccountId(account);
     try {
-      const markets: ccxt.Market[] = await this.defaultExchange.fetchMarkets();
-      const availableMarkets = markets.flatMap((m) =>
-        m.active
-          ? {
-              id: m.id,
-              symbol: m.symbol,
-              base: m.base,
-              quote: m.quote,
-              type: m.type
-            }
-          : undefined
+      if (!ticker) {
+        ticker = await this.getTicker(symbol);
+      }
+      const options = await this.getCloseOrderOptions(account, ticker, trade);
+      const order = await this.sessions
+        .get(accountId)
+        .exchange.createMarketOrder(symbol, options.side, options.size);
+      const cost = this.getOrderCost(ticker, options.size);
+      close(
+        CLOSE_TRADE_SUCCESS(
+          this.exchangeId,
+          accountId,
+          symbol,
+          options.size,
+          cost.toFixed(2)
+        )
       );
-      debug(MARKETS_READ_SUCCESS(this.exchangeId));
-      return availableMarkets;
+      return order;
     } catch (err) {
-      error(MARKETS_READ_ERROR(this.exchangeId), err);
-      throw new MarketsFetchError(
-        MARKETS_READ_ERROR(this.exchangeId, err.message)
+      error(CLOSE_TRADE_ERROR(this.exchangeId, accountId, symbol), err);
+      throw new ClosePositionError(
+        CLOSE_TRADE_ERROR(this.exchangeId, accountId, symbol)
       );
     }
   };

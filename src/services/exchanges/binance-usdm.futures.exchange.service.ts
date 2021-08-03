@@ -5,13 +5,11 @@ import { Account } from '../../entities/account.entities';
 import { Trade } from '../../entities/trade.entities';
 import {
   BalancesFetchError,
-  ConversionError,
   PositionsFetchError
 } from '../../errors/exchange.errors';
 import {
   NoOpenPositionError,
-  OpenPositionError,
-  OrderSizeError
+  OpenPositionError
 } from '../../errors/trading.errors';
 import {
   IBinanceFuturesUSDBalance,
@@ -25,23 +23,20 @@ import {
   NO_CURRENT_POSITION,
   POSITION_READ_SUCCESS,
   BALANCES_READ_ERROR,
-  BALANCES_READ_SUCCESS,
-  AVAILABLE_FUNDS
+  BALANCES_READ_SUCCESS
 } from '../../messages/exchanges.messages';
 import {
   OPEN_TRADE_ERROR_MAX_SIZE,
   REVERSING_TRADE,
-  TRADE_CALCULATED_OPEN_SIZE,
-  TRADE_CALCULATED_SIZE,
-  TRADE_CALCULATED_SIZE_ERROR,
-  TRADE_ERROR_SIZE,
   TRADE_OVERFLOW
 } from '../../messages/trading.messages';
 import { getAccountId } from '../../utils/account.utils';
+import { formatBinanceFuturesSymbol } from '../../utils/exchanges/binance.exchange.utils';
 import {
-  formatBinanceFuturesSymbol,
-  getBinanceSpotQuoteCurrency
-} from '../../utils/exchanges/binance.exchange.utils';
+  getRelativeTradeSize,
+  getTokensAmount,
+  getTokensPrice
+} from '../../utils/exchanges/common.exchange.utils';
 import { getTradeSide, isSideDifferent } from '../../utils/trading.utils';
 import { debug, error, info } from '../logger.service';
 import { FuturesExchangeService } from './base/futures.exchange.service';
@@ -132,11 +127,19 @@ export class BinanceFuturesUSDMExchangeService extends FuturesExchangeService {
     ticker: Ticker,
     trade: Trade
   ): Promise<IOrderOptions> => {
+    const { size } = trade;
+    const { symbol, info } = ticker;
+    const { lastPrice } = info;
     const position = await this.getTickerPosition(account, ticker);
-    const size = Number(position.positionAmt);
+    const current = Number(position.positionAmt);
+    const price = this.getOrderCost(ticker, Math.abs(current));
     return {
-      size: this.getCloseOrderSize(ticker, trade.size, Math.abs(size)),
-      side: size > 0 ? Side.Sell : Side.Buy
+      size: size.includes('%')
+        ? getRelativeTradeSize(ticker, current, size) // handle percentage
+        : Number(size) > price // if closing size > current
+        ? current // then close all
+        : getTokensAmount(symbol, lastPrice, Number(size)), // otherwise handle absolute
+      side: current > 0 ? Side.Sell : Side.Buy
     };
   };
 
@@ -146,6 +149,7 @@ export class BinanceFuturesUSDMExchangeService extends FuturesExchangeService {
     trade: Trade
   ): Promise<void> => {
     const { direction } = trade;
+    const { symbol } = ticker;
     const accountId = getAccountId(account);
     const side = getTradeSide(direction);
     try {
@@ -154,7 +158,7 @@ export class BinanceFuturesUSDMExchangeService extends FuturesExchangeService {
         size &&
         ((size < 0 && side === Side.Buy) || (size > 0 && side === Side.Sell))
       ) {
-        info(REVERSING_TRADE(this.exchangeId, accountId, ticker.symbol));
+        info(REVERSING_TRADE(this.exchangeId, accountId, symbol));
         await this.closeOrder(account, trade, ticker);
       }
     } catch (err) {
@@ -162,6 +166,7 @@ export class BinanceFuturesUSDMExchangeService extends FuturesExchangeService {
     }
   };
 
+  // TODO extract
   handleMaxBudget = async (
     account: Account,
     ticker: Ticker,
@@ -203,16 +208,18 @@ export class BinanceFuturesUSDMExchangeService extends FuturesExchangeService {
     trade: Trade
   ): Promise<boolean> => {
     const { direction, size } = trade;
+    const { symbol } = ticker;
     const accountId = getAccountId(account);
     try {
       // TODO refacto
       const position = await this.getTickerPosition(account, ticker);
+      const { positionSide, notional } = position;
       if (
         position &&
-        isSideDifferent(position.positionSide as Side, direction) &&
-        Number(size) > Math.abs(Number(position.notional))
+        isSideDifferent(positionSide as Side, direction) &&
+        Number(size) > Math.abs(Number(notional))
       ) {
-        info(TRADE_OVERFLOW(this.exchangeId, accountId, ticker.symbol));
+        info(TRADE_OVERFLOW(this.exchangeId, accountId, symbol));
         await this.closeOrder(account, trade, ticker);
         return true;
       }
@@ -222,64 +229,9 @@ export class BinanceFuturesUSDMExchangeService extends FuturesExchangeService {
     return false;
   };
 
-  getTokensAmount = (ticker: Ticker, dollars: number): number => {
-    const { info, symbol } = ticker;
-    const tokens = dollars / Number(info.lastPrice);
-    if (isNaN(tokens)) {
-      error(TRADE_CALCULATED_SIZE_ERROR(symbol));
-      throw new ConversionError(TRADE_CALCULATED_SIZE_ERROR(symbol));
-    }
-    debug(TRADE_CALCULATED_SIZE(symbol, tokens, dollars));
-    return tokens;
-  };
-
-  getTokensPrice = (ticker: Ticker, tokens: number): number => {
-    const { info, symbol } = ticker;
-    const price = Number(info.lastPrice) * tokens;
-    if (isNaN(price)) {
-      error(TRADE_CALCULATED_SIZE_ERROR(symbol));
-      throw new ConversionError(TRADE_CALCULATED_SIZE_ERROR(symbol));
-    }
-    debug(TRADE_CALCULATED_SIZE(symbol, tokens, price));
-    return price;
-  };
-
-  getOpenOrderSize = async (
-    account: Account,
-    ticker: Ticker,
-    size: string
-  ): Promise<number> => {
-    const { symbol } = ticker;
-    if (size.includes('%')) {
-      const accountId = getAccountId(account);
-      try {
-        const percent = Number(size.replace(/%/g, ''));
-        if (percent <= 0 || percent > 100) {
-          error(TRADE_ERROR_SIZE(size));
-          throw new OrderSizeError(TRADE_ERROR_SIZE(size));
-        }
-        const balances = await this.getBalances(account);
-        const quoteCurrency = getBinanceSpotQuoteCurrency(ticker.symbol);
-        const balance = balances.filter((b) => b.coin === quoteCurrency).pop();
-        const availableFunds = Number(balance.free);
-        // TODO handle NaN
-        debug(
-          AVAILABLE_FUNDS(
-            accountId,
-            this.exchangeId,
-            quoteCurrency,
-            availableFunds
-          )
-        );
-        const relativeSize = (availableFunds * percent) / 100;
-        debug(TRADE_CALCULATED_OPEN_SIZE(relativeSize.toFixed(2), size));
-        return relativeSize;
-      } catch (err) {
-        error(TRADE_CALCULATED_SIZE_ERROR(symbol, err));
-        throw new OrderSizeError(TRADE_CALCULATED_SIZE_ERROR(symbol, err));
-      }
-    } else {
-      return Number(size);
-    }
-  };
+  getOrderCost(ticker: Ticker, size: number): number {
+    const { symbol, info } = ticker;
+    const { lastPrice } = info;
+    return getTokensPrice(symbol, lastPrice, size);
+  }
 }

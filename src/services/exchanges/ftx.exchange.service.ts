@@ -17,42 +17,37 @@ import {
   TICKER_BALANCE_READ_ERROR,
   TICKER_BALANCE_READ_SUCCESS,
   BALANCES_READ_ERROR,
-  BALANCES_READ_SUCCESS,
-  AVAILABLE_FUNDS
+  BALANCES_READ_SUCCESS
 } from '../../messages/exchanges.messages';
 import { debug, error, info } from '../logger.service';
 import {
   BalancesFetchError,
-  ConversionError,
   PositionsFetchError,
   TickerFetchError
 } from '../../errors/exchange.errors';
 import { Trade } from '../../entities/trade.entities';
-import {
-  formatFTXSpotSymbol,
-  isFTXSpot
-} from '../../utils/exchanges/ftx.exchange.utils';
+import { isFTXSpot } from '../../utils/exchanges/ftx.exchange.utils';
 import {
   OPEN_TRADE_ERROR_MAX_SIZE,
   REVERSING_TRADE,
-  TRADE_CALCULATED_SIZE,
-  TRADE_CALCULATED_SIZE_ERROR,
-  TRADE_ERROR_SIZE,
   TRADE_OVERFLOW
 } from '../../messages/trading.messages';
 import {
   NoOpenPositionError,
-  OpenPositionError,
-  OrderSizeError
+  OpenPositionError
 } from '../../errors/trading.errors';
 import { CompositeExchangeService } from './base/composite.exchange.service';
 import {
-  IFTXAccountInformations,
   IFTXBalance,
   IFTXFuturesPosition
 } from '../../interfaces/exchanges/ftx.exchange.interfaces';
 import { IBalance } from '../../interfaces/exchanges/common.exchange.interfaces';
-import { TRADE_CALCULATED_OPEN_SIZE } from '../../messages/trading.messages';
+import {
+  getRelativeTradeSize,
+  getSpotSymbol,
+  getTokensAmount,
+  getTokensPrice
+} from '../../utils/exchanges/common.exchange.utils';
 
 export class FTXExchangeService extends CompositeExchangeService {
   constructor() {
@@ -90,7 +85,7 @@ export class FTXExchangeService extends CompositeExchangeService {
     ticker: Ticker
   ): Promise<number> => {
     const accountId = getAccountId(account);
-    const symbol = formatFTXSpotSymbol(ticker.symbol);
+    const symbol = getSpotSymbol(ticker.symbol);
     try {
       const balances = await this.getBalances(account);
       const balance = balances.filter((b) => b.coin === symbol).pop();
@@ -113,33 +108,29 @@ export class FTXExchangeService extends CompositeExchangeService {
     trade: Trade
   ): Promise<IOrderOptions> => {
     const { size } = trade;
+    const { symbol, info } = ticker;
+    const { price } = info;
     // we add a check since FTX is a composite exchange
     if (isFTXSpot(ticker)) {
       const balance = await this.getTickerBalance(account, ticker);
-      let orderSize = balance ? balance : 0;
-      if (size && size.includes('%')) {
-        const percent = Number(size.replace(/%/g, ''));
-        if (percent <= 0 || percent > 100) {
-          error(TRADE_ERROR_SIZE(size));
-          throw new OrderSizeError(TRADE_ERROR_SIZE(size));
-        }
-        orderSize = (balance * percent) / 100;
-      } else {
-        orderSize = size ? this.getTokensAmount(ticker, Number(size)) : balance;
-      }
       return {
         side: Side.Sell,
-        size: this.getCloseOrderSize(ticker, trade.size, orderSize)
+        size: size
+          ? size.includes('%')
+            ? getRelativeTradeSize(ticker, balance, size) // handle percentage
+            : getTokensAmount(symbol, price, Number(size)) // handle absolute
+          : balance // default 100%
       };
     } else {
       const position = await this.getTickerPosition(account, ticker);
+      const current = Number(position.size);
       if (position) {
         return {
-          size: this.getCloseOrderSize(
-            ticker,
-            trade.size,
-            Number(position.size)
-          ),
+          size: size.includes('%')
+            ? getRelativeTradeSize(ticker, current, size) // handle percentage
+            : Number(size) > price // if closing size > current
+            ? current // then close all
+            : getTokensAmount(symbol, price, Number(size)), // otherwise handle absolute
           side: getInvertedTradeSide(position.side as Side)
         };
       }
@@ -212,21 +203,21 @@ export class FTXExchangeService extends CompositeExchangeService {
     }
   };
 
+  // TODO extract
   handleMaxBudget = async (
     account: Account,
     ticker: Ticker,
     trade: Trade
   ): Promise<void> => {
-    const { symbol, max, direction, size } = trade;
+    const { max, direction, size } = trade;
+    const { symbol } = ticker;
     const accountId = getAccountId(account);
     const side = getTradeSide(direction);
     // we add a check since FTX is a composite exchange
     try {
+      const balance = await this.getTickerBalance(account, ticker);
       const current = isFTXSpot(ticker)
-        ? this.getTokensPrice(
-            ticker,
-            await this.getTickerBalance(account, ticker)
-          )
+        ? this.getOrderCost(ticker, balance)
         : await this.getTickerPositionSize(account, ticker);
       if (Math.abs(current) + Number(size) > Number(max)) {
         error(
@@ -259,17 +250,12 @@ export class FTXExchangeService extends CompositeExchangeService {
     trade: Trade
   ): Promise<boolean> => {
     const { direction, size } = trade;
+    const { symbol, info } = ticker;
     const accountId = getAccountId(account);
-    const balance = this.getTokensPrice(
-      ticker,
-      await this.getTickerBalance(account, ticker)
-    );
-    if (
-      balance &&
-      getTradeSide(direction) === Side.Sell &&
-      balance < Number(size)
-    ) {
-      info(TRADE_OVERFLOW(this.exchangeId, accountId, ticker.symbol));
+    const balance = await this.getTickerBalance(account, ticker);
+    const cost = this.getOrderCost(ticker, balance);
+    if (cost && getTradeSide(direction) === Side.Sell && cost < Number(size)) {
+      info(TRADE_OVERFLOW(this.exchangeId, accountId, symbol));
       await this.closeOrder(
         account,
         { ...trade, size: balance.toString() }, // TODO replace this crap
@@ -285,14 +271,16 @@ export class FTXExchangeService extends CompositeExchangeService {
     trade: Trade
   ): Promise<boolean> => {
     const { direction, size } = trade;
+    const { symbol } = ticker;
     const accountId = getAccountId(account);
     const position = await this.getTickerPosition(account, ticker);
+    const { side, cost } = position;
     if (
       position &&
-      isSideDifferent(position.side as Side, direction) &&
-      Number(size) > Math.abs(Number(position.cost))
+      isSideDifferent(side as Side, direction) &&
+      Number(size) > Math.abs(Number(cost))
     ) {
-      info(TRADE_OVERFLOW(this.exchangeId, accountId, ticker.symbol));
+      info(TRADE_OVERFLOW(this.exchangeId, accountId, symbol));
       await this.closeOrder(account, trade, ticker);
       return true;
     }
@@ -313,73 +301,9 @@ export class FTXExchangeService extends CompositeExchangeService {
     return false;
   };
 
-  getTokensAmount = (ticker: Ticker, dollars: number): number => {
-    const { info, symbol } = ticker;
-    const tokens = dollars / Number(info.price);
-    if (isNaN(tokens)) {
-      error(TRADE_CALCULATED_SIZE_ERROR(symbol));
-      throw new ConversionError(TRADE_CALCULATED_SIZE_ERROR(symbol));
-    }
-    debug(TRADE_CALCULATED_SIZE(symbol, tokens, dollars));
-    return tokens;
-  };
-
-  getTokensPrice = (ticker: Ticker, tokens: number): number => {
-    const { info, symbol } = ticker;
-    const price = Number(info.price) * tokens;
-    if (isNaN(price)) {
-      error(TRADE_CALCULATED_SIZE_ERROR(symbol));
-      throw new ConversionError(TRADE_CALCULATED_SIZE_ERROR(symbol));
-    }
-    debug(TRADE_CALCULATED_SIZE(symbol, tokens, price));
-    return price;
-  };
-
-  getOpenOrderSize = async (
-    account: Account,
-    ticker: Ticker,
-    size: string
-  ): Promise<number> => {
-    const { symbol } = ticker;
-    if (size.includes('%')) {
-      const accountId = getAccountId(account);
-      try {
-        const percent = Number(size.replace(/%/g, ''));
-        if (percent <= 0 || percent > 100) {
-          error(TRADE_ERROR_SIZE(size));
-          throw new OrderSizeError(TRADE_ERROR_SIZE(size));
-        }
-        let availableFunds = 0;
-        if (isFTXSpot(ticker)) {
-          const balances = await this.getBalances(account);
-          const balance = balances
-            .filter((b) => b.coin === ticker.info.quoteCurrency)
-            .pop();
-          availableFunds = Number(balance.free);
-        } else {
-          const accountInfos: IFTXAccountInformations = (
-            await this.sessions.get(accountId).exchange.privateGetAccount()
-          ).result;
-          availableFunds = Number(accountInfos.freeCollateral);
-        }
-        // TODO handle NaN
-        debug(
-          AVAILABLE_FUNDS(
-            accountId,
-            this.exchangeId,
-            ticker.info.quoteCurrency,
-            availableFunds
-          )
-        );
-        const relativeSize = (availableFunds * percent) / 100;
-        debug(TRADE_CALCULATED_OPEN_SIZE(relativeSize.toFixed(2), size));
-        return relativeSize;
-      } catch (err) {
-        error(TRADE_CALCULATED_SIZE_ERROR(symbol, err));
-        throw new OrderSizeError(TRADE_CALCULATED_SIZE_ERROR(symbol, err));
-      }
-    } else {
-      return Number(size);
-    }
+  getOrderCost = (ticker: Ticker, size: number): number => {
+    const { symbol, info } = ticker;
+    const { price } = info;
+    return getTokensPrice(symbol, price, size);
   };
 }
