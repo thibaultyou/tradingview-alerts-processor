@@ -18,6 +18,13 @@ export const TRADE_EXECUTION_SUCCESS = (
     )}/${accountId.toUpperCase()} - ${symbol} ${side} trade executed.`
   );
 
+export const TRADES_EXECUTION_SUCCESS = (
+  trades: Record<string, string>[]
+): string =>
+  tradingMessageWrapper(
+    `Trades executed${trades ? ' -> ' + JSON.stringify(trades) : ''}.`
+  );
+
 export const TRADE_EXECUTION_ERROR = (
   exchange: ExchangeId,
   accountId: string,

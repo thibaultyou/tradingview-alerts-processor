@@ -1,4 +1,10 @@
-import { IsIn, IsOptional, IsString, Matches, ValidateIf } from 'class-validator';
+import {
+  IsIn,
+  IsOptional,
+  IsString,
+  Matches,
+  ValidateIf
+} from 'class-validator';
 import {
   SIDES,
   Side,

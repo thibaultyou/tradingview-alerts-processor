@@ -11,7 +11,13 @@ export const validateClass = async (
   classType: ClassType<any>
 ): Promise<void> => {
   try {
-    await transformAndValidate(classType, req.body);
+    if (Array.isArray(req.body)) {
+      for (const e of req.body) {
+        await transformAndValidate(classType, e);
+      }
+    } else {
+      await transformAndValidate(classType, req.body);
+    }
     next();
   } catch (err) {
     res.writeHead(HttpCode.BAD_REQUEST);

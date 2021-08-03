@@ -78,3 +78,9 @@
         ```json
         { "stub": "dev", "direction": "long", "symbol": "ETH-PERP", "size": "50", "mode": "overflow" }
         ```
+
+    - Process multiple trades :
+
+        ```json
+        [{ "stub": "dev", "direction": "long", "symbol": "ETH-PERP", "size": "50" }, { "stub": "dev", "direction": "long", "symbol": "BTC-PERP", "size": "50" }]
+        ```

@@ -4,6 +4,7 @@
 
 >
 > This project is under construction 🚧
+> Only USD based markets are supported for now
 >
 
 Minimalist service designed to execute [TradingView](https://www.tradingview.com/) webhooks and process them to cryptocurrencies exchanges from [AWS lightsail](https://lightsail.aws.amazon.com/).
@@ -44,22 +45,7 @@ You can use the bot with :
 - set a maximum budget (for a coin on Futures / for account on Spot)
 - list account balances
 - list exchange markets
-
-Coming soon :
-
-- CLI
-- trading modes for spot markets
-- leverage config for Binance
-- additional tickers / account and exchanges checks
-- AWS container service install
-- missing endpoints : logs, orders, positions
-- better logging system
-- Kucoin support
-- Kraken support
-- limit orders
-- multiple commands at once
-- more metrics
-- web UI
+- process multiple trades at once
 
 ### 💡 Contributions
 

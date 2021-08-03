@@ -99,3 +99,9 @@
     ```sh
     curl -d '{"exchange": "ftx" }' -X GET http://YOUR.STATIC.IP.ADDRESS/markets -H 'Content-Type: application/json; charset=utf-8'
     ```
+
+- __Process multiple trades__ at once :
+
+    ```sh
+    curl -d '[{"stub": "test", "symbol": "ETH-PERP", "size": "11", "direction": "long" }, {"stub": "test", "symbol": "BTC-PERP", "size": "11", "direction": "long" }]' -X POST http://YOUR.STATIC.IP.ADDRESS/trades -H 'Content-Type: application/json; charset=utf-8'
+    ```
