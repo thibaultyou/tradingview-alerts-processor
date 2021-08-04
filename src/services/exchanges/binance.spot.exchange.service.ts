@@ -4,9 +4,6 @@ import { Account } from '../../entities/account.entities';
 import { IOrderOptions } from '../../interfaces/trading.interfaces';
 import { Trade } from '../../entities/trade.entities';
 import { getAccountId } from '../../utils/account.utils';
-import { getTradeSide } from '../../utils/trading.utils';
-import { OPEN_TRADE_ERROR_MAX_SIZE } from '../../messages/trading.messages';
-import { OpenPositionError } from '../../errors/trading.errors';
 import { debug, error } from '../logger.service';
 import { SpotExchangeService } from './base/spot.exchange.service';
 import {
@@ -123,27 +120,6 @@ export class BinanceSpotExchangeService extends SpotExchangeService {
           : getTokensAmount(symbol, lastPrice, Number(size)) // handle absolute
         : balance // default 100%
     };
-  };
-
-  // TODO extract
-  handleMaxBudget = async (
-    account: Account,
-    ticker: Ticker,
-    trade: Trade
-  ): Promise<void> => {
-    const { max, direction, size } = trade;
-    const { symbol } = ticker;
-    const accountId = getAccountId(account);
-    const side = getTradeSide(direction);
-    const current = await this.getTickerBalance(account, ticker);
-    if (this.getOrderCost(ticker, current) + Number(size) > Number(max)) {
-      error(
-        OPEN_TRADE_ERROR_MAX_SIZE(this.exchangeId, accountId, symbol, side, max)
-      );
-      throw new OpenPositionError(
-        OPEN_TRADE_ERROR_MAX_SIZE(this.exchangeId, accountId, symbol, side, max)
-      );
-    }
   };
 
   getOrderCost = (ticker: Ticker, size: number): number => {

@@ -177,14 +177,28 @@ export abstract class BaseExchangeService {
 
   getAvailableFunds = async (
     account: Account,
-    quote: string
+    ticker: Ticker
   ): Promise<number> => {
-    const balances = await this.getBalances(account);
-    const balance = balances.filter((b) => b.coin === quote).pop();
-    return Number(balance.free);
+    const { symbol } = ticker;
+    const accountId = getAccountId(account);
+    const quote = getSpotQuote(symbol);
+    // TODO refacto
+    let availableFunds = 0;
+    if (this.exchangeId === ExchangeId.FTX && !isFTXSpot(ticker)) {
+      const accountInfos: IFTXAccountInformations = (
+        await this.sessions.get(accountId).exchange.privateGetAccount()
+      ).result;
+      availableFunds = Number(accountInfos.freeCollateral);
+    } else {
+      const balances = await this.getBalances(account);
+      const balance = balances.filter((b) => b.coin === quote).pop();
+      availableFunds = Number(balance.free);
+    }
+    debug(AVAILABLE_FUNDS(accountId, this.exchangeId, quote, availableFunds));
+    return availableFunds;
   };
 
-  handleOrderOptions = async (
+  handleOrderModes = async (
     account: Account,
     ticker: Ticker,
     trade: Trade
@@ -201,63 +215,27 @@ export abstract class BaseExchangeService {
     return true;
   };
 
-  checkOrderPreconditions = async (
-    account: Account,
-    ticker: Ticker,
-    trade: Trade,
-    balance: number,
-    orderSize: number
-  ): Promise<void> => {
-    const { max } = trade;
-    if (orderSize > balance) {
-      // TODO create dedicated error
-      throw new Error('Insufficient funds');
-    }
-    if (max) {
-      await this.handleMaxBudget(account, ticker, trade, balance);
-    }
-  };
-
   getOpenOrderSize = async (
     account: Account,
     ticker: Ticker,
     trade: Trade
   ): Promise<number> => {
     const { symbol, last, info } = ticker;
-    const { size } = trade;
-    const accountId = getAccountId(account);
+    const { size, max } = trade;
     try {
-      const quoteCurrency = getSpotQuote(symbol);
-      let availableFunds = 0;
-      if (this.exchangeId === ExchangeId.FTX && !isFTXSpot(ticker)) {
-        const accountInfos: IFTXAccountInformations = (
-          await this.sessions.get(accountId).exchange.privateGetAccount()
-        ).result;
-        availableFunds = Number(accountInfos.freeCollateral); // FTX futures
-      } else {
-        availableFunds = await this.getAvailableFunds(account, quoteCurrency); // default
-      }
-
-      debug(
-        AVAILABLE_FUNDS(
-          accountId,
-          this.exchangeId,
-          quoteCurrency,
-          availableFunds
-        )
-      );
-      let orderSize = Number(size);
+      const availableFunds = await this.getAvailableFunds(account, ticker);
+      let orderSize = Number(size); // default
       if (size.includes('%')) {
+        // handle relative
         orderSize = getRelativeTradeSize(ticker, availableFunds, size);
       }
-      this.checkOrderPreconditions(
-        account,
-        ticker,
-        trade,
-        availableFunds,
-        orderSize
-      );
-
+      if (orderSize > availableFunds) {
+        // TODO create dedicated error
+        throw new Error('Insufficient funds');
+      }
+      if (max) {
+        await this.handleMaxBudget(account, ticker, trade, availableFunds);
+      }
       const tickerPrice = last
         ? last // KuCoin
         : info.price // FTX
@@ -271,30 +249,30 @@ export abstract class BaseExchangeService {
   };
 
   openOrder = async (account: Account, trade: Trade): Promise<Order> => {
-    await this.refreshSession(account);
+    // await this.refreshSession(account);
     const { direction, symbol } = trade;
     const accountId = getAccountId(account);
     const side = getTradeSide(direction);
     try {
       const ticker = await this.getTicker(symbol);
-      const orderSize = await this.getOpenOrderSize(account, ticker, trade);
-      const cost = this.getOrderCost(ticker, orderSize);
-      const isOpenOrderAllowed = await this.handleOrderOptions(
+      // TODO refacto
+      // close on sell spot order
+      if (
+        side === Side.Sell &&
+        (this.exchangeId === ExchangeId.Binance ||
+          (this.exchangeId === ExchangeId.FTX && isFTXSpot(ticker)))
+      ) {
+        return await this.closeOrder(account, trade, ticker);
+      }
+
+      const isOrderAllowed = await this.handleOrderModes(
         account,
         ticker,
         trade
       );
-      // TODO refacto
-      if (side === Side.Sell) {
-        if (
-          this.exchangeId === ExchangeId.Binance ||
-          (this.exchangeId === ExchangeId.FTX && isFTXSpot(ticker))
-        ) {
-          return await this.closeOrder(account, trade, ticker);
-        }
-      }
-
-      if (isOpenOrderAllowed) {
+      if (isOrderAllowed) {
+        const orderSize = await this.getOpenOrderSize(account, ticker, trade);
+        const cost = this.getOrderCost(ticker, orderSize);
         const order: Order = await this.sessions
           .get(accountId)
           .exchange.createMarketOrder(
@@ -332,7 +310,7 @@ export abstract class BaseExchangeService {
   closeOrder = async (
     account: Account,
     trade: Trade,
-    ticker?: Ticker
+    ticker?: Ticker // can be preloaded in openOrder
   ): Promise<Order> => {
     await this.refreshSession(account);
     const { symbol } = trade;
@@ -342,10 +320,10 @@ export abstract class BaseExchangeService {
         ticker = await this.getTicker(symbol);
       }
       const options = await this.getCloseOrderOptions(account, ticker, trade);
+      const cost = this.getOrderCost(ticker, options.size);
       const order = await this.sessions
         .get(accountId)
         .exchange.createMarketOrder(symbol, options.side, options.size);
-      const cost = this.getOrderCost(ticker, options.size);
       close(
         CLOSE_TRADE_SUCCESS(
           this.exchangeId,
