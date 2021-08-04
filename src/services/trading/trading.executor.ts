@@ -24,7 +24,7 @@ import {
   ExchangeId
 } from '../../constants/exchanges.constants';
 import { ExchangeService } from '../../types/exchanges.types';
-import { initExchangeService } from '../../utils/exchanges/common.exchange.utils';
+import { initExchangeService } from '../../utils/exchanges/common.utils';
 import { v4 as uuidv4 } from 'uuid';
 
 export class TradingExecutor {

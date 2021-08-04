@@ -5,29 +5,24 @@ import {
   Matches,
   ValidateIf
 } from 'class-validator';
-import {
-  SIDES,
-  Side,
-  TRADING_MODES,
-  TradingMode
-} from '../constants/trading.constants';
+import { SIDES, Side } from '../constants/trading.constants';
 
 export class Trade {
   @IsString()
   stub: string;
 
   @IsString()
-  @ValidateIf((o) => !(o.direction === Side.Close))
+  @ValidateIf((o) => o.direction !== (Side.Close || Side.Sell))
   size: string;
 
   @IsString()
   @IsOptional()
   max?: string;
 
-  @IsString()
-  @IsIn(TRADING_MODES)
-  @IsOptional()
-  mode?: TradingMode;
+  // @IsString()
+  // @IsIn(TRADING_MODES)
+  // @IsOptional()
+  // mode?: TradingMode;
 
   @IsString()
   @Matches(/.*(PERP|USD).*/)
