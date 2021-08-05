@@ -31,7 +31,7 @@ export const TICKER_BALANCE_READ_ERROR = (
   exchangesMessageWrapper(
     `${getExchangeName(
       exchange
-    )}/${accountId} - Unable to fetch ${symbol} ticker balance${
+    )}/${accountId} - Unable to fetch ${symbol} ticker balance (may be 0)${
       err ? ' -> ' + err : ''
     }.`
   );

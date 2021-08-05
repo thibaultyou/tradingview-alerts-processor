@@ -41,12 +41,13 @@ You can use the bot with :
 - open a Long / Short position (Futures) or Buy / Sell a token (Spot) in $US
 - open a Long / Short position (Futures) or Buy / Sell a token (Spot) with a percentage of your available account collateral / balance
 - close a position or a percentage of it
-- close a position and open another in the opposite direction (Futures only)
-- close a position while reducing on oversell / overbuy (Futures only)
 - set a maximum budget (for a coin on Futures / for account on Spot)
 - list account balances
 - list exchange markets
 - process multiple trades at once
+
+<!-- - close a position and open another in the opposite direction (Futures only)
+- close a position while reducing on oversell / overbuy (Futures only) -->
 
 ### 💡 Contributions
 

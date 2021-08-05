@@ -85,7 +85,12 @@ export class FTXExchangeService extends CompositeExchangeService {
       const balance = await this.getTickerBalance(account, ticker);
       current = getOrderCost(ticker, this.exchangeId, balance);
     } else {
-      current = await this.getTickerPositionSize(account, ticker);
+      // TODO refacto
+      try {
+        current = await this.getTickerPositionSize(account, ticker);
+      } catch (err) {
+        // silent
+      }
     }
     if (Math.abs(current) + Number(size) > Number(max)) {
       error(

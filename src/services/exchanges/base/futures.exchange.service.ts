@@ -15,13 +15,14 @@ import {
 import { OPEN_TRADE_ERROR_MAX_SIZE } from '../../../messages/trading.messages';
 import { FuturesPosition } from '../../../types/exchanges.types';
 import { getAccountId } from '../../../utils/account.utils';
+import { getRelativeOrderSize } from '../../../utils/trading/conversion.utils';
 import {
   filterPosition,
   filterPositions,
   getPositionSize
 } from '../../../utils/trading/position.utils';
 import { getSide } from '../../../utils/trading/side.utils';
-import { debug, error } from '../../logger.service';
+import { debug, error, info } from '../../logger.service';
 import { BaseExchangeService } from './base.exchange.service';
 
 export abstract class FuturesExchangeService extends BaseExchangeService {
@@ -54,7 +55,7 @@ export abstract class FuturesExchangeService extends BaseExchangeService {
     const positions = await this.getPositions(account);
     const position = filterPosition(positions, this.exchangeId, ticker);
     if (!position) {
-      error(NO_CURRENT_POSITION(accountId, this.exchangeId, symbol));
+      info(NO_CURRENT_POSITION(accountId, this.exchangeId, symbol));
       throw new NoOpenPositionError(
         NO_CURRENT_POSITION(accountId, this.exchangeId, symbol)
       );
@@ -74,13 +75,26 @@ export abstract class FuturesExchangeService extends BaseExchangeService {
   handleMaxBudget = async (
     account: Account,
     ticker: Ticker,
-    trade: Trade
+    trade: Trade,
+    balance: number
   ): Promise<void> => {
     const { symbol, max, direction, size } = trade;
     const accountId = getAccountId(account);
     const side = getSide(direction);
-    const current = await this.getTickerPositionSize(account, ticker);
-    if (Math.abs(current) + Number(size) > Number(max)) {
+    let current = 0;
+    // TODO refacto
+    try {
+      current = await this.getTickerPositionSize(account, ticker);
+    } catch (err) {
+      // silent
+    }
+    if (
+      Math.abs(current) +
+        (size.includes('%') // add the required position cost
+          ? getRelativeOrderSize(balance, size)
+          : Number(size)) >
+      Number(max)
+    ) {
       error(
         OPEN_TRADE_ERROR_MAX_SIZE(this.exchangeId, accountId, symbol, side, max)
       );

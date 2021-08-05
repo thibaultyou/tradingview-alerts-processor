@@ -12,7 +12,7 @@ export class Trade {
   stub: string;
 
   @IsString()
-  @ValidateIf((o) => o.direction !== (Side.Close || Side.Sell))
+  @ValidateIf((o) => o.direction !== Side.Close && o.direction !== Side.Sell)
   size: string;
 
   @IsString()

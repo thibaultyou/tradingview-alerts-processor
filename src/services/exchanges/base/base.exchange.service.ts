@@ -16,7 +16,7 @@ import {
   TICKER_READ_ERROR,
   TICKER_READ_SUCCESS
 } from '../../../messages/exchanges.messages';
-import { close, debug, error, long, short } from '../../logger.service';
+import { close, debug, error, info, long, short } from '../../logger.service';
 import {
   BalancesFetchError,
   ExchangeInstanceInitError,
@@ -216,7 +216,7 @@ export abstract class BaseExchangeService {
       const balance = balances.filter((b) => b.coin === quote).pop();
       availableFunds = Number(balance.free);
     }
-    debug(AVAILABLE_FUNDS(accountId, this.exchangeId, quote, availableFunds));
+    info(AVAILABLE_FUNDS(accountId, this.exchangeId, quote, availableFunds));
     return availableFunds;
   };
 
