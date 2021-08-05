@@ -1,19 +1,23 @@
 export interface IBinanceFuturesUSDPosition {
+  info: unknown;
   symbol: string;
-  initialMargin: string;
-  maintMargin: string;
-  unrealizedProfit: string;
-  positionInitialMargin: string;
-  openOrderInitialMargin: string;
-  leverage: string;
-  isolated: boolean;
-  entryPrice: string;
-  maxNotional: string;
-  positionSide: string;
-  positionAmt: string;
-  notional: string;
-  isolatedWallet: string;
-  updateTime: string;
+  timestamp: number;
+  datetime: string;
+  initialMargin: number;
+  initialMarginPercentage: number;
+  maintenanceMargin: number;
+  maintenanceMarginPercentage: number;
+  entryPrice: number;
+  notional: number;
+  leverage: number;
+  unrealizedPnl: number;
+  contracts: number;
+  contractSize: number;
+  marginRatio: number;
+  collateral: number;
+  marginType: string;
+  side: string;
+  percentage: number;
 }
 
 export interface IBinanceFuturesUSDBalance {

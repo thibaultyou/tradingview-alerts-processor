@@ -5,9 +5,10 @@ import { Account } from '../../entities/account.entities';
 import { Trade } from '../../entities/trade.entities';
 import { SpotExchangeService } from './base/spot.exchange.service';
 
-export class BinanceSpotExchangeService extends SpotExchangeService {
+// TODO replace by a composite exchange
+export class KuCoinExchangeService extends SpotExchangeService {
   constructor() {
-    super(ExchangeId.Binance);
+    super(ExchangeId.KuCoin);
   }
   handleReverseOrder(
     account: Account,

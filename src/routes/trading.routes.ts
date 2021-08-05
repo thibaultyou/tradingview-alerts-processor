@@ -1,7 +1,6 @@
 import { Request, Response, Router } from 'express';
 import { readAccount } from '../services/account.service';
 import { Trade } from '../entities/trade.entities';
-import { getTradeSide } from '../utils/trading.utils';
 import { HttpCode } from '../constants/http.constants';
 import {
   TRADES_EXECUTION_SUCCESS,
@@ -11,6 +10,7 @@ import { TradingService } from '../services/trading/trading.service';
 import { Route } from '../constants/routes.constants';
 import { loggingMiddleware } from '../utils/logger.utils';
 import { validateTrade } from '../validators/trade.validators';
+import { getSide } from '../utils/trading/side.utils';
 
 const router = Router();
 
@@ -21,7 +21,7 @@ export const postTrade = async (req: Request, res: Response): Promise<void> => {
       const trades: Record<string, string>[] = [];
       for (const trade of req.body) {
         const { direction, stub, symbol }: Trade = trade;
-        const side = getTradeSide(direction);
+        const side = getSide(direction);
         const account = await readAccount(stub);
         TradingService.getTradeExecutor(account.exchange).addTrade(
           account,
@@ -41,7 +41,7 @@ export const postTrade = async (req: Request, res: Response): Promise<void> => {
       );
     } else {
       const { direction, stub, symbol }: Trade = req.body;
-      const side = getTradeSide(direction);
+      const side = getSide(direction);
       const account = await readAccount(stub);
       TradingService.getTradeExecutor(account.exchange).addTrade(
         account,

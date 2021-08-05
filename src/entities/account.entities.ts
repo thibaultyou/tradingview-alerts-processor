@@ -1,4 +1,4 @@
-import { IsString, IsIn, IsOptional } from 'class-validator';
+import { IsString, IsIn, IsOptional, ValidateIf } from 'class-validator';
 import { ExchangeId, EXCHANGES } from '../constants/exchanges.constants';
 
 export class Account {
@@ -18,6 +18,10 @@ export class Account {
   @IsString()
   @IsOptional()
   subaccount?: string;
+
+  @IsString()
+  @ValidateIf((account: Account) => account.exchange === ExchangeId.KuCoin)
+  passphrase?: string;
 }
 
 export class AccountStub {

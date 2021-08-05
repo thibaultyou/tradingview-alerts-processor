@@ -27,11 +27,12 @@ You can use the bot with :
 
 ### 🏦 Supported exchanges
 
-| logo                                                                                                                                                                               | id            | name                                                                        | ver | doc                                                                |
-|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------|-----------------------------------------------------------------------------|:---:|:------------------------------------------------------------------:|
-| [![binance](https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg)](https://www.binance.com/)                           | binance       | [Binance](https://www.binance.com/)                            | *   | [API](https://binance-docs.github.io/apidocs/spot/en)              |
-| [![binanceusdm](https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg)](https://www.binance.com/)                      | binanceusdm   | [Binance USDⓈ-M](https://www.binance.com/)                     | *   | [API](https://binance-docs.github.io/apidocs/spot/en)              | 
-| [![ftx](https://user-images.githubusercontent.com/1294454/67149189-df896480-f2b0-11e9-8816-41593e17f9ec.jpg)](https://ftx.com/)                                          | ftx           | [FTX](https://ftx.com/)                                           | *   | [API](https://github.com/ftexchange/ftx)                           |
+| logo                                                                                                                                                                               | id            | name                                                                        | doc                                                                |
+|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------|-----------------------------------------------------------------------------|:------------------------------------------------------------------:|
+| [![binance](https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg)](https://www.binance.com/) | binance | [Binance](https://www.binance.com/) | [API](https://binance-docs.github.io/apidocs/spot/en)              |
+| [![binanceusdm](https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg)](https://www.binance.com/) | binanceusdm | [Binance USDⓈ-M](https://www.binance.com/) | [API](https://binance-docs.github.io/apidocs/spot/en)              | 
+| [![ftx](https://user-images.githubusercontent.com/1294454/67149189-df896480-f2b0-11e9-8816-41593e17f9ec.jpg)](https://ftx.com/) | ftx | [FTX](https://ftx.com/) | [API](https://github.com/ftexchange/ftx) |
+| [![kucoin](https://user-images.githubusercontent.com/51840849/87295558-132aaf80-c50e-11ea-9801-a2fb0c57c799.jpg)](https://www.kucoin.com/) | kucoin | [KuCoin](https://www.kucoin.com/) | [API](https://docs.kucoin.com) |
 <!-- | [![binancecoinm](https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg)](https://www.binance.com/)                     | binancecoinm  | [Binance COIN-M](https://www.binance.com/)                     | *   | [API](https://binance-docs.github.io/apidocs/spot/en)              |-->
 
 ### 🚧 Features
@@ -40,12 +41,13 @@ You can use the bot with :
 - open a Long / Short position (Futures) or Buy / Sell a token (Spot) in $US
 - open a Long / Short position (Futures) or Buy / Sell a token (Spot) with a percentage of your available account collateral / balance
 - close a position or a percentage of it
-- close a position and open another in the opposite direction (Futures only)
-- close a position while reducing on oversell / overbuy (Futures only)
 - set a maximum budget (for a coin on Futures / for account on Spot)
 - list account balances
 - list exchange markets
 - process multiple trades at once
+
+<!-- - close a position and open another in the opposite direction (Futures only)
+- close a position while reducing on oversell / overbuy (Futures only) -->
 
 ### 💡 Contributions
 

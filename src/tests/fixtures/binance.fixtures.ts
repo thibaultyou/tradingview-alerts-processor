@@ -55,21 +55,43 @@ export const sampleBinanceTicker: IBinanceTicker = {
 
 // doge is crap, this is just for testing purposes
 export const sampleBinanceFuturesUSDPosition: IBinanceFuturesUSDPosition = {
-  symbol: 'DOGEUSDT',
-  initialMargin: '2.99212200',
-  maintMargin: '0.14960610',
-  unrealizedProfit: '0.01260000',
-  positionInitialMargin: '2.99212200',
-  openOrderInitialMargin: '0',
-  leverage: '5',
-  isolated: false,
-  entryPrice: '0.237270',
-  maxNotional: '500000',
-  positionSide: 'BOTH',
-  positionAmt: '63',
-  notional: '14.96061000',
-  isolatedWallet: '0',
-  updateTime: '1624739968269'
+  info: {
+    symbol: 'LINKUSDT',
+    initialMargin: '2.61519580',
+    maintMargin: '0.08499386',
+    unrealizedProfit: '-0.02479416',
+    positionInitialMargin: '2.61519580',
+    openOrderInitialMargin: '0',
+    leverage: '5',
+    isolated: false,
+    entryPrice: '24.71844',
+    maxNotional: '2000000',
+    positionSide: 'BOTH',
+    positionAmt: '0.53',
+    notional: '13.07597903',
+    isolatedWallet: '0',
+    updateTime: '1628093975693',
+    crossMargin: '24.54204074',
+    crossWalletBalance: '24.56683490'
+  },
+  symbol: 'LINK/USDT',
+  timestamp: 1628093975693,
+  datetime: '2021-08-04T16:19:35.693Z',
+  initialMargin: 2.6151958,
+  initialMarginPercentage: 0.2,
+  maintenanceMargin: 0.08499386,
+  maintenanceMarginPercentage: 0.0065,
+  entryPrice: 24.71844,
+  notional: 13.07597903,
+  leverage: 5,
+  unrealizedPnl: -0.02479416,
+  contracts: 0.53,
+  contractSize: 1,
+  marginRatio: 0.0034,
+  collateral: 24.54204074,
+  marginType: 'cross',
+  side: 'long',
+  percentage: -0.94
 };
 
 export const sampleBinanceSpotBalance: IBinanceSpotBalance = {
