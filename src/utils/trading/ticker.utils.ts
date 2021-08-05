@@ -11,6 +11,7 @@ export const getTickerPrice = (
     case ExchangeId.BinanceFuturesUSD:
       return info.lastPrice;
     case ExchangeId.KuCoin:
+    case ExchangeId.Kraken:
       return last;
     case ExchangeId.FTX:
     default:

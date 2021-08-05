@@ -34,6 +34,12 @@ export const filterBalances = (
         free: b.available,
         total: b.balance
       }));
+    case ExchangeId.Kraken:
+      return Object.keys(balances.total).map((coin) => ({
+        coin: coin,
+        free: balances[coin].free ? balances[coin].free : balances[coin].total,
+        total: balances[coin].total
+      }));
     case ExchangeId.FTX:
     default:
       return balances.info.result

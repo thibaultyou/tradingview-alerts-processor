@@ -43,18 +43,6 @@
         { "stub": "dev", "direction": "short", "symbol": "ETH-PERP", "size": "5%" }
         ```
 
-    - Short position and close opened Long position if any :
-
-        ```json
-        { "stub": "dev", "direction": "short", "symbol": "ETH-PERP", "size": "50", "mode": "reverse" }
-        ```
-
-    - Long position and close opened Short position if any :
-
-        ```json
-        { "stub": "dev", "direction": "long", "symbol": "ETH-PERP", "size": "50", "mode": "reverse" }
-        ```
-
     - Long position with a 500 $US max budget :
 
         ```json
@@ -67,6 +55,25 @@
         { "stub": "dev", "direction": "short", "symbol": "ETH-PERP", "size": "50", "max": "500" }
         ```
 
+    - Process multiple trades :
+
+        ```json
+        [{ "stub": "dev", "direction": "long", "symbol": "ETH-PERP", "size": "50" }, { "stub": "dev", "direction": "long", "symbol": "BTC-PERP", "size": "50" }]
+        ```
+
+<!-- 
+    - Short position and close opened Long position if any :
+
+        ```json
+        { "stub": "dev", "direction": "short", "symbol": "ETH-PERP", "size": "50", "mode": "reverse" }
+        ```
+
+    - Long position and close opened Short position if any :
+
+        ```json
+        { "stub": "dev", "direction": "long", "symbol": "ETH-PERP", "size": "50", "mode": "reverse" }
+        ```
+        
     - Close Long position if Short size is greater than opened position :
 
         ```json
@@ -77,10 +84,5 @@
 
         ```json
         { "stub": "dev", "direction": "long", "symbol": "ETH-PERP", "size": "50", "mode": "overflow" }
-        ```
+        ``` -->
 
-    - Process multiple trades :
-
-        ```json
-        [{ "stub": "dev", "direction": "long", "symbol": "ETH-PERP", "size": "50" }, { "stub": "dev", "direction": "long", "symbol": "BTC-PERP", "size": "50" }]
-        ```

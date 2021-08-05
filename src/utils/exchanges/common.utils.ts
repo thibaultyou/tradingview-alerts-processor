@@ -11,6 +11,7 @@ import { FTXExchangeService } from '../../services/exchanges/ftx.exchange.servic
 import { ExchangeService } from '../../types/exchanges.types';
 import { KuCoinExchangeService } from '../../services/exchanges/kucoin.exchange.service';
 import { isFTXSpot } from './ftx.utils';
+import { KrakenExchangeService } from '../../services/exchanges/kraken.exchange.service';
 
 export const getExchangeName = (exchangeId: ExchangeId): string =>
   EXCHANGES_NAMES[exchangeId];
@@ -42,6 +43,8 @@ export const initExchangeService = (
       return new BinanceFuturesUSDMExchangeService();
     case ExchangeId.KuCoin:
       return new KuCoinExchangeService();
+    case ExchangeId.Kraken:
+      return new KrakenExchangeService();
     case ExchangeId.FTX:
     default:
       return new FTXExchangeService();
@@ -54,4 +57,5 @@ export const isSpotExchange = (
 ): boolean =>
   exchangeId === ExchangeId.Binance ||
   exchangeId === ExchangeId.KuCoin ||
+  exchangeId === ExchangeId.Kraken ||
   (exchangeId === ExchangeId.FTX && isFTXSpot(ticker));

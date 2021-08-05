@@ -64,6 +64,25 @@
     curl -d '{"stub": "test", "symbol": "ETH-PERP", "direction": "close", "size": "33%" }' -X POST http://YOUR.STATIC.IP.ADDRESS/trades -H 'Content-Type: application/json; charset=utf-8'
     ```
 
+- __List balances__ on `sub` account :
+
+    ```sh
+    curl -d '{"stub": "sub" }' -X GET http://YOUR.STATIC.IP.ADDRESS/balances -H 'Content-Type: application/json; charset=utf-8'
+    ```
+
+- __List available markets__ on a specific exchange :
+
+    ```sh
+    curl -d '{"exchange": "ftx" }' -X GET http://YOUR.STATIC.IP.ADDRESS/markets -H 'Content-Type: application/json; charset=utf-8'
+    ```
+
+- __Process multiple trades__ at once :
+
+    ```sh
+    curl -d '[{"stub": "test", "symbol": "ETH-PERP", "size": "11", "direction": "long" }, {"stub": "test", "symbol": "BTC-PERP", "size": "11", "direction": "long" }]' -X POST http://YOUR.STATIC.IP.ADDRESS/trades -H 'Content-Type: application/json; charset=utf-8'
+    ```
+
+<!-- 
 - __Close a short position__ and __open a long position__ on ETH-PERP using `test` account :
 
     ```sh
@@ -86,22 +105,4 @@
 
     ```sh
     curl -d '{"stub": "test", "symbol": "ETH-PERP", "direction": "short", "size": "100", "mode": "overflow" }' -X POST http://YOUR.STATIC.IP.ADDRESS/trades -H 'Content-Type: application/json; charset=utf-8'
-    ```
-
-- __List balances__ on `sub` account :
-
-    ```sh
-    curl -d '{"stub": "sub" }' -X GET http://YOUR.STATIC.IP.ADDRESS/balances -H 'Content-Type: application/json; charset=utf-8'
-    ```
-
-- __List available markets__ on a specific exchange :
-
-    ```sh
-    curl -d '{"exchange": "ftx" }' -X GET http://YOUR.STATIC.IP.ADDRESS/markets -H 'Content-Type: application/json; charset=utf-8'
-    ```
-
-- __Process multiple trades__ at once :
-
-    ```sh
-    curl -d '[{"stub": "test", "symbol": "ETH-PERP", "size": "11", "direction": "long" }, {"stub": "test", "symbol": "BTC-PERP", "size": "11", "direction": "long" }]' -X POST http://YOUR.STATIC.IP.ADDRESS/trades -H 'Content-Type: application/json; charset=utf-8'
-    ```
+    ``` -->
