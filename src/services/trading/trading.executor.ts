@@ -24,8 +24,8 @@ import {
   ExchangeId
 } from '../../constants/exchanges.constants';
 import { ExchangeService } from '../../types/exchanges.types';
-import { initExchangeService } from '../../utils/exchanges/common.utils';
 import { v4 as uuidv4 } from 'uuid';
+import { initExchangeService } from '../../utils/exchanges/common.utils';
 
 export class TradingExecutor {
   private isStarted = false;
@@ -45,14 +45,14 @@ export class TradingExecutor {
 
   start = (): void => {
     if (!this.isStarted) {
+      this.isStarted = true;
       debug(TRADE_SERVICE_START(this.id));
-      this.executionLoop = setInterval(() => {
+      this.executionLoop = setInterval(async () => {
         const tradeInfo = this.trades.shift();
         if (tradeInfo) {
-          this.processTrade(tradeInfo);
+          await this.processTrade(tradeInfo);
         }
       }, DELAY_BETWEEN_TRADES[this.id]);
-      this.isStarted = true;
     } else {
       debug(TRADE_SERVICE_ALREADY_STARTED(this.id));
     }
