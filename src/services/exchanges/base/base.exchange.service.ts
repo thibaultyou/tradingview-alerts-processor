@@ -246,18 +246,23 @@ export abstract class BaseExchangeService {
     const { size, max, direction } = trade;
     const side = getSide(direction);
     try {
-      const funds = await this.getAvailableFunds(account, ticker);
+      // TODO refacto
       let orderSize = Number(size);
-      if (size.includes('%')) {
-        orderSize = getRelativeOrderSize(funds, size);
+      if (size.includes('%') || max) {
+        const funds = await this.getAvailableFunds(account, ticker); // avoid this call if possible
+        if (size.includes('%')) {
+          orderSize = getRelativeOrderSize(funds, size);
+        }
+        if (max) {
+          await this.handleMaxBudget(account, ticker, trade, funds);
+        }
       }
-      if (isSpotExchange(ticker, this.exchangeId) && orderSize > funds) {
-        // TODO create dedicated error
-        throw new Error('Insufficient funds');
-      }
-      if (max) {
-        await this.handleMaxBudget(account, ticker, trade, funds);
-      }
+      // if (isSpotExchange(ticker, this.exchangeId) && orderSize > funds) {
+      //   // TODO create dedicated error
+      //   throw new Error('Insufficient funds');
+      // }
+      ///
+
       const tickerPrice = getTickerPrice(ticker, this.exchangeId);
       return {
         size: getTokensAmount(symbol, tickerPrice, Number(orderSize)),
