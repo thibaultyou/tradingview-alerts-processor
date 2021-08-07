@@ -119,13 +119,14 @@ export class FTXExchangeService extends CompositeExchangeService {
     const { symbol } = ticker;
     const accountId = getAccountId(account);
     try {
-      const position = (await this.getTickerPosition(
+      const { side, cost } = (await this.getTickerPosition(
         account,
         ticker
       )) as IFTXFuturesPosition;
-      if (position && isSideDifferent(position.side as Side, direction)) {
+      if (isSideDifferent(side as Side, direction)) {
         info(REVERSING_TRADE(this.exchangeId, accountId, symbol));
-        await this.closeOrder(account, trade, ticker);
+        const size = Math.abs(Number(cost)).toString();
+        await this.closeOrder(account, { ...trade, size }, ticker);
       }
     } catch (err) {
       // ignore throw
@@ -154,13 +155,11 @@ export class FTXExchangeService extends CompositeExchangeService {
           return true;
         }
       } else {
-        const position = (await this.getTickerPosition(
+        const { side, cost } = (await this.getTickerPosition(
           account,
           ticker
         )) as IFTXFuturesPosition;
-        const { side, cost } = position;
         if (
-          position &&
           isSideDifferent(side as Side, direction) &&
           Number(size) > Math.abs(Number(cost))
         ) {

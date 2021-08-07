@@ -221,29 +221,13 @@ export abstract class BaseExchangeService implements IBaseExchange {
     trade: Trade
   ): Promise<IOrderOptions> => {
     const { symbol } = ticker;
-    const { size, max, direction } = trade;
+    const { size, direction } = trade;
     const side = getSide(direction);
     try {
-      // TODO refacto
-      let orderSize = Number(size);
-      if (size.includes('%') || max) {
-        const funds = await this.getAvailableFunds(account, ticker); // avoid this call if possible
-        if (size.includes('%')) {
-          orderSize = getRelativeOrderSize(funds, size);
-        }
-        if (max) {
-          await this.handleMaxBudget(account, ticker, trade, funds);
-        }
-      }
-      // if (isSpotExchange(ticker, this.exchangeId) && orderSize > funds) {
-      //   // TODO create dedicated error
-      //   throw new Error('Insufficient funds');
-      // }
-      ///
-
       const tickerPrice = getTickerPrice(ticker, this.exchangeId);
+      const orderSize = Number(size);
       return {
-        size: getTokensAmount(symbol, tickerPrice, Number(orderSize)),
+        size: getTokensAmount(symbol, tickerPrice, orderSize),
         side: side as 'buy' | 'sell'
       };
     } catch (err) {
@@ -254,24 +238,41 @@ export abstract class BaseExchangeService implements IBaseExchange {
 
   openOrder = async (account: Account, trade: Trade): Promise<Order> => {
     await this.refreshSession(account);
-    const { symbol, direction } = trade;
+    const { symbol, size, direction, max, mode } = trade;
     const accountId = getAccountId(account);
     try {
       const ticker = await this.getTicker(symbol);
-      const isOrderAllowed = await this.handleOrderModes(
-        account,
-        ticker,
-        trade
-      );
-      if (isOrderAllowed) {
-        // TODO refacto
-        // close on sell spot order
-        if (
-          getSide(direction) === Side.Sell &&
-          isSpotExchange(ticker, this.exchangeId)
-        ) {
-          return await this.closeOrder(account, trade, ticker);
+      // TODO refacto
+      // handling sell on spot
+      if (
+        getSide(direction) === Side.Sell &&
+        isSpotExchange(ticker, this.exchangeId)
+      ) {
+        return await this.closeOrder(account, trade, ticker);
+      }
+      // handling size / budget
+      if (size.includes('%') || max) {
+        const funds = await this.getAvailableFunds(account, ticker); // avoid this call if possible
+        if (size.includes('%')) {
+          trade = {
+            ...trade,
+            size: getRelativeOrderSize(funds, size).toString()
+          };
         }
+        if (max) {
+          await this.handleMaxBudget(account, ticker, trade, funds);
+        }
+      }
+      // if (isSpotExchange(ticker, this.exchangeId) && orderSize > funds) {
+      //   // TODO create dedicated error
+      //   throw new Error('Insufficient funds');
+      // }
+      ///
+      // handling modes
+      const isOrderAllowed = mode
+        ? await this.handleOrderModes(account, ticker, trade)
+        : true;
+      if (isOrderAllowed) {
         const { side, size } = await this.getOpenOrderOptions(
           account,
           ticker,
