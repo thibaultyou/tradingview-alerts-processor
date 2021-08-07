@@ -1,9 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Ticker } from 'ccxt';
 import { Side } from '../../../constants/trading.constants';
 import { Account } from '../../../entities/account.entities';
 import { Trade } from '../../../entities/trade.entities';
 import { TickerFetchError } from '../../../errors/exchange.errors';
 import { OpenPositionError } from '../../../errors/trading.errors';
+import { ISpotExchange } from '../../../interfaces/exchanges/base/spot.exchange.interfaces';
 import { IOrderOptions } from '../../../interfaces/trading.interfaces';
 import {
   TICKER_BALANCE_READ_SUCCESS,
@@ -22,29 +24,10 @@ import { getTickerPrice } from '../../../utils/trading/ticker.utils';
 import { debug, error } from '../../logger.service';
 import { BaseExchangeService } from './base.exchange.service';
 
-export abstract class SpotExchangeService extends BaseExchangeService {
-  getTickerBalance = async (
-    account: Account,
-    ticker: Ticker
-  ): Promise<number> => {
-    const accountId = getAccountId(account);
-    const symbol = getSpotSymbol(ticker.symbol);
-    try {
-      const balances = await this.getBalances(account);
-      const balance = balances.filter((b) => b.coin === symbol).pop();
-      const size = Number(balance.free);
-      debug(
-        TICKER_BALANCE_READ_SUCCESS(this.exchangeId, accountId, symbol, balance)
-      );
-      return size;
-    } catch (err) {
-      error(TICKER_BALANCE_READ_ERROR(this.exchangeId, accountId, symbol, err));
-      throw new TickerFetchError(
-        TICKER_BALANCE_READ_ERROR(this.exchangeId, accountId, symbol, err)
-      );
-    }
-  };
-
+export abstract class SpotExchangeService
+  extends BaseExchangeService
+  implements ISpotExchange
+{
   handleMaxBudget = async (
     account: Account,
     ticker: Ticker,
@@ -72,6 +55,28 @@ export abstract class SpotExchangeService extends BaseExchangeService {
     }
   };
 
+  getTickerBalance = async (
+    account: Account,
+    ticker: Ticker
+  ): Promise<number> => {
+    const accountId = getAccountId(account);
+    const symbol = getSpotSymbol(ticker.symbol);
+    try {
+      const balances = await this.getBalances(account);
+      const balance = balances.filter((b) => b.coin === symbol).pop();
+      const size = Number(balance.free);
+      debug(
+        TICKER_BALANCE_READ_SUCCESS(this.exchangeId, accountId, symbol, balance)
+      );
+      return size;
+    } catch (err) {
+      error(TICKER_BALANCE_READ_ERROR(this.exchangeId, accountId, symbol, err));
+      throw new TickerFetchError(
+        TICKER_BALANCE_READ_ERROR(this.exchangeId, accountId, symbol, err)
+      );
+    }
+  };
+
   getCloseOrderOptions = async (
     account: Account,
     ticker: Ticker,
@@ -89,5 +94,14 @@ export abstract class SpotExchangeService extends BaseExchangeService {
           : getTokensAmount(symbol, price, Number(size)) // handle absolute
         : balance // default 100%
     };
+  };
+
+  handleOrderModes = async (
+    account: Account,
+    ticker: Ticker,
+    trade: Trade
+  ): Promise<boolean> => {
+    // TODO add trading modes for spot markets
+    return true;
   };
 }

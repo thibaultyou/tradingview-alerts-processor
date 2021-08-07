@@ -5,7 +5,12 @@ import {
   Matches,
   ValidateIf
 } from 'class-validator';
-import { SIDES, Side } from '../constants/trading.constants';
+import {
+  SIDES,
+  Side,
+  TRADING_MODES,
+  TradingMode
+} from '../constants/trading.constants';
 
 export class Trade {
   @IsString()
@@ -19,10 +24,10 @@ export class Trade {
   @IsOptional()
   max?: string;
 
-  // @IsString()
-  // @IsIn(TRADING_MODES)
-  // @IsOptional()
-  // mode?: TradingMode;
+  @IsString()
+  @IsIn(TRADING_MODES)
+  @IsOptional()
+  mode?: TradingMode;
 
   @IsString()
   @Matches(/.*(PERP|USD).*/)

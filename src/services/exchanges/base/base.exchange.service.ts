@@ -59,8 +59,9 @@ import {
 } from '../../../utils/trading/conversion.utils';
 import { getTickerPrice } from '../../../utils/trading/ticker.utils';
 import { filterBalances } from '../../../utils/trading/balance.utils';
+import { IBaseExchange } from '../../../interfaces/exchanges/base/base.exchange.interfaces';
 
-export abstract class BaseExchangeService {
+export abstract class BaseExchangeService implements IBaseExchange {
   exchangeId: ExchangeId;
   defaultExchange: Exchange;
   sessions = new Map<string, ISession>(); // account id, exchange session
@@ -70,19 +71,7 @@ export abstract class BaseExchangeService {
     this.defaultExchange = new ccxt[exchangeId]();
   }
 
-  abstract getCloseOrderOptions(
-    account: Account,
-    ticker: Ticker,
-    trade: Trade
-  ): Promise<IOrderOptions>;
-
-  abstract handleReverseOrder(
-    account: Account,
-    ticker: Ticker,
-    trade: Trade
-  ): Promise<void>;
-
-  abstract handleOverflow(
+  abstract handleOrderModes(
     account: Account,
     ticker: Ticker,
     trade: Trade
@@ -94,6 +83,12 @@ export abstract class BaseExchangeService {
     trade: Trade,
     balance: number
   ): Promise<void>;
+
+  abstract getCloseOrderOptions(
+    account: Account,
+    ticker: Ticker,
+    trade: Trade
+  ): Promise<IOrderOptions>;
 
   checkCredentials = async (
     account: Account,
@@ -220,23 +215,6 @@ export abstract class BaseExchangeService {
     return availableFunds;
   };
 
-  // handleOrderModes = async (
-  //   account: Account,
-  //   ticker: Ticker,
-  //   trade: Trade
-  // ): Promise<boolean> => {
-  //   const { mode } = trade;
-  //   if (mode === TradingMode.Reverse) {
-  //     await this.handleReverseOrder(account, ticker, trade);
-  //   } else if (mode === TradingMode.Overflow) {
-  //     const isOverflowing = await this.handleOverflow(account, ticker, trade);
-  //     if (isOverflowing) {
-  //       return false; // on overflow we only close position
-  //     }
-  //   }
-  //   return true;
-  // };
-
   getOpenOrderOptions = async (
     account: Account,
     ticker: Ticker,
@@ -280,48 +258,48 @@ export abstract class BaseExchangeService {
     const accountId = getAccountId(account);
     try {
       const ticker = await this.getTicker(symbol);
-      // const isOrderAllowed = await this.handleOrderModes(
-      //   account,
-      //   ticker,
-      //   trade
-      // );
-      // if (isOrderAllowed) {
-      // TODO refacto
-      // close on sell spot order
-      if (
-        getSide(direction) === Side.Sell &&
-        isSpotExchange(ticker, this.exchangeId)
-      ) {
-        return await this.closeOrder(account, trade, ticker);
-      }
-      const { side, size } = await this.getOpenOrderOptions(
+      const isOrderAllowed = await this.handleOrderModes(
         account,
         ticker,
         trade
       );
-      const cost = getOrderCost(ticker, this.exchangeId, size);
-      const order: Order = await this.sessions
-        .get(accountId)
-        .exchange.createMarketOrder(symbol, side, size);
-      side === Side.Buy
-        ? long(
-            OPEN_LONG_TRADE_SUCCESS(
-              this.exchangeId,
-              accountId,
-              symbol,
-              cost.toFixed(2)
+      if (isOrderAllowed) {
+        // TODO refacto
+        // close on sell spot order
+        if (
+          getSide(direction) === Side.Sell &&
+          isSpotExchange(ticker, this.exchangeId)
+        ) {
+          return await this.closeOrder(account, trade, ticker);
+        }
+        const { side, size } = await this.getOpenOrderOptions(
+          account,
+          ticker,
+          trade
+        );
+        const cost = getOrderCost(ticker, this.exchangeId, size);
+        const order: Order = await this.sessions
+          .get(accountId)
+          .exchange.createMarketOrder(symbol, side, size);
+        side === Side.Buy
+          ? long(
+              OPEN_LONG_TRADE_SUCCESS(
+                this.exchangeId,
+                accountId,
+                symbol,
+                cost.toFixed(2)
+              )
             )
-          )
-        : short(
-            OPEN_SHORT_TRADE_SUCCESS(
-              this.exchangeId,
-              accountId,
-              symbol,
-              cost.toFixed(2)
-            )
-          );
-      return order;
-      // }
+          : short(
+              OPEN_SHORT_TRADE_SUCCESS(
+                this.exchangeId,
+                accountId,
+                symbol,
+                cost.toFixed(2)
+              )
+            );
+        return order;
+      }
     } catch (err) {
       error(OPEN_TRADE_ERROR(this.exchangeId, accountId, symbol), err);
       throw new OpenPositionError(

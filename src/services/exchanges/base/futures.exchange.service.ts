@@ -1,4 +1,5 @@
 import { Exchange, Ticker } from 'ccxt';
+import { TradingMode } from '../../../constants/trading.constants';
 import { Account } from '../../../entities/account.entities';
 import { Trade } from '../../../entities/trade.entities';
 import { PositionsFetchError } from '../../../errors/exchange.errors';
@@ -6,6 +7,7 @@ import {
   NoOpenPositionError,
   OpenPositionError
 } from '../../../errors/trading.errors';
+import { IFuturesExchange } from '../../../interfaces/exchanges/base/futures.exchange.interfaces';
 import {
   NO_CURRENT_POSITION,
   POSITIONS_READ_ERROR,
@@ -25,7 +27,22 @@ import { getSide } from '../../../utils/trading/side.utils';
 import { debug, error, info } from '../../logger.service';
 import { BaseExchangeService } from './base.exchange.service';
 
-export abstract class FuturesExchangeService extends BaseExchangeService {
+export abstract class FuturesExchangeService
+  extends BaseExchangeService
+  implements IFuturesExchange
+{
+  abstract handleReverseOrder(
+    account: Account,
+    ticker: Ticker,
+    trade: Trade
+  ): Promise<void>;
+
+  abstract handleOverflow(
+    account: Account,
+    ticker: Ticker,
+    trade: Trade
+  ): Promise<boolean>;
+
   abstract fetchPositions(instance: Exchange): Promise<FuturesPosition[]>;
 
   getPositions = async (account: Account): Promise<FuturesPosition[]> => {
@@ -70,6 +87,23 @@ export abstract class FuturesExchangeService extends BaseExchangeService {
   ): Promise<number> => {
     const position = await this.getTickerPosition(account, ticker);
     return getPositionSize(position, this.exchangeId);
+  };
+
+  handleOrderModes = async (
+    account: Account,
+    ticker: Ticker,
+    trade: Trade
+  ): Promise<boolean> => {
+    const { mode } = trade;
+    if (mode === TradingMode.Reverse) {
+      await this.handleReverseOrder(account, ticker, trade);
+    } else if (mode === TradingMode.Overflow) {
+      const isOverflowing = await this.handleOverflow(account, ticker, trade);
+      if (isOverflowing) {
+        return false; // on overflow we only close position
+      }
+    }
+    return true;
   };
 
   handleMaxBudget = async (
