@@ -82,7 +82,6 @@
     curl -d '[{"stub": "test", "symbol": "ETH-PERP", "size": "11", "direction": "long" }, {"stub": "test", "symbol": "BTC-PERP", "size": "11", "direction": "long" }]' -X POST http://YOUR.STATIC.IP.ADDRESS/trades -H 'Content-Type: application/json; charset=utf-8'
     ```
 
-<!-- 
 - __Close a short position__ and __open a long position__ on ETH-PERP using `test` account :
 
     ```sh
@@ -105,4 +104,4 @@
 
     ```sh
     curl -d '{"stub": "test", "symbol": "ETH-PERP", "direction": "short", "size": "100", "mode": "overflow" }' -X POST http://YOUR.STATIC.IP.ADDRESS/trades -H 'Content-Type: application/json; charset=utf-8'
-    ``` -->
+    ```

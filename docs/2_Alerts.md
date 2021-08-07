@@ -61,7 +61,6 @@
         [{ "stub": "dev", "direction": "long", "symbol": "ETH-PERP", "size": "50" }, { "stub": "dev", "direction": "long", "symbol": "BTC-PERP", "size": "50" }]
         ```
 
-<!-- 
     - Short position and close opened Long position if any :
 
         ```json
@@ -73,7 +72,7 @@
         ```json
         { "stub": "dev", "direction": "long", "symbol": "ETH-PERP", "size": "50", "mode": "reverse" }
         ```
-        
+
     - Close Long position if Short size is greater than opened position :
 
         ```json
@@ -84,5 +83,4 @@
 
         ```json
         { "stub": "dev", "direction": "long", "symbol": "ETH-PERP", "size": "50", "mode": "overflow" }
-        ``` -->
-
+        ```

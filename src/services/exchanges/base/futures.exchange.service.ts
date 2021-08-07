@@ -14,7 +14,11 @@ import {
   POSITIONS_READ_SUCCESS,
   POSITION_READ_SUCCESS
 } from '../../../messages/exchanges.messages';
-import { OPEN_TRADE_ERROR_MAX_SIZE } from '../../../messages/trading.messages';
+import {
+  OPEN_TRADE_ERROR_MAX_SIZE,
+  REVERSING_TRADE,
+  TRADE_OVERFLOW
+} from '../../../messages/trading.messages';
 import { FuturesPosition } from '../../../types/exchanges.types';
 import { getAccountId } from '../../../utils/account.utils';
 import { getRelativeOrderSize } from '../../../utils/trading/conversion.utils';
@@ -98,10 +102,8 @@ export abstract class FuturesExchangeService
     if (mode === TradingMode.Reverse) {
       await this.handleReverseOrder(account, ticker, trade);
     } else if (mode === TradingMode.Overflow) {
-      const isOverflowing = await this.handleOverflow(account, ticker, trade);
-      if (isOverflowing) {
-        return false; // on overflow we only close position
-      }
+      // on overflow we only close position so we don't need to open a new trade
+      return !(await this.handleOverflow(account, ticker, trade));
     }
     return true;
   };
