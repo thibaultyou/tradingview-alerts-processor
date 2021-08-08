@@ -13,6 +13,8 @@ import {
   EXCHANGE_INIT_SUCCESS,
   MARKETS_READ_ERROR,
   MARKETS_READ_SUCCESS,
+  TICKER_BALANCE_READ_ERROR,
+  TICKER_BALANCE_READ_SUCCESS,
   TICKER_READ_ERROR,
   TICKER_READ_SUCCESS
 } from '../../../messages/exchanges.messages';
@@ -50,12 +52,12 @@ import {
   getExchangeOptions,
   isSpotExchange
 } from '../../../utils/exchanges/common.utils';
-import { getSpotQuote } from '../../../utils/trading/symbol.utils';
+import { getQuote, getSymbol } from '../../../utils/trading/symbol.utils';
 import { getSide } from '../../../utils/trading/side.utils';
 import {
-  getOrderCost,
   getRelativeOrderSize,
-  getTokensAmount
+  getTokensAmount,
+  getTokensPrice
 } from '../../../utils/trading/conversion.utils';
 import { getTickerPrice } from '../../../utils/trading/ticker.utils';
 import { filterBalances } from '../../../utils/trading/balance.utils';
@@ -168,6 +170,28 @@ export abstract class BaseExchangeService implements IBaseExchange {
     }
   };
 
+  getTickerBalance = async (
+    account: Account,
+    ticker: Ticker
+  ): Promise<number> => {
+    const accountId = getAccountId(account);
+    const symbol = getSymbol(ticker.symbol);
+    try {
+      const balances = await this.getBalances(account);
+      const balance = balances.filter((b) => b.coin === symbol).pop();
+      const size = Number(balance.free);
+      debug(
+        TICKER_BALANCE_READ_SUCCESS(this.exchangeId, accountId, symbol, balance)
+      );
+      return size;
+    } catch (err) {
+      error(TICKER_BALANCE_READ_ERROR(this.exchangeId, accountId, symbol, err));
+      throw new TickerFetchError(
+        TICKER_BALANCE_READ_ERROR(this.exchangeId, accountId, symbol, err)
+      );
+    }
+  };
+
   getMarkets = async (): Promise<IMarket[]> => {
     try {
       const markets: ccxt.Market[] = await this.defaultExchange.fetchMarkets();
@@ -198,7 +222,7 @@ export abstract class BaseExchangeService implements IBaseExchange {
   ): Promise<number> => {
     const { symbol } = ticker;
     const accountId = getAccountId(account);
-    const quote = getSpotQuote(symbol);
+    const quote = getQuote(symbol);
     // TODO refacto
     let availableFunds = 0;
     if (this.exchangeId === ExchangeId.FTX && !isFTXSpot(ticker)) {
@@ -207,9 +231,7 @@ export abstract class BaseExchangeService implements IBaseExchange {
       ).result;
       availableFunds = Number(accountInfos.freeCollateral);
     } else {
-      const balances = await this.getBalances(account);
-      const balance = balances.filter((b) => b.coin === quote).pop();
-      availableFunds = Number(balance.free);
+      availableFunds = await this.getTickerBalance(account, ticker);
     }
     info(AVAILABLE_FUNDS(accountId, this.exchangeId, quote, availableFunds));
     return availableFunds;
@@ -236,14 +258,14 @@ export abstract class BaseExchangeService implements IBaseExchange {
     }
   };
 
+  // TODO refacto
   openOrder = async (account: Account, trade: Trade): Promise<Order> => {
     await this.refreshSession(account);
     const { symbol, size, direction, max, mode } = trade;
     const accountId = getAccountId(account);
     try {
       const ticker = await this.getTicker(symbol);
-      // TODO refacto
-      // handling sell on spot
+      // handling sell if spot exchange
       if (
         getSide(direction) === Side.Sell &&
         isSpotExchange(ticker, this.exchangeId)
@@ -252,7 +274,7 @@ export abstract class BaseExchangeService implements IBaseExchange {
       }
       // handling size / budget
       if (size.includes('%') || max) {
-        const funds = await this.getAvailableFunds(account, ticker); // avoid this call if possible
+        const funds = await this.getAvailableFunds(account, ticker);
         if (size.includes('%')) {
           trade = {
             ...trade,
@@ -278,10 +300,10 @@ export abstract class BaseExchangeService implements IBaseExchange {
           ticker,
           trade
         );
-        const cost = getOrderCost(ticker, this.exchangeId, size);
         const order: Order = await this.sessions
           .get(accountId)
           .exchange.createMarketOrder(symbol, side, size);
+        const cost = getTokensPrice(ticker, this.exchangeId, size);
         side === Side.Buy
           ? long(
               OPEN_LONG_TRADE_SUCCESS(
@@ -326,7 +348,7 @@ export abstract class BaseExchangeService implements IBaseExchange {
         ticker,
         trade
       );
-      const cost = getOrderCost(ticker, this.exchangeId, size);
+      const price = getTokensPrice(ticker, this.exchangeId, size);
       const order = await this.sessions
         .get(accountId)
         .exchange.createMarketOrder(symbol, side, size);
@@ -336,7 +358,7 @@ export abstract class BaseExchangeService implements IBaseExchange {
           accountId,
           symbol,
           size,
-          cost.toFixed(2)
+          price.toFixed(2)
         )
       );
       return order;

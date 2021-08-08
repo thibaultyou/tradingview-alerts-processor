@@ -35,6 +35,6 @@ export const filterPositions = (
   const predicate =
     exchangeId === ExchangeId.BinanceFuturesUSD
       ? (p: IBinanceFuturesUSDPosition) => Number(p.notional)
-      : (p: IFTXFuturesPosition) => Number(p.size);
+      : (p: IFTXFuturesPosition) => Number(p.cost);
   return positions.filter(predicate);
 };

@@ -18,8 +18,8 @@ import { CompositeExchangeService } from './base/composite.exchange.service';
 import { IFTXFuturesPosition } from '../../interfaces/exchanges/ftx.exchange.interfaces';
 import {
   getTokensAmount,
-  getOrderCost,
-  getRelativeOrderSize
+  getRelativeOrderSize,
+  getTokensPrice
 } from '../../utils/trading/conversion.utils';
 import {
   getInvertedSide,
@@ -77,11 +77,11 @@ export class FTXExchangeService extends CompositeExchangeService {
     }
   };
 
-  // TODO refacto
   handleMaxBudget = async (
     account: Account,
     ticker: Ticker,
-    trade: Trade
+    trade: Trade,
+    balance: number
   ): Promise<void> => {
     const { max, direction, size } = trade;
     const { symbol } = ticker;
@@ -91,16 +91,17 @@ export class FTXExchangeService extends CompositeExchangeService {
     let current = 0;
     if (isFTXSpot(ticker)) {
       const balance = await this.getTickerBalance(account, ticker);
-      current = getOrderCost(ticker, this.exchangeId, balance);
+      current = getTokensPrice(ticker, this.exchangeId, balance);
     } else {
-      // TODO refacto
-      try {
-        current = await this.getTickerPositionSize(account, ticker);
-      } catch (err) {
-        // silent
-      }
+      current = await this.getTickerPositionSize(account, ticker);
     }
-    if (Math.abs(current) + Number(size) > Number(max)) {
+    if (
+      current +
+        (size.includes('%')
+          ? getRelativeOrderSize(balance, size)
+          : Number(size)) >
+      Number(max)
+    ) {
       error(
         OPEN_TRADE_ERROR_MAX_SIZE(this.exchangeId, accountId, symbol, side, max)
       );
@@ -144,7 +145,7 @@ export class FTXExchangeService extends CompositeExchangeService {
     try {
       if (isFTXSpot(ticker)) {
         const balance = await this.getTickerBalance(account, ticker);
-        const cost = getOrderCost(ticker, this.exchangeId, balance);
+        const cost = getTokensPrice(ticker, this.exchangeId, balance);
         if (cost && getSide(direction) === Side.Sell && cost < Number(size)) {
           info(TRADE_OVERFLOW(this.exchangeId, accountId, symbol));
           await this.closeOrder(

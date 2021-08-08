@@ -16,9 +16,8 @@ export const getRelativeOrderSize = (balance: number, size: string): number => {
     error(TRADE_ERROR_SIZE(size));
     throw new OrderSizeError(TRADE_ERROR_SIZE(size));
   }
-  const orderSize = (balance * percent) / 100;
   // debug(TRADE_CALCULATED_RELATIVE_SIZE(balance.toFixed(2), size, orderSize));
-  return orderSize;
+  return (balance * percent) / 100;
 };
 
 export const getTokensAmount = (
@@ -36,10 +35,12 @@ export const getTokensAmount = (
 };
 
 export const getTokensPrice = (
-  symbol: string,
-  price: number,
+  ticker: Ticker,
+  exchangeId: ExchangeId,
   tokens: number
 ): number => {
+  const { symbol } = ticker;
+  const price = getTickerPrice(ticker, exchangeId);
   const size = price * tokens;
   if (isNaN(size)) {
     error(TRADE_CALCULATED_SIZE_ERROR(symbol));
@@ -47,14 +48,4 @@ export const getTokensPrice = (
   }
   debug(TRADE_CALCULATED_SIZE(symbol, tokens, size.toFixed(2)));
   return size;
-};
-
-export const getOrderCost = (
-  ticker: Ticker,
-  exchangeId: ExchangeId,
-  tokens: number
-): number => {
-  const { symbol } = ticker;
-  const price = getTickerPrice(ticker, exchangeId);
-  return getTokensPrice(symbol, price, tokens);
 };

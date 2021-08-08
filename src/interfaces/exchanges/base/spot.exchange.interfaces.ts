@@ -1,6 +1,3 @@
-import { Ticker } from 'ccxt';
-import { Account } from '../../../entities/account.entities';
+/* eslint-disable @typescript-eslint/no-empty-interface */
 
-export interface ISpotExchange {
-  getTickerBalance(account: Account, ticker: Ticker): Promise<number>;
-}
+export interface ISpotExchange {}

@@ -4,11 +4,6 @@ import { ExchangeId } from '../../constants/exchanges.constants';
 import { Account } from '../../entities/account.entities';
 import { Trade } from '../../entities/trade.entities';
 import { IBinanceFuturesUSDPosition } from '../../interfaces/exchanges/binance.exchange.interfaces';
-import { IOrderOptions } from '../../interfaces/trading.interfaces';
-import {
-  getRelativeOrderSize,
-  getTokensAmount
-} from '../../utils/trading/conversion.utils';
 import { FuturesExchangeService } from './base/futures.exchange.service';
 
 export class BinanceFuturesUSDMExchangeService extends FuturesExchangeService {
@@ -19,35 +14,6 @@ export class BinanceFuturesUSDMExchangeService extends FuturesExchangeService {
   fetchPositions = async (
     instance: Exchange
   ): Promise<IBinanceFuturesUSDPosition[]> => await instance.fetchPositions();
-
-  getCloseOrderOptions = async (
-    account: Account,
-    ticker: Ticker,
-    trade: Trade
-  ): Promise<IOrderOptions> => {
-    const { size } = trade;
-    const { symbol, info } = ticker;
-    const { lastPrice } = info;
-    const { contracts, notional, side } = (await this.getTickerPosition(
-      account,
-      ticker
-    )) as IBinanceFuturesUSDPosition;
-
-    // TODO refacto
-    let orderSize = 0;
-    if (size && size.includes('%')) {
-      orderSize = getRelativeOrderSize(contracts, size);
-    } else if (!size || Number(size) > notional) {
-      orderSize = contracts;
-    } else {
-      orderSize = getTokensAmount(symbol, lastPrice, Number(size));
-    }
-
-    return {
-      size: orderSize,
-      side: side === 'long' ? 'sell' : 'buy'
-    };
-  };
 
   handleReverseOrder(
     account: Account,

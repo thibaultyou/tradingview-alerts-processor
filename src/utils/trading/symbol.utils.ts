@@ -1,3 +1,3 @@
-export const getSpotSymbol = (symbol: string): string => symbol.split('/')[0];
+export const getSymbol = (symbol: string): string => symbol.split('/')[0];
 
-export const getSpotQuote = (symbol: string): string => symbol.split('/')[1];
+export const getQuote = (symbol: string): string => symbol.split('/')[1];
