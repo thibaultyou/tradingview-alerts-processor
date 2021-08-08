@@ -19,10 +19,9 @@ export const TRADE_EXECUTION_SUCCESS = (
   );
 
 export const TRADES_EXECUTION_SUCCESS = (
-  trades: Record<string, string>[]
 ): string =>
   tradingMessageWrapper(
-    `Trades executed${trades ? ' -> ' + JSON.stringify(trades) : ''}.`
+    `Trades executed.`
   );
 
 export const TRADE_EXECUTION_ERROR = (

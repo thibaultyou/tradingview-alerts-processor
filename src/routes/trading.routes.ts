@@ -19,24 +19,31 @@ export const postTrade = async (req: Request, res: Response): Promise<void> => {
   try {
     if (Array.isArray(req.body)) {
       const trades: Record<string, string>[] = [];
+      const errors = [];
       for (const trade of req.body) {
         const { direction, stub, symbol }: Trade = trade;
         const side = getSide(direction);
-        const account = await readAccount(stub);
-        TradingService.getTradeExecutor(account.exchange).addTrade(
-          account,
-          trade
-        );
-        trades.push({
-          exchange: account.exchange,
-          account: stub,
-          symbol: symbol,
-          side: side
-        });
+        try {
+          const account = await readAccount(stub);
+          TradingService.getTradeExecutor(account.exchange).addTrade(
+            account,
+            trade
+          );
+          trades.push({
+            exchange: account.exchange,
+            account: stub,
+            symbol: symbol,
+            side: side
+          });
+        } catch (err) {
+          errors.push(err.message)
+        }
       }
       res.write(
         JSON.stringify({
-          message: TRADES_EXECUTION_SUCCESS(trades)
+          message: TRADES_EXECUTION_SUCCESS,
+          trades,
+          errors
         })
       );
     } else {
