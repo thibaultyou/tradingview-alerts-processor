@@ -76,17 +76,17 @@ export abstract class BaseExchangeService {
     trade: Trade
   ): Promise<IOrderOptions>;
 
-  abstract handleReverseOrder(
-    account: Account,
-    ticker: Ticker,
-    trade: Trade
-  ): Promise<void>;
+  // abstract handleReverseOrder(
+  //   account: Account,
+  //   ticker: Ticker,
+  //   trade: Trade
+  // ): Promise<void>;
 
-  abstract handleOverflow(
-    account: Account,
-    ticker: Ticker,
-    trade: Trade
-  ): Promise<boolean>;
+  // abstract handleOverflow(
+  //   account: Account,
+  //   ticker: Ticker,
+  //   trade: Trade
+  // ): Promise<boolean>;
 
   abstract handleMaxBudget(
     account: Account,

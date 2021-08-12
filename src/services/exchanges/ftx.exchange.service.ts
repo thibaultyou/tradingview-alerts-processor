@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { ExchangeId } from '../../constants/exchanges.constants';
 import { Account } from '../../entities/account.entities';
 import { getAccountId } from '../../utils/account.utils';
@@ -101,21 +100,6 @@ export class FTXExchangeService extends CompositeExchangeService {
       );
     }
   };
-
-  handleReverseOrder(
-    account: Account,
-    ticker: Ticker,
-    trade: Trade
-  ): Promise<void> {
-    throw new Error('Method not implemented.');
-  }
-  handleOverflow(
-    account: Account,
-    ticker: Ticker,
-    trade: Trade
-  ): Promise<boolean> {
-    throw new Error('Method not implemented.');
-  }
 
   // handleReverseOrder = async (
   //   account: Account,
