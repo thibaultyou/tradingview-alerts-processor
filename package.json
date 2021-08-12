@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "Minimalist service desgined to execute TradingView webhooks and process them to cryptocurrencies exchanges.",
   "main": "server.js",
-  "keywords": [],
   "author": "Thibault YOU",
   "license": "MIT",
   "scripts": {
@@ -19,8 +18,10 @@
     "test": "npm run clean && jest",
     "test:cov": "npm run clean && npm run test --coverage",
     "test:watch": "npm run clean && npm run test:cov --watchAll",
-    "docker:build": "docker build -t madamefleur/tradingview-alerts-processor .",
-    "docker:push": "docker push madamefleur/tradingview-alerts-processor"
+    "docker:dev": "sudo docker-compose -f docker-compose.dev.yml build && sudo docker-compose -f docker-compose.dev.yml up",
+    "docker:build": "sudo docker build --no-cache -t madamefleur/tradingview-alerts-processor .",
+    "docker:push": "sudo docker push madamefleur/tradingview-alerts-processor",
+    "docker:prod": "npm run docker:build && npm run docker:push"
   },
   "pre-commit": [
     "lint:fix",
