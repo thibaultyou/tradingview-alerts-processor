@@ -30,12 +30,18 @@ export const ACCOUNT_READ_SUCCESS = (accountId: string): string =>
     `${accountId.toUpperCase()} account successfully loaded.`
   );
 
+export const ACCOUNTS_READ_SUCCESS = (): string =>
+  accountsMessageWrapper(`Accounts successfully readed.`);
+
 export const ACCOUNT_READ_ERROR = (accountId: string, err?: string): string =>
   accountsMessageWrapper(
     `Failed to load ${accountId.toUpperCase()} account${
       err ? ' -> ' + err : ''
     }.`
   );
+
+export const ACCOUNTS_READ_ERROR = (err?: string): string =>
+  accountsMessageWrapper(`Failed to read accounts${err ? ' -> ' + err : ''}.`);
 
 export const ACCOUNT_DELETE_SUCCESS = (accountId: string): string =>
   accountsMessageWrapper(

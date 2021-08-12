@@ -7,6 +7,7 @@ import { validateMarket } from '../validators/market.validators';
 import { loggingMiddleware } from '../utils/logger.utils';
 import { MARKETS_READ_SUCCESS } from '../messages/exchanges.messages';
 import { TradingService } from '../services/trading/trading.service';
+import { ExchangeId } from '../constants/exchanges.constants';
 
 const router = Router();
 
@@ -14,7 +15,7 @@ export const getMarkets = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  const { exchange }: Market = req.body;
+  const exchange = req.params.exchange as ExchangeId;
   try {
     const markets = await TradingService.getTradeExecutor(exchange)
       .getExchangeService()
@@ -37,7 +38,7 @@ export const getMarkets = async (
 };
 
 export const marketsRouter = router.get(
-  Route.Markets,
+  `${Route.Markets}/:exchange`,
   loggingMiddleware,
   validateMarket,
   getMarkets

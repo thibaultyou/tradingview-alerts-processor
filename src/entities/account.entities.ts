@@ -1,4 +1,11 @@
-import { IsString, IsIn, IsOptional, ValidateIf } from 'class-validator';
+import {
+  IsString,
+  IsIn,
+  IsOptional,
+  ValidateIf,
+  IsNotEmpty,
+  IsNotIn
+} from 'class-validator';
 import { ExchangeId, EXCHANGES } from '../constants/exchanges.constants';
 
 export class Account {
@@ -24,7 +31,9 @@ export class Account {
   passphrase?: string;
 }
 
-export class AccountStub {
+export class AccountId {
   @IsString()
-  stub: string;
+  @IsNotEmpty()
+  @IsNotIn(['/', '*'])
+  id: string;
 }

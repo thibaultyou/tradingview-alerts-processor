@@ -1,15 +1,15 @@
 import { Request, Response, NextFunction } from 'express';
-import { Account, AccountStub } from '../entities/account.entities';
-import { validateClass } from './main.validator';
+import { Account, AccountId } from '../entities/account.entities';
+import { validateBody, validateParams } from './main.validator';
 
 export const validateAccount = async (
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<void> => validateClass(req, res, next, Account);
+): Promise<void> => validateBody(req, res, next, Account);
 
-export const validateAccountStub = async (
+export const validateAccountId = async (
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<void> => validateClass(req, res, next, AccountStub);
+): Promise<void> => validateParams(req, res, next, AccountId);

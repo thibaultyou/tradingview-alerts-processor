@@ -36,7 +36,7 @@ export const postTrade = async (req: Request, res: Response): Promise<void> => {
             side: side
           });
         } catch (err) {
-          errors.push(err.message)
+          errors.push(err.message);
         }
       }
       res.write(

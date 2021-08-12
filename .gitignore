@@ -10,3 +10,4 @@ logs
 coverage
 tests.sh
 flood.sh
+.DS_Store

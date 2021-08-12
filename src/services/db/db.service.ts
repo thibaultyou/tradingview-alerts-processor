@@ -20,4 +20,6 @@ export class DatabaseService {
     }
     return DatabaseService.instance;
   };
+
+  public static getType = (): string => DATABASE;
 }

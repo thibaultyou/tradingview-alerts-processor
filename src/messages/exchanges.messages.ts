@@ -44,6 +44,12 @@ export const BALANCES_READ_SUCCESS = (
     `${getExchangeName(exchange)}/${accountId} - Balances successfully fetched.`
   );
 
+  export const ALL_BALANCES_READ_SUCCESS = (
+  ): string =>
+    exchangesMessageWrapper(
+      `All accounts balances successfully fetched.`
+    );
+
 export const BALANCES_READ_ERROR = (
   exchange: ExchangeId,
   accountId: string,

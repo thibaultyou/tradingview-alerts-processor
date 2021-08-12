@@ -6,12 +6,14 @@ import {
   ACCOUNT_READ_SUCCESS,
   ACCOUNT_READ_ERROR,
   ACCOUNT_DELETE_SUCCESS,
-  ACCOUNT_WRITE_ERROR_ALREADY_EXISTS
+  ACCOUNT_WRITE_ERROR_ALREADY_EXISTS,
+  ACCOUNTS_READ_SUCCESS
 } from '../messages/account.messages';
 import { AccountReadError, AccountWriteError } from '../errors/account.errors';
 import { DatabaseService } from './db/db.service';
 import { TradingService } from './trading/trading.service';
 import { getAccountId } from '../utils/account.utils';
+import { DatabaseId } from '../constants/db.constants';
 
 const accounts = new Map<string, Account>();
 
@@ -71,6 +73,20 @@ export const readAccount = async (accountId: string): Promise<Account> => {
   }
   debug(ACCOUNT_READ_SUCCESS(id));
   return account;
+};
+
+// TODO update logs
+export const readAccounts = async (): Promise<Account[]> => {
+  try {
+    const db = DatabaseService.getDatabaseInstance();
+    const id = DatabaseService.getType() === DatabaseId.REDIS ? '*' : '';
+    const accounts = (await db.read(id)) as Record<string, Account>;
+    debug(ACCOUNTS_READ_SUCCESS());
+    return Object.values(accounts);
+  } catch (err) {
+    error(ACCOUNT_READ_ERROR('*'), err);
+    throw new AccountReadError(ACCOUNT_READ_ERROR('*', err.message));
+  }
 };
 
 export const removeAccount = async (accountId: string): Promise<boolean> => {
