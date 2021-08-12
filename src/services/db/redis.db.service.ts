@@ -43,20 +43,20 @@ export class RedisDatabaseService implements IDatabase {
     }
   }
 
-  readKey = async (key: string) : Promise<unknown> => {
+  readKey = async (key: string): Promise<unknown> => {
     const value = JSON.parse(await this.instance.get(key));
     if (!value) {
       throw new DatabaseReadError(DATABASE_READ_ERROR(key));
     }
     debug(DATABASE_READ_SUCCESS(key));
     return value;
-  }
+  };
 
   read = async (key: string): Promise<unknown> => {
     try {
       if (key === '*') {
         const keys = await this.instance.keys(key);
-        return await Promise.all(keys.map(k => this.readKey(k)))
+        return await Promise.all(keys.map((k) => this.readKey(k)));
       }
       return await this.readKey(key);
     } catch (err) {

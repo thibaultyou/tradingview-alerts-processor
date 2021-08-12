@@ -72,7 +72,8 @@ export class FTXExchangeService extends CompositeExchangeService {
   handleMaxBudget = async (
     account: Account,
     ticker: Ticker,
-    trade: Trade
+    trade: Trade,
+    balance: number
   ): Promise<void> => {
     const { max, direction, size } = trade;
     const { symbol } = ticker;
@@ -80,18 +81,23 @@ export class FTXExchangeService extends CompositeExchangeService {
     const side = getSide(direction);
     // we add a check since FTX is a composite exchange
     let current = 0;
-    if (isFTXSpot(ticker)) {
-      const balance = await this.getTickerBalance(account, ticker);
-      current = getOrderCost(ticker, this.exchangeId, balance);
-    } else {
-      // TODO refacto
-      try {
+    try {
+      if (isFTXSpot(ticker)) {
+        const tickerBalance = await this.getTickerBalance(account, ticker);
+        current = getOrderCost(ticker, this.exchangeId, tickerBalance);
+      } else {
         current = await this.getTickerPositionSize(account, ticker);
-      } catch (err) {
-        // silent
       }
+    } catch (err) {
+      // silent
     }
-    if (Math.abs(current) + Number(size) > Number(max)) {
+    if (
+      Math.abs(current) +
+        (size.includes('%')
+          ? getRelativeOrderSize(balance, size)
+          : Number(size)) >
+      Number(max)
+    ) {
       error(
         OPEN_TRADE_ERROR_MAX_SIZE(this.exchangeId, accountId, symbol, side, max)
       );

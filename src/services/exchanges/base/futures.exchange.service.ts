@@ -82,7 +82,6 @@ export abstract class FuturesExchangeService extends BaseExchangeService {
     const accountId = getAccountId(account);
     const side = getSide(direction);
     let current = 0;
-    // TODO refacto
     try {
       current = await this.getTickerPositionSize(account, ticker);
     } catch (err) {
@@ -90,7 +89,7 @@ export abstract class FuturesExchangeService extends BaseExchangeService {
     }
     if (
       Math.abs(current) +
-        (size.includes('%') // add the required position cost
+        (size.includes('%')
           ? getRelativeOrderSize(balance, size)
           : Number(size)) >
       Number(max)

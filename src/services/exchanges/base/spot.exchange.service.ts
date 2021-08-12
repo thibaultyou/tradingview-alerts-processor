@@ -55,10 +55,16 @@ export abstract class SpotExchangeService extends BaseExchangeService {
     const { symbol } = ticker;
     const accountId = getAccountId(account);
     const side = getSide(direction);
-    const current = await this.getTickerBalance(account, ticker);
+    let current = 0;
+    try {
+      const tickerBalance = await this.getTickerBalance(account, ticker);
+      current = getOrderCost(ticker, this.exchangeId, tickerBalance);
+    } catch (err) {
+      // silent
+    }
     if (
-      getOrderCost(ticker, this.exchangeId, current) + // get cost of current position
-        (size.includes('%') // add the required position cost
+      current +
+        (size.includes('%')
           ? getRelativeOrderSize(balance, size)
           : Number(size)) >
       Number(max)

@@ -2,7 +2,10 @@ import { Request, Response, Router } from 'express';
 import { readAccount, readAccounts } from '../services/account.service';
 import { HttpCode } from '../constants/http.constants';
 import { TradingService } from '../services/trading/trading.service';
-import { ALL_BALANCES_READ_SUCCESS, BALANCES_READ_SUCCESS } from '../messages/exchanges.messages';
+import {
+  ALL_BALANCES_READ_SUCCESS,
+  BALANCES_READ_SUCCESS
+} from '../messages/exchanges.messages';
 import { Route } from '../constants/routes.constants';
 import { loggingMiddleware } from '../utils/logger.utils';
 import { validateAccountId } from '../validators/account.validators';
