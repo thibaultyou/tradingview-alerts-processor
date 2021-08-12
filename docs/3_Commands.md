@@ -118,6 +118,3 @@
     ```sh
     curl -d '{"stub": "test", "symbol": "ETH-PERP", "direction": "short", "size": "100", "mode": "overflow" }' -X POST http://YOUR.STATIC.IP.ADDRESS/trades -H 'Content-Type: application/json; charset=utf-8'
     ``` -->
-
-
-    curl -d '{"stub": "rose", "subaccount":"ROSE", "exchange":"ftx", "apiKey": "BZpp31eZX9S-rjq-brd4-zaeHEaR2vCatQ9h9XSF", "secret": "Hom-cq6kpTrNyNCwDjlaBmqs8YcInQDFd80bVR-b" }' -X POST http://localhost:3333/accounts -H 'Content-Type: application/json; charset=utf-8'
