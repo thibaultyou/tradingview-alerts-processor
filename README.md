@@ -55,6 +55,6 @@ You can use the bot with :
 
 Feel free to submit [Github issues](https://github.com/thibaultyou/tradingview-alerts-processor/issues) if you find anything you want me to add, fix or improve.
 
-Best way to show your support to this tool is by hitting the star button [![Stars](https://img.shields.io/github/stars/thibaultyou/tradingview-alerts-processor?style=social)](https://github.com/thibaultyou/tradingview-alerts-processor/stargazers), you can also <a href="https://www.buymeacoffee.com/thibaultyou" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-blue.png" alt="Buy Me A Coffee" style="height: 32px !important;width: 124px !important;" ></a>.
+Best way to show your support to this tool is by hitting the star button [![Stars](https://img.shields.io/github/stars/thibaultyou/tradingview-alerts-processor?style=social)](https://github.com/thibaultyou/tradingview-alerts-processor/stargazers), you can also [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/thibaultyou).
 
 You can join us on the Jackrabbit Discord server [![Discord](https://img.shields.io/discord/664206005881536512)](https://discord.gg/mNMVWXpAGd) where I'll be happy to answer questions there, you'll also find great strategies to use with this tool.
