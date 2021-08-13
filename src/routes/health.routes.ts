@@ -11,8 +11,6 @@ export const checkHealth = async (
   _req: Request,
   res: Response
 ): Promise<void> => {
-  const ftx = new FTXExchangeWSService();
-
   res.write(
     JSON.stringify({
       message: HEALTHCHECK_SUCCESS
