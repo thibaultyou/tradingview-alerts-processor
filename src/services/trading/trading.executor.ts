@@ -36,7 +36,10 @@ export class TradingExecutor {
 
   constructor(id: ExchangeId) {
     this.id = id;
-    this.exchangeService = initExchangeService(id);
+  }
+
+  init = async () => {
+    this.exchangeService = await initExchangeService(this.id);
   }
 
   getExchangeService = (): ExchangeService => this.exchangeService;

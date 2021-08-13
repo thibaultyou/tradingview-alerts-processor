@@ -5,7 +5,7 @@ export const getTickerPrice = (
   ticker: Ticker,
   exchangeId: ExchangeId
 ): number => {
-  const { last, info } = ticker;
+  const { last, bid, ask, info } = ticker;
   switch (exchangeId) {
     case ExchangeId.Binance:
     case ExchangeId.BinanceFuturesUSD:
@@ -15,6 +15,6 @@ export const getTickerPrice = (
       return last;
     case ExchangeId.FTX:
     default:
-      return info.price;
+      return (bid + ask) / 2;
   }
 };

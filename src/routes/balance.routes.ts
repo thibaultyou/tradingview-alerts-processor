@@ -20,7 +20,7 @@ export const getAccountBalances = async (
   try {
     const account = await readAccount(id);
     const { exchange } = account;
-    const balances = await TradingService.getTradeExecutor(exchange)
+    const balances = await (await TradingService.getTradeExecutor(exchange))
       .getExchangeService()
       .getBalances(account);
     res.write(
@@ -51,7 +51,7 @@ export const getAccountsBalances = async (
       try {
         accountsBalances.push({
           account: account.stub,
-          balances: await TradingService.getTradeExecutor(account.exchange)
+          balances: await (await TradingService.getTradeExecutor(account.exchange))
             .getExchangeService()
             .getBalances(account)
         });

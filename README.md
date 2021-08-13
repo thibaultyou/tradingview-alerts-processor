@@ -36,7 +36,7 @@ You can use the bot with :
 | [![kraken](https://user-images.githubusercontent.com/51840849/76173629-fc67fb00-61b1-11ea-84fe-f2de582f58a3.jpg)](https://www.kraken.com) | kraken | [Kraken (spot)](https://www.kraken.com) | [API](https://www.kraken.com/features/api)                                                  |
 <!-- | [![binancecoinm](https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg)](https://www.binance.com/)                     | binancecoinm  | [Binance COIN-M](https://www.binance.com/)                     | *   | [API](https://binance-docs.github.io/apidocs/spot/en)              |-->
 
-### 🚧 Features
+### ⚗️ Features
 
 - add / read / delete account (or subaccount for FTX) configuration
 - open a Long / Short position (Futures) or Buy / Sell a token (Spot) in $US

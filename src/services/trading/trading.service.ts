@@ -7,11 +7,12 @@ export class TradingService {
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   private constructor() {}
 
-  public static getTradeExecutor = (
+  public static getTradeExecutor = async (
     exchangeId: ExchangeId
-  ): TradingExecutor => {
+  ): Promise<TradingExecutor> => {
     if (!TradingService.executors.get(exchangeId)) {
       const service = new TradingExecutor(exchangeId);
+      await service.init()
       TradingService.executors.set(exchangeId, service);
       service.start();
     }

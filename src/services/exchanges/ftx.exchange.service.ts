@@ -4,9 +4,9 @@ import { getAccountId } from '../../utils/account.utils';
 import { Exchange, Ticker } from 'ccxt';
 import { Side } from '../../constants/trading.constants';
 import { IOrderOptions } from '../../interfaces/trading.interfaces';
-import { error } from '../logger.service';
+import { debug, error } from '../logger.service';
 import { Trade } from '../../entities/trade.entities';
-import { isFTXSpot } from '../../utils/exchanges/ftx.utils';
+import { getFTXBaseSymbol, isFTXSpot } from '../../utils/exchanges/ftx.utils';
 import { OPEN_TRADE_ERROR_MAX_SIZE } from '../../messages/trading.messages';
 import { OpenPositionError } from '../../errors/trading.errors';
 import { CompositeExchangeService } from './base/composite.exchange.service';
@@ -17,11 +17,42 @@ import {
   getRelativeOrderSize
 } from '../../utils/trading/conversion.utils';
 import { getInvertedSide, getSide } from '../../utils/trading/side.utils';
+import { FTXExchangeWSService } from './ws/ftx.ws.service';
+import { TICKER_READ_ERROR, TICKER_READ_SUCCESS } from '../../messages/exchanges.messages';
+import { TickerFetchError } from '../../errors/exchange.errors';
+import { getTickerPrice } from '../../utils/trading/ticker.utils';
 
 export class FTXExchangeService extends CompositeExchangeService {
+  ws: FTXExchangeWSService;
+
   constructor() {
     super(ExchangeId.FTX);
   }
+
+  init = async () => {
+    this.ws = await FTXExchangeWSService.init()
+  }
+
+  getTicker = async (symbol: string): Promise<Ticker> => {
+    try {
+      let ticker: Ticker;
+      const base = getFTXBaseSymbol(symbol)
+      if (!this.ws.tickers[base]) {
+        this.ws.addTicker(symbol);
+        ticker = await this.defaultExchange.fetchTicker(symbol);
+      } else {
+        ticker = {symbol, ...this.ws.tickers[base]} as unknown as Ticker
+      }
+      debug(TICKER_READ_SUCCESS(this.exchangeId, symbol, ticker));
+      return ticker;
+    } catch (err) {
+      console.log(err)
+      error(TICKER_READ_ERROR(this.exchangeId, symbol), err);
+      throw new TickerFetchError(
+        TICKER_READ_ERROR(this.exchangeId, symbol, err.message)
+      );
+    }
+  };
 
   fetchPositions = async (instance: Exchange): Promise<IFTXFuturesPosition[]> =>
     (await instance.privateGetAccount()).result.positions;
@@ -32,8 +63,8 @@ export class FTXExchangeService extends CompositeExchangeService {
     trade: Trade
   ): Promise<IOrderOptions> => {
     const { size } = trade;
-    const { symbol, info } = ticker;
-    const { price } = info;
+    const { symbol } = ticker;
+    const price = getTickerPrice(ticker, this.exchangeId)
     // we add a check since FTX is a composite exchange
     if (isFTXSpot(ticker)) {
       const balance = await this.getTickerBalance(account, ticker);
