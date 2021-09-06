@@ -60,6 +60,19 @@
         ```json
         [{ "stub": "dev", "direction": "long", "symbol": "ETH-PERP", "size": "50" }, { "stub": "dev", "direction": "long", "symbol": "BTC-PERP", "size": "50" }]
         ```
+        
+        
+<br/>
+
+
+
+Please Note:<br/>
+
+For Binance Future use symble as `"ETH/USDT"` <br/>
+
+IE. for long<br/>
+`{ "stub": "dev", "direction": "long", "symbol": "ETH/USDT", "size": "50" }`
+<br/>
 
 <!-- 
     - Short position and close opened Long position if any :
