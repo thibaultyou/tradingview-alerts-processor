@@ -8,7 +8,7 @@ export const formatAccount = (account: Account): Account => ({
   stub: getAccountId(account)
 });
 
-export const hideAccountSensitiveData = (account: Account) => {
+export const hideAccountSensitiveData = (account: Account): Account => {
   const hidden = account;
   delete hidden.secret;
   delete hidden.passphrase;

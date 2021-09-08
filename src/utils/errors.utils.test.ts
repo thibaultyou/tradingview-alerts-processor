@@ -5,12 +5,10 @@ const mockError = () => {
   const err = {} as Error;
   err.stack = jest.fn().mockReturnValue('stack') as unknown as string;
   return err;
-}
+};
 
-const mockRequest = (sessionData: any) => {
-  return {
-    session: { data: sessionData },
-  };
+const mockRequest = () => {
+  return {} as Request;
 };
 
 const mockResponse = () => {
@@ -20,11 +18,10 @@ const mockResponse = () => {
   return res;
 };
 
-
 describe('errorMiddleware', () => {
   it('should send an error response', () => {
     const err = mockError();
-    const req = mockRequest({}) as unknown as Request;
+    const req = mockRequest();
     const res = mockResponse();
     const next = jest.fn().mockReturnValue(undefined);
     errorMiddleware(err, req, res, next);

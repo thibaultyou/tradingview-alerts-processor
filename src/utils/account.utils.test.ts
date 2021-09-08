@@ -1,4 +1,8 @@
-import { getAccountId, formatAccount, hideAccountSensitiveData } from './account.utils';
+import {
+  getAccountId,
+  formatAccount,
+  hideAccountSensitiveData
+} from './account.utils';
 import { sampleAccount } from '../tests/fixtures/common.fixtures';
 
 describe('getAccountId', () => {
@@ -26,5 +30,5 @@ describe('hideAccountSensitiveDate', () => {
     expect(hidden.stub).toBeDefined();
     expect(hidden.secret).toBeUndefined();
     expect(hidden.passphrase).toBeUndefined();
-  });  
+  });
 });

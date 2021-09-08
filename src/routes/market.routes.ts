@@ -1,6 +1,5 @@
 import { Request, Response, Router } from 'express';
 
-import { Market } from '../entities/market.entities';
 import { HttpCode } from '../constants/http.constants';
 import { Route } from '../constants/routes.constants';
 import { validateMarket } from '../validators/market.validators';
