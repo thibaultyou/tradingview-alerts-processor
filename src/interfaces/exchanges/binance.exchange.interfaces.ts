@@ -140,5 +140,5 @@ export interface IBinanceUSTicker {
   average: undefined;
   baseVolume: number;
   quoteVolume: number;
-  info: IBinanceTickerInformations;
+  info: IBinanceUSTickerInformations;
 }
