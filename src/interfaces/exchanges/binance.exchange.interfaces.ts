@@ -89,3 +89,56 @@ export interface IBinanceTicker {
   quoteVolume: number;
   info: IBinanceTickerInformations;
 }
+
+export interface IBinanceUSSpotBalance {
+  asset: string;
+  free: string;
+  locked: string;
+}
+
+export interface IBinanceUSTickerInformations {
+  symbol: string;
+  priceChange: string;
+  priceChangePercent: string;
+  weightedAvgPrice: string;
+  prevClosePrice: string;
+  lastPrice: string;
+  lastQty: string;
+  bidPrice: string;
+  bidQty: string;
+  askPrice: string;
+  askQty: string;
+  openPrice: string;
+  highPrice: string;
+  lowPrice: string;
+  volume: string;
+  quoteVolume: string;
+  openTime: string;
+  closeTime: string;
+  firstId: string;
+  lastId: string;
+  count: string;
+}
+
+export interface IBinanceUSTicker {
+  symbol: string;
+  timestamp: number;
+  datetime: string;
+  high: number;
+  low: number;
+  bid: number;
+  bidVolume: number;
+  ask: number;
+  askVolume: number;
+  vwap: number;
+  open: number;
+  close: number;
+  last: number;
+  previousClose: number;
+  change: number;
+  percentage: number;
+  average: undefined;
+  baseVolume: number;
+  quoteVolume: number;
+  info: IBinanceTickerInformations;
+}
