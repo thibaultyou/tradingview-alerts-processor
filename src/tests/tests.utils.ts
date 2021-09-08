@@ -1,5 +1,5 @@
 import { removeAccount } from '../services/account.service';
-import { sampleAccount, sampleSubaccount } from './tests.fixtures';
+import { sampleAccount, sampleSubaccount } from './fixtures/common.fixtures';
 
 export const clearTestingDatabase = (): void => {
   try {
