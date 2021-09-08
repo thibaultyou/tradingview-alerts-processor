@@ -1,11 +1,9 @@
 import {
   IBinanceFuturesUSDPosition,
-  IBinanceTicker
-} from '../../interfaces/exchanges/binance.exchange.interfaces';
-import {
+  IBinanceTicker,
   IBinanceSpotBalance,
   IBinanceFuturesUSDBalance
-} from '../../../dist/interfaces/exchanges/binance.exchange.interfaces';
+} from '../../interfaces/exchanges/binance.exchange.interfaces';
 
 // doge is crap, this is just for testing purposes
 export const sampleBinanceTicker: IBinanceTicker = {

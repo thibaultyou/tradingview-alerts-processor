@@ -37,6 +37,7 @@ export interface IFTXAccountInformations {
   openMarginFraction: string;
   liquidating: boolean;
   backstopProvider: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   positions: any;
   takerFee: string;
   makerFee: string;
