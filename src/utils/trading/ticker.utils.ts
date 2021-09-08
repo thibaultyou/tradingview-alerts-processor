@@ -8,6 +8,7 @@ export const getTickerPrice = (
   const { last, info } = ticker;
   switch (exchangeId) {
     case ExchangeId.Binance:
+    case ExchangeId.BinanceUS:
     case ExchangeId.BinanceFuturesUSD:
       return info.lastPrice;
     case ExchangeId.KuCoin:

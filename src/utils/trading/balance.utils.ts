@@ -1,7 +1,8 @@
 import { ExchangeId } from '../../constants/exchanges.constants';
 import {
   IBinanceFuturesUSDBalance,
-  IBinanceSpotBalance
+  IBinanceSpotBalance,
+  IBinanceUSSpotBalance
 } from '../../interfaces/exchanges/binance.exchange.interfaces';
 import { IBalance } from '../../interfaces/exchanges/common.exchange.interfaces';
 import { IFTXBalance } from '../../interfaces/exchanges/ftx.exchange.interfaces';
@@ -16,6 +17,14 @@ export const filterBalances = (
       return balances.info.balances
         .filter((b: IBinanceSpotBalance) => Number(b.free))
         .map((b: IBinanceSpotBalance) => ({
+          coin: b.asset,
+          free: b.free,
+          total: Number(b.free) + Number(b.locked)
+        }));
+    case ExchangeId.BinanceUS:
+      return balances.info.balances
+        .filter((b: IBinanceUSSpotBalance) => Number(b.free))
+        .map((b: IBinanceUSSpotBalance) => ({
           coin: b.asset,
           free: b.free,
           total: Number(b.free) + Number(b.locked)

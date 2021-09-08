@@ -7,6 +7,7 @@ import {
 import { Account } from '../../entities/account.entities';
 import { BinanceFuturesUSDMExchangeService } from '../../services/exchanges/binance-usdm.futures.exchange.service';
 import { BinanceSpotExchangeService } from '../../services/exchanges/binance.spot.exchange.service';
+import { BinanceUSSpotExchangeService } from '../../services/exchanges/binanceus.spot.exchange.service';
 import { FTXExchangeService } from '../../services/exchanges/ftx.exchange.service';
 import { ExchangeService } from '../../types/exchanges.types';
 import { KuCoinExchangeService } from '../../services/exchanges/kucoin.exchange.service';
@@ -39,6 +40,8 @@ export const initExchangeService = (
   switch (exchangeId) {
     case ExchangeId.Binance:
       return new BinanceSpotExchangeService();
+    case ExchangeId.BinanceUS:
+      return new BinanceUSSpotExchangeService();
     case ExchangeId.BinanceFuturesUSD:
       return new BinanceFuturesUSDMExchangeService();
     case ExchangeId.KuCoin:
@@ -56,6 +59,7 @@ export const isSpotExchange = (
   exchangeId: ExchangeId
 ): boolean =>
   exchangeId === ExchangeId.Binance ||
+  exchangeId === ExchangeId.BinanceUS ||
   exchangeId === ExchangeId.KuCoin ||
   exchangeId === ExchangeId.Kraken ||
   (exchangeId === ExchangeId.FTX && isFTXSpot(ticker));
