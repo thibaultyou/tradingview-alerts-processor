@@ -1,0 +1,296 @@
+swagger: "2.0"
+info:
+  description: "This is a sample server Petstore server.  You can find out more about     Swagger at [http://swagger.io](http://swagger.io) or on [irc.freenode.net, #swagger](http://swagger.io/irc/).      For this sample, you can use the api key `special-key` to test the authorization     filters."
+  version: "1.0.0"
+  title: "Tradingview Alerts Processor"
+  termsOfService: "http://swagger.io/terms/"
+  contact:
+    email: "apiteam@swagger.io"
+  license:
+    name: "Apache 2.0"
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+host: "[varies-by-deployment-location]"
+basePath: "/"
+tags:
+- name: "account"
+  description: "Exchange account management"
+- name: "trade"
+  description: "Operations regarding trades"
+schemes:
+- "https"
+- "http"
+paths:
+  /accounts:
+    get:
+      tags:
+      - "account"
+      summary: "Lists configured accounts"
+      description: ""
+      operationId: "listAccounts"
+      produces:
+      - "application/json"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/HiddenAccount"
+    post:
+      tags:
+      - "account"
+      summary: "Adds an account (or subaccount, if supported by exchange) under the stub main"
+      description: ""
+      operationId: "addAccount"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Account object that needs to be added"
+        required: true
+        schema:
+          $ref: "#/definitions/Account"
+      responses:
+        "405":
+          description: "Invalid input"
+      # security:
+      # - petstore_auth:
+      #   - "write:pets"
+      #   - "read:pets"
+  /accounts/{stub}:
+    delete:
+      tags:
+      - "account"
+      summary: "Deletes an account"
+      description: ""
+      operationId: "deleteAccount"
+      produces:
+      - "application/json"
+      parameters:
+      # - name: "api_key"
+      #   in: "header"
+      #   required: false
+      #   type: "string"
+      - name: "stub"
+        in: "path"
+        description: "stub of account to delete"
+        required: true
+        type: "string"
+      responses:
+        "400":
+          description: "Invalid stub supplied"
+        "404":
+          description: "Account not found"
+      # security:
+      # - petstore_auth:
+      #   - "write:pets"
+      #   - "read:pets"
+  /trades:
+    post:
+      tags:
+      - "trade"
+      summary: "Places a trade order"
+      description: ""
+      operationId: "placeTrade"
+      consumes:
+      - "application/json"
+      parameters:
+      - name: "order"
+        in: "body"
+        description: "long/short or buy/sell order to place"
+        required: true
+        schema:
+          $ref: "#/definitions/Order"
+      responses:
+        "200":
+          description: "successful operation"
+  /trades/createWithArray:
+    post:
+      tags:
+      - "trade"
+      summary: "Places trade orders"
+      description: ""
+      operationId: "placeTrades"
+      consumes:
+      - "application/json"
+      parameters:
+      - name: "order"
+        in: "body"
+        description: "long/short or buy/sell order to place"
+        required: true
+        schema:
+          $ref: "#/definitions/Order"
+      responses:
+        "200":
+          description: "successful operation"
+  /markets/{exchange}:
+    get:
+      tags:
+      - "market"
+      summary: "List available markets on a specific exchange"
+      description: ""
+      operationId: "getInventory"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "exchange"
+        in: "path"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Market"
+  /balances:
+    get:
+      tags:
+      - "balance"
+      summary: "Lists balances on all configured accounts"
+      description: ""
+      operationId: "listBalances"
+      produces:
+      - "application/json"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Order"
+        "400":
+          description: "Invalid Order"
+  /balances/{stub}:
+    get:
+      tags:
+      - "balance"
+      summary: "Lists balances on all configured accounts"
+      description: ""
+      operationId: "listBalancesByAccount"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "stub"
+        in: "path"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Order"
+        "400":
+          description: "Invalid Order"
+definitions:
+  Order: # TODO: Separate into open/close
+    type: "object"
+    required:
+    - "stub"
+    - "direction"
+    - "symbol"
+    properties:
+      stub:
+        type: "string"
+        example: "dev"
+      direction:
+        type: "string"
+        enum:
+        - "long"
+        - "short"
+        - "buy"
+        - "sell"
+        - "close"
+      symbol:
+        type: "string"
+        example: "ETH-PERP"
+      size:
+        type: "integer"
+        format: "int32"
+        description: "size of the order to be made, in USD. OR - with a % sign - percentage of position to close. OR percentage of available balance/collateral to use for the order"
+    xml:
+      name: "Order"
+  Market:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        format: "int64"
+      username:
+        type: "string"
+      firstName:
+        type: "string"
+      lastName:
+        type: "string"
+      email:
+        type: "string"
+      password:
+        type: "string"
+      phone:
+        type: "string"
+      userStatus:
+        type: "integer"
+        format: "int32"
+        description: "User Status"
+    xml:
+      name: "User"
+  Account:
+    type: "object"
+    required:
+    - "stub"
+    - "exchange"
+    - "apiKey"
+    - "secret"
+    - "passphrase"
+    properties:
+      stub:
+        type: "string"
+        example: "MAIN"
+      subaccount:
+        type: "string"
+        example: "testing"
+      exchange:
+        description: "One of the supported exchanges, matching its cctx exchange ID"
+        type: "string"
+        enum:
+        - "binance"
+        - "binanceus"
+        - "binanceusdm"
+        - "ftx"
+        - "kucoin"
+        - "kraken"
+      apiKey:
+        type: "string"
+        example: "YOUR_API_KEY"
+      secret:
+        type: "string"
+        example: "YOUR_SECRET_KEY"
+      pasphrase:
+        type: "string"
+        example: "YOUR_PASSPHRASE"
+    xml:
+      name: "Account"
+  HiddenAccount:
+    type: "object"
+    required:
+    - "stub"
+    - "exchange"
+    - "apiKey"
+    properties:
+      stub:
+        type: "string"
+        example: "MAIN"
+      subaccount:
+        type: "string"
+        example: "testing"
+      exchange:
+        description: "One of the supported exchanges, matching its cctx exchange ID"
+        type: "string"
+        example: "ftx"
+      apiKey:
+        type: "string"
+        example: "YOUR_API_KEY"
+    xml:
+      name: "Account"
