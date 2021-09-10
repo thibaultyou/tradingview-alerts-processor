@@ -76,6 +76,14 @@
     ```
 
 - Update the app :
+  - Create a snapshot of your current working instance, so you have a back-up in case the update goes wrong:
+    - Go to [AWS lightsail > Instances](https://lightsail.aws.amazon.com/ls/webapp/home/instances)
+    - Open the instance you want to back-up
+    - Open the Snapshots tab
+    - Create snapshot
+    - Give your snapshot a name (hint: add a date and/or time to the snapshot name)
+    - Click Create
+  - Run the following command:
 
     ```sh
     sudo docker-compose pull && sudo docker-compose up -d
