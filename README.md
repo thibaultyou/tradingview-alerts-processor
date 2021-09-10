@@ -11,7 +11,7 @@ Minimalist service designed to execute [TradingView](https://www.tradingview.com
 
 ### 📦 Installation
 
-Choose install your method and follow steps :
+Choose your install method and follow steps :
 
 - [Recommended - AWS lightsail with Docker](docs/install/1b_Docker.md)
 - [AWS lightsail with Nodejs](docs/install/1a_Node.md)
