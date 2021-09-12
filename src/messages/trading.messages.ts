@@ -1,3 +1,4 @@
+import { Trade } from '../entities/trade.entities';
 import { ExchangeId } from '../constants/exchanges.constants';
 import { Side } from '../constants/trading.constants';
 import { getExchangeName } from '../utils/exchanges/common.utils';
@@ -151,6 +152,17 @@ export const REVERSING_TRADE_ERROR = (
     `${getExchangeName(
       exchange
     )}/${accountId} - Failed to reverse position on ${symbol}.`
+  );
+
+export const CREATE_ORDER_ERROR = (
+  exchange: ExchangeId,
+  accountId: string,
+  trade: Trade
+): string => 
+  tradingMessageWrapper(
+    `${getExchangeName(
+      exchange
+    )}/${accountId} - Failed to create ${trade.direction} order on ${trade.symbol}.`
   );
 
 export const OPEN_TRADE_ERROR = (
