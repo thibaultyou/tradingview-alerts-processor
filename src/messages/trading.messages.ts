@@ -158,11 +158,11 @@ export const CREATE_ORDER_ERROR = (
   exchange: ExchangeId,
   accountId: string,
   trade: Trade
-): string => 
+): string =>
   tradingMessageWrapper(
-    `${getExchangeName(
-      exchange
-    )}/${accountId} - Failed to create ${trade.direction} order on ${trade.symbol}.`
+    `${getExchangeName(exchange)}/${accountId} - Failed to create ${
+      trade.direction
+    } order on ${trade.symbol}.`
   );
 
 export const OPEN_TRADE_ERROR = (
