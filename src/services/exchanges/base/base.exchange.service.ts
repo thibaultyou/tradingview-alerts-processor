@@ -13,6 +13,7 @@ import {
   EXCHANGE_INIT_SUCCESS,
   MARKETS_READ_ERROR,
   MARKETS_READ_SUCCESS,
+  TICKER_BALANCE_MISSING_ERROR,
   TICKER_READ_ERROR,
   TICKER_READ_SUCCESS
 } from '../../../messages/exchanges.messages';
@@ -216,6 +217,12 @@ export abstract class BaseExchangeService {
     } else {
       const balances = await this.getBalances(account);
       const balance = balances.filter((b) => b.coin === quote).pop();
+      if (balance == null) {
+        error(TICKER_BALANCE_MISSING_ERROR(this.exchangeId, accountId, symbol));
+        throw new TickerFetchError(
+          TICKER_BALANCE_MISSING_ERROR(this.exchangeId, accountId, symbol)
+        );
+      }
       availableFunds = Number(balance.free);
     }
     info(AVAILABLE_FUNDS(accountId, this.exchangeId, quote, availableFunds));

@@ -7,7 +7,8 @@ import { OpenPositionError } from '../../../errors/trading.errors';
 import { IOrderOptions } from '../../../interfaces/trading.interfaces';
 import {
   TICKER_BALANCE_READ_SUCCESS,
-  TICKER_BALANCE_READ_ERROR
+  TICKER_BALANCE_READ_ERROR,
+  TICKER_BALANCE_MISSING_ERROR
 } from '../../../messages/exchanges.messages';
 import { OPEN_TRADE_ERROR_MAX_SIZE } from '../../../messages/trading.messages';
 import { getAccountId } from '../../../utils/account.utils';
@@ -32,12 +33,21 @@ export abstract class SpotExchangeService extends BaseExchangeService {
     try {
       const balances = await this.getBalances(account);
       const balance = balances.filter((b) => b.coin === symbol).pop();
+      if (balance == null) {
+        throw new TickerFetchError('balance missing');
+      }
       const size = Number(balance.free);
       debug(
         TICKER_BALANCE_READ_SUCCESS(this.exchangeId, accountId, symbol, balance)
       );
       return size;
     } catch (err) {
+      if (err instanceof TickerFetchError && err.message.includes('balance missing')) {
+        error(TICKER_BALANCE_MISSING_ERROR(this.exchangeId, accountId, symbol));
+        throw new TickerFetchError(
+          TICKER_BALANCE_MISSING_ERROR(this.exchangeId, accountId, symbol)
+        );
+      }
       error(TICKER_BALANCE_READ_ERROR(this.exchangeId, accountId, symbol, err));
       throw new TickerFetchError(
         TICKER_BALANCE_READ_ERROR(this.exchangeId, accountId, symbol, err)
@@ -87,13 +97,19 @@ export abstract class SpotExchangeService extends BaseExchangeService {
     const { symbol } = ticker;
     const balance = await this.getTickerBalance(account, ticker);
     const price = getTickerPrice(ticker, this.exchangeId);
+    let orderSize: number;
+    if (balance === 0) {
+      orderSize = 0;
+    } else if (size) {
+      if (size.includes('%')) {
+        orderSize = getRelativeOrderSize(balance, size);
+      } else {
+        orderSize = getTokensAmount(symbol, price, Number(size));
+      }
+    }
     return {
       side: Side.Sell,
-      size: size
-        ? size.includes('%')
-          ? getRelativeOrderSize(balance, size) // handle percentage
-          : getTokensAmount(symbol, price, Number(size)) // handle absolute
-        : balance // default 100%
+      size: orderSize ?? balance // default 100%
     };
   };
 }
