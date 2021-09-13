@@ -1,8 +1,4 @@
-class AbstractError extends Error {
-  constructor(message: string) {
-    super(message);
-  }
-}
+import { AbstractError } from './abstract.error';
 
 export class CreateOrderError extends AbstractError {}
 

@@ -1,29 +1,11 @@
-export class DatabaseReadError extends Error {
-  constructor(message: string) {
-    super(message);
-  }
-}
+import { AbstractError } from './abstract.error';
 
-export class DatabaseCreateError extends Error {
-  constructor(message: string) {
-    super(message);
-  }
-}
+export class DatabaseReadError extends AbstractError {}
 
-export class DatabaseUpdateError extends Error {
-  constructor(message: string) {
-    super(message);
-  }
-}
+export class DatabaseCreateError extends AbstractError {}
 
-export class DatabaseDeleteError extends Error {
-  constructor(message: string) {
-    super(message);
-  }
-}
+export class DatabaseUpdateError extends AbstractError {}
 
-export class DatabaseInitError extends Error {
-  constructor(message: string) {
-    super(message);
-  }
-}
+export class DatabaseDeleteError extends AbstractError {}
+
+export class DatabaseInitError extends AbstractError {}
