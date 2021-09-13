@@ -217,7 +217,7 @@ export abstract class BaseExchangeService {
     } else {
       const balances = await this.getBalances(account);
       const balance = balances.filter((b) => b.coin === quote).pop();
-      if (balance == null) {
+      if (!balance) {
         error(TICKER_BALANCE_MISSING_ERROR(this.exchangeId, accountId, symbol));
         throw new TickerFetchError(
           TICKER_BALANCE_MISSING_ERROR(this.exchangeId, accountId, symbol)

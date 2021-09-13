@@ -33,7 +33,7 @@ export abstract class SpotExchangeService extends BaseExchangeService {
     try {
       const balances = await this.getBalances(account);
       const balance = balances.filter((b) => b.coin === symbol).pop();
-      if (balance == null) {
+      if (!balance) {
         throw new TickerFetchError('balance missing');
       }
       const size = Number(balance.free);

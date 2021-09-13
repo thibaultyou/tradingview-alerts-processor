@@ -22,7 +22,7 @@ export abstract class CompositeExchangeService extends FuturesExchangeService {
     try {
       const balances = await this.getBalances(account);
       const balance = balances.filter((b) => b.coin === symbol).pop();
-      if (balance == null) {
+      if (!balance) {
         throw new TickerFetchError('balance missing');
       }
       const size = Number(balance.free);
