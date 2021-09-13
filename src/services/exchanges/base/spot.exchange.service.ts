@@ -2,7 +2,10 @@ import { Ticker } from 'ccxt';
 import { Side } from '../../../constants/trading.constants';
 import { Account } from '../../../entities/account.entities';
 import { Trade } from '../../../entities/trade.entities';
-import { TickerFetchError } from '../../../errors/exchange.errors';
+import {
+  BalanceMissingError,
+  TickerFetchError
+} from '../../../errors/exchange.errors';
 import { OpenPositionError } from '../../../errors/trading.errors';
 import { IOrderOptions } from '../../../interfaces/trading.interfaces';
 import {
@@ -34,7 +37,7 @@ export abstract class SpotExchangeService extends BaseExchangeService {
       const balances = await this.getBalances(account);
       const balance = balances.filter((b) => b.coin === symbol).pop();
       if (!balance) {
-        throw new TickerFetchError('balance missing');
+        throw new BalanceMissingError();
       }
       const size = Number(balance.free);
       debug(
@@ -42,10 +45,7 @@ export abstract class SpotExchangeService extends BaseExchangeService {
       );
       return size;
     } catch (err) {
-      if (
-        err instanceof TickerFetchError &&
-        err.message.includes('balance missing')
-      ) {
+      if (err instanceof BalanceMissingError) {
         error(TICKER_BALANCE_MISSING_ERROR(this.exchangeId, accountId, symbol));
         throw new TickerFetchError(
           TICKER_BALANCE_MISSING_ERROR(this.exchangeId, accountId, symbol)

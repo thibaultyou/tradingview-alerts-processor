@@ -1,6 +1,9 @@
 import { Ticker } from 'ccxt';
 import { Account } from '../../../entities/account.entities';
-import { TickerFetchError } from '../../../errors/exchange.errors';
+import {
+  BalanceMissingError,
+  TickerFetchError
+} from '../../../errors/exchange.errors';
 import {
   TICKER_BALANCE_READ_SUCCESS,
   TICKER_BALANCE_READ_ERROR,
@@ -23,7 +26,7 @@ export abstract class CompositeExchangeService extends FuturesExchangeService {
       const balances = await this.getBalances(account);
       const balance = balances.filter((b) => b.coin === symbol).pop();
       if (!balance) {
-        throw new TickerFetchError('balance missing');
+        throw new BalanceMissingError();
       }
       const size = Number(balance.free);
       debug(
@@ -31,10 +34,7 @@ export abstract class CompositeExchangeService extends FuturesExchangeService {
       );
       return size;
     } catch (err) {
-      if (
-        err instanceof TickerFetchError &&
-        err.message.includes('balance missing')
-      ) {
+      if (err instanceof BalanceMissingError) {
         error(TICKER_BALANCE_MISSING_ERROR(this.exchangeId, accountId, symbol));
         throw new TickerFetchError(
           TICKER_BALANCE_MISSING_ERROR(this.exchangeId, accountId, symbol)
