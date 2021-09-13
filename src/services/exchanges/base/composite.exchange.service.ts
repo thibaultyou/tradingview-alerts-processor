@@ -31,7 +31,10 @@ export abstract class CompositeExchangeService extends FuturesExchangeService {
       );
       return size;
     } catch (err) {
-      if (err instanceof TickerFetchError && err.message.includes('balance missing')) {
+      if (
+        err instanceof TickerFetchError &&
+        err.message.includes('balance missing')
+      ) {
         error(TICKER_BALANCE_MISSING_ERROR(this.exchangeId, accountId, symbol));
         throw new TickerFetchError(
           TICKER_BALANCE_MISSING_ERROR(this.exchangeId, accountId, symbol)

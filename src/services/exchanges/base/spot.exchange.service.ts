@@ -42,7 +42,10 @@ export abstract class SpotExchangeService extends BaseExchangeService {
       );
       return size;
     } catch (err) {
-      if (err instanceof TickerFetchError && err.message.includes('balance missing')) {
+      if (
+        err instanceof TickerFetchError &&
+        err.message.includes('balance missing')
+      ) {
         error(TICKER_BALANCE_MISSING_ERROR(this.exchangeId, accountId, symbol));
         throw new TickerFetchError(
           TICKER_BALANCE_MISSING_ERROR(this.exchangeId, accountId, symbol)
@@ -97,19 +100,13 @@ export abstract class SpotExchangeService extends BaseExchangeService {
     const { symbol } = ticker;
     const balance = await this.getTickerBalance(account, ticker);
     const price = getTickerPrice(ticker, this.exchangeId);
-    let orderSize: number;
-    if (balance === 0) {
-      orderSize = 0;
-    } else if (size) {
-      if (size.includes('%')) {
-        orderSize = getRelativeOrderSize(balance, size);
-      } else {
-        orderSize = getTokensAmount(symbol, price, Number(size));
-      }
-    }
     return {
       side: Side.Sell,
-      size: orderSize ?? balance // default 100%
+      size: size
+        ? size.includes('%')
+          ? getRelativeOrderSize(balance, size) // handle percentage
+          : getTokensAmount(symbol, price, Number(size)) // handle absolute
+        : balance // default 100%
     };
   };
 }
