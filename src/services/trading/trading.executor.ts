@@ -97,8 +97,8 @@ export class TradingExecutor {
       debug(TRADE_PROCESSING(id));
       const order =
         direction === Side.Close
-          ? await this.exchangeService.closeOrder(account, trade)
-          : await this.exchangeService.openOrder(account, trade);
+          ? await this.exchangeService.createCloseOrder(account, trade)
+          : await this.exchangeService.createOrder(account, trade);
       const end = new Date();
       info(TRADE_EXECUTION_TIME(start, end, id));
       return order;

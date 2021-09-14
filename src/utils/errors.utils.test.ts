@@ -1,22 +1,5 @@
 import { errorMiddleware } from './errors.utils';
-import { Request, Response } from 'express';
-
-const mockError = () => {
-  const err = {} as Error;
-  err.stack = jest.fn().mockReturnValue('stack') as unknown as string;
-  return err;
-};
-
-const mockRequest = () => {
-  return {} as Request;
-};
-
-const mockResponse = () => {
-  const res = {} as Response;
-  res.status = jest.fn().mockReturnValue(res);
-  res.send = jest.fn().mockReturnValue(res);
-  return res;
-};
+import { mockError, mockRequest, mockResponse } from '../tests/tests.utils';
 
 describe('errorMiddleware', () => {
   it('should send an error response', () => {

@@ -1,17 +1,7 @@
-export class AccountReadError extends Error {
-  constructor(message: string) {
-    super(message);
-  }
-}
+import { AbstractError } from './abstract.error';
 
-export class AccountRemoveError extends Error {
-  constructor(message: string) {
-    super(message);
-  }
-}
+export class AccountReadError extends AbstractError {}
 
-export class AccountWriteError extends Error {
-  constructor(message: string) {
-    super(message);
-  }
-}
+export class AccountRemoveError extends AbstractError {}
+
+export class AccountWriteError extends AbstractError {}

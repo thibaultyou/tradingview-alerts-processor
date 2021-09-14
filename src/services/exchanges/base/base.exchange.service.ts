@@ -13,6 +13,7 @@ import {
   EXCHANGE_INIT_SUCCESS,
   MARKETS_READ_ERROR,
   MARKETS_READ_SUCCESS,
+  TICKER_BALANCE_MISSING_ERROR,
   TICKER_READ_ERROR,
   TICKER_READ_SUCCESS
 } from '../../../messages/exchanges.messages';
@@ -28,6 +29,7 @@ import { IOrderOptions } from '../../../interfaces/trading.interfaces';
 import {
   CLOSE_TRADE_ERROR,
   CLOSE_TRADE_SUCCESS,
+  CREATE_ORDER_ERROR,
   OPEN_LONG_TRADE_SUCCESS,
   OPEN_SHORT_TRADE_SUCCESS,
   OPEN_TRADE_ERROR,
@@ -35,6 +37,7 @@ import {
 } from '../../../messages/trading.messages';
 import {
   ClosePositionError,
+  CreateOrderError,
   OpenPositionError,
   OrderSizeError
 } from '../../../errors/trading.errors';
@@ -214,6 +217,12 @@ export abstract class BaseExchangeService {
     } else {
       const balances = await this.getBalances(account);
       const balance = balances.filter((b) => b.coin === quote).pop();
+      if (!balance) {
+        error(TICKER_BALANCE_MISSING_ERROR(this.exchangeId, accountId, symbol));
+        throw new TickerFetchError(
+          TICKER_BALANCE_MISSING_ERROR(this.exchangeId, accountId, symbol)
+        );
+      }
       availableFunds = Number(balance.free);
     }
     info(AVAILABLE_FUNDS(accountId, this.exchangeId, quote, availableFunds));
@@ -274,7 +283,7 @@ export abstract class BaseExchangeService {
     }
   };
 
-  openOrder = async (account: Account, trade: Trade): Promise<Order> => {
+  createOrder = async (account: Account, trade: Trade): Promise<Order> => {
     await this.refreshSession(account);
     const { symbol, direction } = trade;
     const accountId = getAccountId(account);
@@ -292,8 +301,27 @@ export abstract class BaseExchangeService {
         getSide(direction) === Side.Sell &&
         isSpotExchange(ticker, this.exchangeId)
       ) {
-        return await this.closeOrder(account, trade, ticker);
+        return await this.createCloseOrder(account, trade, ticker);
+      } else {
+        return await this.createOpenOrder(account, trade, ticker);
       }
+      // }
+    } catch (err) {
+      error(CREATE_ORDER_ERROR(this.exchangeId, accountId, trade), err);
+      throw new CreateOrderError(
+        CREATE_ORDER_ERROR(this.exchangeId, accountId, trade)
+      );
+    }
+  };
+
+  createOpenOrder = async (
+    account: Account,
+    trade: Trade,
+    ticker?: Ticker // can be preloaded in openOrder
+  ): Promise<Order> => {
+    const accountId = getAccountId(account);
+    const { symbol } = trade;
+    try {
       const { side, size } = await this.getOpenOrderOptions(
         account,
         ticker,
@@ -321,7 +349,6 @@ export abstract class BaseExchangeService {
             )
           );
       return order;
-      // }
     } catch (err) {
       error(OPEN_TRADE_ERROR(this.exchangeId, accountId, symbol), err);
       throw new OpenPositionError(
@@ -330,7 +357,7 @@ export abstract class BaseExchangeService {
     }
   };
 
-  closeOrder = async (
+  createCloseOrder = async (
     account: Account,
     trade: Trade,
     ticker?: Ticker // can be preloaded in openOrder
