@@ -7,6 +7,10 @@
 > Only USD based markets are supported for now
 >
 
+>
+> ⚠️ Please avoid using margin trading with FTX, it can kill your portfolio since available size to sell can be greater than your real balances
+>
+
 Minimalist service designed to execute [TradingView](https://www.tradingview.com/) webhooks and process them to cryptocurrencies exchanges from [AWS lightsail](https://lightsail.aws.amazon.com/).
 
 ### 📦 Installation
