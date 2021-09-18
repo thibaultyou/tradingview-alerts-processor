@@ -1,21 +1,21 @@
 describe('Side utils', () => {
-    describe('getSide', () => {
-        it.todo('should return Close')
+  describe('getSide', () => {
+    it.todo('should return Close');
 
-        it.todo('should return Sell')
+    it.todo('should return Sell');
 
-        it.todo('should return Buy')
-    })
+    it.todo('should return Buy');
+  });
 
-    describe('getInvertedSide', () => {
-        it.todo('should return Sell')
+  describe('getInvertedSide', () => {
+    it.todo('should return Sell');
 
-        it.todo('should return Buy')
-    })
+    it.todo('should return Buy');
+  });
 
-    describe('isSideDifferent', () => {
-        it.todo('should return true')
+  describe('isSideDifferent', () => {
+    it.todo('should return true');
 
-        it.todo('should return false')
-    })
-})
+    it.todo('should return false');
+  });
+});

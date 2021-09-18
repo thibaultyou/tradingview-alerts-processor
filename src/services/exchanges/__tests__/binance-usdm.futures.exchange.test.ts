@@ -1,23 +1,23 @@
 describe('Binance futures USDM exchange service', () => {
-    describe('constructor', () => {
-        it.todo('should set exchange id')
-    })
-    
-    describe('fetchPositions', () => {
-        it.todo('should fetch positions')
+  describe('constructor', () => {
+    it.todo('should set exchange id');
+  });
 
-        it.todo('should throw on error')
-    })
+  describe('fetchPositions', () => {
+    it.todo('should fetch positions');
 
-    describe('getCloseOrderOptions', () => {
-        it.todo('should fetch ticker position')
+    it.todo('should throw on error');
+  });
 
-        it.todo('should handle relative order size')
+  describe('getCloseOrderOptions', () => {
+    it.todo('should fetch ticker position');
 
-        it.todo('should handle absolute order size')
+    it.todo('should handle relative order size');
 
-        it.todo('should handle maximum order size')
+    it.todo('should handle absolute order size');
 
-        it.todo('should return order options')
-    })
-})
+    it.todo('should handle maximum order size');
+
+    it.todo('should return order options');
+  });
+});

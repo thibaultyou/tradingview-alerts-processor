@@ -84,7 +84,8 @@ export const readAccount = async (accountId: string): Promise<Account> => {
 export const readAccounts = async (): Promise<Account[]> => {
   try {
     const db = DatabaseService.getDatabaseInstance();
-    const id = DatabaseService.getType() === DatabaseId.REDIS ? REDIS_WILDCARD : '';
+    const id =
+      DatabaseService.getType() === DatabaseId.REDIS ? REDIS_WILDCARD : '';
     const accounts = (await db.read(id)) as Record<string, Account>;
     debug(ACCOUNTS_READ_SUCCESS());
     return Object.values(accounts);

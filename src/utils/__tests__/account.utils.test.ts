@@ -8,7 +8,9 @@ import { sampleAccount } from '../../tests/fixtures/common.fixtures';
 describe('Account utils', () => {
   describe('getAccountId', () => {
     it('should return uppercase stub', () => {
-      expect(getAccountId(sampleAccount)).toBe(sampleAccount.stub.toUpperCase());
+      expect(getAccountId(sampleAccount)).toBe(
+        sampleAccount.stub.toUpperCase()
+      );
     });
   });
 

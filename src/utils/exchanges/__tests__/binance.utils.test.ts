@@ -1,6 +1,5 @@
-
-  describe('Binance utils', () => {
-    describe('formatBinanceFuturesSymbol', () => {
-      it.todo('should formatted symbol')
-    })
-  })
+describe('Binance utils', () => {
+  describe('formatBinanceFuturesSymbol', () => {
+    it.todo('should formatted symbol');
+  });
+});

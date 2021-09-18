@@ -1,5 +1,5 @@
 describe('Market validators', () => {
-    describe('validateMarket', () => {
-        it.todo('should validate params')
-    })    
-})
+  describe('validateMarket', () => {
+    it.todo('should validate params');
+  });
+});

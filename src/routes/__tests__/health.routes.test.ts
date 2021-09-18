@@ -1,5 +1,5 @@
 describe('Health routes', () => {
-    describe('checkHealth', () => {
-        it.todo('should return health');
-    })
-})
+  describe('checkHealth', () => {
+    it.todo('should return health');
+  });
+});

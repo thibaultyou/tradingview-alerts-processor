@@ -11,27 +11,27 @@ describe('Logger utils', () => {
   });
 
   describe('defaultLoggerFormat', () => {
-    it.todo('should combine default logging formats')
+    it.todo('should combine default logging formats');
   });
 
   describe('consoleLoggerOptions', () => {
-    it.todo('should combine console logging formats')
+    it.todo('should combine console logging formats');
 
-    it.todo('should set console logging level')
+    it.todo('should set console logging level');
 
-    it.todo('should return console logger options')
+    it.todo('should return console logger options');
   });
 
   describe('errorLogFileLoggerOptions', () => {
-    it.todo('should return error file logger options')
+    it.todo('should return error file logger options');
   });
 
   describe('debugLogFileLoggerOptions', () => {
-    it.todo('should return debug file logger options')
+    it.todo('should return debug file logger options');
   });
 
   describe('tradesLogFileLoggerOptions', () => {
-    it.todo('should return trades file logger options')
+    it.todo('should return trades file logger options');
   });
 
   describe('messageWrapper', () => {
