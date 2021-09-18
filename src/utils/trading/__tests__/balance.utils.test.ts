@@ -1,15 +1,16 @@
-import { IBalance } from '../../interfaces/exchanges/common.exchange.interfaces';
-import { ExchangeId } from '../../constants/exchanges.constants';
+import { IBalance } from '../../../interfaces/exchanges/common.exchange.interfaces';
+import { ExchangeId } from '../../../constants/exchanges.constants';
 
 import {
   sampleBinanceSpotBalance,
   sampleBinanceFuturesUSDBalance
-} from '../../tests/fixtures/binance.fixtures';
-import { sampleBinanceUSSpotBalance } from '../../tests/fixtures/binanceus.fixtures';
-import { filterBalances } from './balance.utils';
+} from '../../../tests/fixtures/binance.fixtures';
+import { sampleBinanceUSSpotBalance } from '../../../tests/fixtures/binanceus.fixtures';
+import { filterBalances } from '../balance.utils';
 
+describe('Balance utils', () => {
 describe('filterBalances', () => {
-  it('should find symbol, free amount, and total amount for Binance', () => {
+  it('should return Binance Spot balances', () => {
     const sampleBinanceSpotBalances = {
       info: { balances: [sampleBinanceSpotBalance] }
     };
@@ -25,7 +26,7 @@ describe('filterBalances', () => {
     );
   });
 
-  it('should find symbol, free amount, and total amount for BinanceUS', () => {
+  it('should return BinanceUS Spot balances', () => {
     const sampleBinanceUSSpotBalances = {
       info: { balances: [sampleBinanceUSSpotBalance] }
     };
@@ -41,7 +42,7 @@ describe('filterBalances', () => {
     );
   });
 
-  it('should find symbol, free amount, and total amount for Binance Futures USD', () => {
+  it('should return Binance Futures USD balances', () => {
     const sampleBinanceFuturesUSDBalances = {
       info: { assets: [sampleBinanceFuturesUSDBalance] }
     };
@@ -55,4 +56,11 @@ describe('filterBalances', () => {
     );
     expect(result[0].total).toBe(sampleBinanceFuturesUSDBalance.walletBalance);
   });
+
+  it.todo('should return KuCoin Spot balances');
+
+  it.todo('should return Kraken Spot balances');
+
+  it.todo('should return FTX balances');
+});
 });

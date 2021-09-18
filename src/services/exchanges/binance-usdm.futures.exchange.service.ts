@@ -19,6 +19,7 @@ export class BinanceFuturesUSDMExchangeService extends FuturesExchangeService {
     instance: Exchange
   ): Promise<IBinanceFuturesUSDPosition[]> => await instance.fetchPositions();
 
+  // TODO merge with FTX and move into futures ?
   getCloseOrderOptions = async (
     account: Account,
     ticker: Ticker,

@@ -17,6 +17,8 @@ import { DatabaseId } from '../constants/db.constants';
 
 const accounts = new Map<string, Account>();
 
+const REDIS_WILDCARD = '*';
+
 export const writeAccount = async (account: Account): Promise<Account> => {
   const { exchange } = account;
   const id = getAccountId(account);
@@ -40,14 +42,18 @@ export const writeAccount = async (account: Account): Promise<Account> => {
 
     try {
       await db.create(id, account);
+      // TODO extract this and add another error type in case of reading failure
+      // cache account only if success
       accounts.set(id, account);
       info(ACCOUNT_WRITE_SUCCESS(id));
+      // this too
       return readAccount(id);
     } catch (err) {
       error(ACCOUNT_WRITE_ERROR(id), err);
       throw new AccountWriteError(ACCOUNT_WRITE_ERROR(id, err.message));
     }
   }
+  // TODO replace by a more appropriate error type
   error(ACCOUNT_WRITE_ERROR_ALREADY_EXISTS(id));
   throw new AccountWriteError(ACCOUNT_WRITE_ERROR_ALREADY_EXISTS(id));
 };
@@ -75,17 +81,17 @@ export const readAccount = async (accountId: string): Promise<Account> => {
   return account;
 };
 
-// TODO update logs
 export const readAccounts = async (): Promise<Account[]> => {
   try {
     const db = DatabaseService.getDatabaseInstance();
-    const id = DatabaseService.getType() === DatabaseId.REDIS ? '*' : '';
+    const id = DatabaseService.getType() === DatabaseId.REDIS ? REDIS_WILDCARD : '';
     const accounts = (await db.read(id)) as Record<string, Account>;
     debug(ACCOUNTS_READ_SUCCESS());
     return Object.values(accounts);
   } catch (err) {
-    error(ACCOUNT_READ_ERROR('*'), err);
-    throw new AccountReadError(ACCOUNT_READ_ERROR('*', err.message));
+    // TODO update logs
+    error(ACCOUNT_READ_ERROR(REDIS_WILDCARD), err);
+    throw new AccountReadError(ACCOUNT_READ_ERROR(REDIS_WILDCARD, err.message));
   }
 };
 

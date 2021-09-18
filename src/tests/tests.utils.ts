@@ -15,19 +15,20 @@ export const clearTestingDatabase = (): void => {
   }
 };
 
-export const mockError = (): Error => {
+export const mockError = (mock?: Record<string, any>): Error => {
   const err = {
-    stack: 'stack'
+    stack: 'stack',
+    ...mock
   } as Error;
   return err;
 };
 
-export const mockRequest = (): Request => {
-  return {} as Request;
+export const mockRequest = (mock?: Record<string, any>): Request => {
+  return { ...mock } as Request;
 };
 
-export const mockResponse = (): Response => {
-  const res = {} as Response;
+export const mockResponse = (mock?: Record<string, any>): Response => {
+  const res = { ...mock } as Response;
   res.status = jest.fn().mockReturnValue(res);
   res.send = jest.fn().mockReturnValue(res);
   return res;

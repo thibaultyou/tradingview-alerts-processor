@@ -35,6 +35,7 @@ export abstract class SpotExchangeService extends BaseExchangeService {
     const symbol = getSpotSymbol(ticker.symbol);
     try {
       const balances = await this.getBalances(account);
+      // TODO refacto (see Composite)
       const balance = balances.filter((b) => b.coin === symbol).pop();
       if (!balance) {
         throw new BalanceMissingError();
@@ -73,6 +74,7 @@ export abstract class SpotExchangeService extends BaseExchangeService {
       const tickerBalance = await this.getTickerBalance(account, ticker);
       current = getOrderCost(ticker, this.exchangeId, tickerBalance);
     } catch (err) {
+      // TODO refacto
       // silent
     }
     if (

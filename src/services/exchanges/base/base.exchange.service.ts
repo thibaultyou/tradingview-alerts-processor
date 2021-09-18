@@ -179,6 +179,7 @@ export abstract class BaseExchangeService {
   getMarkets = async (): Promise<IMarket[]> => {
     try {
       const markets: ccxt.Market[] = await this.defaultExchange.fetchMarkets();
+      // TODO refacto
       const availableMarkets = markets.flatMap((m) =>
         m.active
           ? {

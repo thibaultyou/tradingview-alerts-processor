@@ -26,6 +26,8 @@ export class FTXExchangeService extends CompositeExchangeService {
   fetchPositions = async (instance: Exchange): Promise<IFTXFuturesPosition[]> =>
     (await instance.privateGetAccount()).result.positions;
 
+  // TODO merge with Binance USDM and move into futures ?
+  // TODO maybe split in two parts for composite ?
   getCloseOrderOptions = async (
     account: Account,
     ticker: Ticker,

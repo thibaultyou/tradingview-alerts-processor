@@ -24,6 +24,7 @@ export abstract class CompositeExchangeService extends FuturesExchangeService {
     const symbol = getSpotSymbol(ticker.symbol);
     try {
       const balances = await this.getBalances(account);
+      // TODO refacto (see Spot)
       const balance = balances.filter((b) => b.coin === symbol).pop();
       if (!balance) {
         throw new BalanceMissingError();
