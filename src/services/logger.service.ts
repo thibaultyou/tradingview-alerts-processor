@@ -1,13 +1,11 @@
 import { createLogger, transports } from 'winston';
 import {
+  consoleLoggerOptions,
   debugLogFileLoggerOptions,
+  defaultLoggerFormat,
   errorLogFileLoggerOptions,
   tradesLogFileLoggerOptions
-} from '../utils/logger.utils';
-import {
-  consoleLoggerOptions,
-  defaultLoggerFormat
-} from '../utils/logger.utils';
+} from '../utils';
 
 const logger = createLogger({
   level: 'debug',

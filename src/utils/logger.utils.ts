@@ -40,6 +40,3 @@ export const debugLogFileLoggerOptions: transports.FileTransportOptions = {
 export const tradesLogFileLoggerOptions: transports.FileTransportOptions = {
   filename: 'logs/trades.log'
 };
-
-export const messageWrapper = (prefix: string, message: string): string =>
-  `${prefix}|${message}`;

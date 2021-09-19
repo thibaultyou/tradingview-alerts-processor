@@ -49,19 +49,16 @@ import {
 import { IMarket } from '../../../interfaces/market.interfaces';
 import { isFTXSpot } from '../../../utils/exchanges/ftx.utils';
 import { IFTXAccountInformations } from '../../../interfaces/exchanges/ftx.exchange.interfaces';
+import { getExchangeOptions, isSpotExchange } from '../../../utils/exchanges';
 import {
-  getExchangeOptions,
-  isSpotExchange
-} from '../../../utils/exchanges/common.utils';
-import { getSpotQuote } from '../../../utils/trading/symbol.utils';
-import { getSide } from '../../../utils/trading/side.utils';
-import {
+  filterBalances,
   getOrderCost,
   getRelativeOrderSize,
+  getSide,
+  getSpotQuote,
+  getTickerPrice,
   getTokensAmount
-} from '../../../utils/trading/conversion.utils';
-import { getTickerPrice } from '../../../utils/trading/ticker.utils';
-import { filterBalances } from '../../../utils/trading/balance.utils';
+} from '../../../utils/trading';
 
 export abstract class BaseExchangeService {
   exchangeId: ExchangeId;

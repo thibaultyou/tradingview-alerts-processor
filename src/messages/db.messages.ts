@@ -1,4 +1,4 @@
-import { messageWrapper } from '../utils/logger.utils';
+import { messageWrapper } from './message.utils';
 
 const databaseMessageWrapper = (messsage: string): string =>
   messageWrapper('database', messsage);

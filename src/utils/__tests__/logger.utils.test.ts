@@ -1,5 +1,6 @@
+import { messageWrapper } from '../../messages';
 import { mockRequest, mockResponse } from '../../tests/tests.utils';
-import { loggingMiddleware, messageWrapper } from '../logger.utils';
+import { loggingMiddleware } from '../logger.utils';
 
 describe('Logger utils', () => {
   describe('loggingMiddleware', () => {
