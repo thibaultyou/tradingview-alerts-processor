@@ -59,3 +59,10 @@ Feel free to submit [Github issues](https://github.com/thibaultyou/tradingview-a
 Best way to show your support to this tool is by hitting the star button [![Stars](https://img.shields.io/github/stars/thibaultyou/tradingview-alerts-processor?style=social)](https://github.com/thibaultyou/tradingview-alerts-processor/stargazers), you can also [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/thibaultyou).
 
 You can join us on the Jackrabbit Discord server [![Discord](https://img.shields.io/discord/664206005881536512)](https://discord.gg/mNMVWXpAGd) where I'll be happy to answer questions there, you'll also find great strategies to use with this tool.
+
+#### Local Development
+If you're trying to run it locally for testing/development purposes, a prerequisite is NodeJS. After downloading the repository, run `npm install` to get the necessary dependencies.
+
+To run tests, run `npm run-script test`.
+
+To run TAP locally, either run `npm run-script start` or, if using VS Code, press F5 or click Run > Start Debugging. You have the option to attach a debugger to an already-running process.
