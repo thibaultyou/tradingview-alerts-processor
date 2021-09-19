@@ -1,31 +1,8 @@
-// import { Ticker } from 'ccxt';
-// import { Account } from '../../../../entities/account.entities';
-// import { Trade } from '../../../../entities/trade.entities';
-import { IOrderOptions } from '../../../../interfaces/trading.interfaces';
-import { ExchangeId } from '../../../../constants/exchanges.constants';
-import { BaseExchangeService } from '../base.exchange.service';
-//import * as MyBaseExchangeService from '../base.exchange.service'; const BaseExchangeService = MyBaseExchangeService.BaseExchangeService;
-
 describe('Base exchange service', () => {
   describe('constructor', () => {
-    // class MockExchangeService extends BaseExchangeService {
-    //   getCloseOrderOptions(): Promise<IOrderOptions> {
-    //     throw new Error('Method not implemented.');
-    //   }
-    //   handleMaxBudget(): Promise<void> {
-    //     throw new Error('Method not implemented.');
-    //   }
-    // }
-    // let exchangeService: MockExchangeService;
-    // beforeEach(() => {
-    //   exchangeService = new MockExchangeService(ExchangeId.BinanceUS);
-    // });
-    // it('should set exchange id', () => {
-    //   expect(exchangeService.exchangeId).toBe(ExchangeId.BinanceUS);
-    // });
-    // it('should init default exchange instance', () => {
-    //   expect(exchangeService.defaultExchange).toBeDefined();
-    // });
+    it.todo('should set exchange id');
+
+    it.todo('should init default exchange instance');
   });
 
   describe('checkCredentials', () => {

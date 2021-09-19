@@ -2,8 +2,8 @@ import { Ticker } from 'ccxt';
 import { ExchangeId } from '../constants/exchanges.constants';
 import { FuturesPosition } from '../types/exchanges.types';
 import { IBalance } from '../interfaces/exchanges/common.exchange.interfaces';
-import { messageWrapper } from './message.utils';
-import { getExchangeName } from '../utils/exchanges';
+import { messageWrapper } from '../utils/logger.utils';
+import { getExchangeName } from '../utils/exchanges/common.utils';
 
 const exchangesMessageWrapper = (messsage: string): string =>
   messageWrapper('exchanges', messsage);

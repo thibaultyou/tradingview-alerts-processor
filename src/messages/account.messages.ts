@@ -1,4 +1,4 @@
-import { messageWrapper } from './message.utils';
+import { messageWrapper } from '../utils/logger.utils';
 
 const accountsMessageWrapper = (messsage: string): string =>
   messageWrapper('account', messsage);

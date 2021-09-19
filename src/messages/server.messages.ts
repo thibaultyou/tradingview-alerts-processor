@@ -1,4 +1,4 @@
-import { messageWrapper } from './message.utils';
+import { messageWrapper } from '../utils/logger.utils';
 
 const serverMessageWrapper = (messsage: string): string =>
   messageWrapper('server', messsage);

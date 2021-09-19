@@ -1,8 +1,8 @@
 import { Trade } from '../entities/trade.entities';
 import { ExchangeId } from '../constants/exchanges.constants';
 import { Side } from '../constants/trading.constants';
-import { getExchangeName } from '../utils/exchanges';
-import { messageWrapper } from './message.utils';
+import { getExchangeName } from '../utils/exchanges/common.utils';
+import { messageWrapper } from '../utils/logger.utils';
 
 const tradingMessageWrapper = (messsage: string): string =>
   messageWrapper('trading', messsage);
