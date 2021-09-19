@@ -1,6 +1,12 @@
+import { JSONDatabaseService } from '../json.db.service';
+
 describe('JSON database service', () => {
   describe('constructor', () => {
-    it.todo('should apply config');
+    it('should apply config', () => {
+      const mockClient = jest.fn();
+      new JSONDatabaseService(mockClient);
+      expect(mockClient).toHaveBeenCalled();
+    });
   });
 
   describe('read', () => {

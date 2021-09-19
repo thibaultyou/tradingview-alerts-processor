@@ -1,6 +1,12 @@
+import { RedisDatabaseService } from '../redis.db.service';
+
 describe('Redis database service', () => {
   describe('constructor', () => {
-    it.todo('should apply config');
+    it('should apply config', () => {
+      const mockClient = jest.fn();
+      new RedisDatabaseService(mockClient);
+      expect(mockClient).toHaveBeenCalled();
+    });
   });
 
   describe('readKey', () => {

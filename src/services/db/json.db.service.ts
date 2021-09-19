@@ -27,15 +27,19 @@ import {
 } from '../../errors/db.errors';
 import { IDatabase } from '../../interfaces/db.interfaces';
 
+function defaultJsonDbClient(): JsonDB {
+  return new JsonDB(
+    new Config(JSON_DATABASE_NAME, true, true, JSON_DATABASE_ROOT_PATH)
+  );
+}
+
 export class JSONDatabaseService implements IDatabase {
   private instance: JsonDB;
 
-  constructor() {
+  constructor(defaultClient: () => JsonDB = defaultJsonDbClient) {
     try {
       debug(JSON_DATABASE_LOADING);
-      this.instance = new JsonDB(
-        new Config(JSON_DATABASE_NAME, true, true, JSON_DATABASE_ROOT_PATH)
-      );
+      this.instance = defaultClient();
       debug(DATABASE_CONFIGURATION_SUCCESS);
     } catch (err) {
       error(DATABASE_CONFIGURATION_ERROR, err);
