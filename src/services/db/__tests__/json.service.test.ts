@@ -20,45 +20,80 @@ describe('JSON database service', () => {
      */
     it('should return entry', () => {
       const mockGetData = jest.fn(() => 'someData');
-
       const mockClientCreator = () => {
         const mockInstance = {} as JsonDB;
         mockInstance.getData = mockGetData;
         return mockInstance;
       };
+      const service = new JSONDatabaseService(mockClientCreator);
 
       const key = 'aKey';
-      const service = new JSONDatabaseService(mockClientCreator);
       const result = service.read(key);
       expect(mockGetData).toHaveBeenCalledWith(`/${key}`);
       expect(result).toEqual('someData');
     });
 
+    /**
+     * Confirms that an errow thrown by this.instance.getData() is propagated.
+     */
     it('should return error', () => {
       const mockGetData = jest.fn(() => {
         throw new Error();
       });
-
       const mockClientCreator = () => {
         const mockInstance = {} as JsonDB;
         mockInstance.getData = mockGetData;
         return mockInstance;
       };
+      const service = new JSONDatabaseService(mockClientCreator);
 
       const key = 'aKey';
-      const service = new JSONDatabaseService(mockClientCreator);
       expect(() => {
         service.read(key);
       }).toThrow();
     });
   });
 
-  describe('write', () => {
-    it.todo('should create entry');
+  describe('create', () => {
+    /**
+     * Confirms that the provided key is prepended with a '/',
+     * and that this.instance.push() is called with such,
+     * and that the provided value is returned.
+     */
+    it('should create entry and return entry', () => {
+      const key = 'aKey';
+      const value = 'someValue';
 
-    it.todo('should return entry');
+      const mockPush = jest.fn(() => value);
+      const mockClientCreator = () => {
+        const mockInstance = {} as JsonDB;
+        mockInstance.push = mockPush;
+        return mockInstance;
+      };
+      const service = new JSONDatabaseService(mockClientCreator);
 
-    it.todo('should return error');
+      service.create(key, value);
+      expect(mockPush).toHaveBeenCalledWith(`/${key}`, value);
+      expect(value).toEqual(value);
+    });
+
+    it('should return error', () => {
+      const mockPush = jest.fn(() => {
+        throw new Error();
+      });
+      const mockClientCreator = () => {
+        const mockInstance = {} as JsonDB;
+        mockInstance.getData = mockPush;
+        return mockInstance;
+      };
+      const service = new JSONDatabaseService(mockClientCreator);
+
+      const key = 'aKey';
+      const value = 'someValue';
+      expect(() => {
+        service.create(key, value);
+      }).toThrow();
+    });
   });
 
   describe('update', () => {
