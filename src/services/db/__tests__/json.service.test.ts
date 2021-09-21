@@ -19,7 +19,9 @@ describe('JSON database service', () => {
      * and that its result is returned.
      */
     it('should return entry', () => {
-      const mockGetData = jest.fn(() => 'someData');
+      const key = 'aKey';
+      const value = 'someData';
+      const mockGetData = jest.fn(() => value);
       const mockClientCreator = () => {
         const mockInstance = {} as JsonDB;
         mockInstance.getData = mockGetData;
@@ -27,10 +29,9 @@ describe('JSON database service', () => {
       };
       const service = new JSONDatabaseService(mockClientCreator);
 
-      const key = 'aKey';
       const result = service.read(key);
       expect(mockGetData).toHaveBeenCalledWith(`/${key}`);
-      expect(result).toEqual('someData');
+      expect(result).toEqual(value);
     });
 
     /**
@@ -97,20 +98,105 @@ describe('JSON database service', () => {
   });
 
   describe('update', () => {
-    it.todo('should delete old entry');
+    it('should delete old entry', async () => {
+      const key = 'aKey';
+      const value = 'someValue';
+      const newValue = 'newValue';
 
-    it.todo('should write new entry');
+      const mockGetData = jest.fn();
+      const mockDelete = jest.fn(() => value);
+      const mockPush = jest.fn();
+      const mockClientCreator = () => {
+        const mockInstance = {} as JsonDB;
+        mockInstance.getData = mockGetData;
+        mockInstance.delete = mockDelete;
+        mockInstance.push = mockPush;
+        return mockInstance;
+      };
+      const service = new JSONDatabaseService(mockClientCreator);
 
-    it.todo('should return new entry');
+      await service.update(key, newValue);
+      expect(mockDelete).toHaveBeenCalledWith(`/${key}`);
+    });
 
-    it.todo('should return error');
+    it('should write new entry and return new value', async () => {
+      const key = 'aKey';
+      const newValue = 'newValue';
+
+      const mockGetData = jest.fn();
+      const mockDelete = jest.fn();
+      const mockPush = jest.fn();
+      const mockClientCreator = () => {
+        const mockInstance = {} as JsonDB;
+        mockInstance.getData = mockGetData;
+        mockInstance.delete = mockDelete;
+        mockInstance.push = mockPush;
+        return mockInstance;
+      };
+      const service = new JSONDatabaseService(mockClientCreator);
+
+      const result = await service.update(key, newValue);
+      expect(mockPush).toHaveBeenCalledWith(`/${key}`, newValue);
+      expect(result).toEqual(newValue);
+    });
+
+    it('should return error', async () => {
+      const key = 'aKey';
+      const newValue = 'newValue';
+
+      const mockGetData = jest.fn();
+      const mockDelete = jest.fn();
+      const mockPush = jest.fn(() => {
+        throw new Error();
+      });
+      const mockClientCreator = () => {
+        const mockInstance = {} as JsonDB;
+        mockInstance.getData = mockGetData;
+        mockInstance.delete = mockDelete;
+        mockInstance.push = mockPush;
+        return mockInstance;
+      };
+      const service = new JSONDatabaseService(mockClientCreator);
+
+      await expect(service.update(key, newValue)).rejects.toThrow();
+    });
   });
 
   describe('delete', () => {
-    it.todo('should delete old entry');
+    it('should delete old entry and return old entry', () => {
+      const key = 'deleteMe';
+      const value = 'outdatedInfo';
 
-    it.todo('should return old entry');
+      const mockGetData = jest.fn(() => value);
+      const mockDelete = jest.fn(() => value);
+      const mockClientCreator = () => {
+        const mockInstance = {} as JsonDB;
+        mockInstance.getData = mockGetData;
+        mockInstance.delete = mockDelete;
+        return mockInstance;
+      };
+      const service = new JSONDatabaseService(mockClientCreator);
 
-    it.todo('should return error');
+      service.delete(key);
+      expect(mockDelete).toHaveBeenCalledWith(`/${key}`);
+      expect(value).toEqual(value);
+    });
+
+    it('should return error', () => {
+      const mockDelete = jest.fn(() => {
+        throw new Error();
+      });
+      const mockClientCreator = () => {
+        const mockInstance = {} as JsonDB;
+        mockInstance.delete = mockDelete;
+        return mockInstance;
+      };
+      const service = new JSONDatabaseService(mockClientCreator);
+
+      const key = 'aKey';
+      expect(() => {
+        service.delete(key);
+      }).toThrow();
+    });
   });
 });
