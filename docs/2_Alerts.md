@@ -6,6 +6,7 @@
 - Configure alert
   - Setup your condition
   - Webhook url : `http://YOUR.STATIC.IP.ADDRESS/trades`
+  - Search the exchange symbol alias format you want to trade (examples: XXX-PERP for FTX futures, XXX/USD for FTX spot, XXX/USDT for Binance USD markets ... you can use list markets command in [Commands section](./3_Commands.md)) 
   - Message should have this structure :
     - Long position :
 
@@ -60,19 +61,6 @@
         ```json
         [{ "stub": "dev", "direction": "long", "symbol": "ETH-PERP", "size": "50" }, { "stub": "dev", "direction": "long", "symbol": "BTC-PERP", "size": "50" }]
         ```
-        
-        
-<br/>
-
-
-
-Please Note:<br/>
-
-For Binance Future use symble as `"ETH/USDT"` <br/>
-
-IE. for long<br/>
-`{ "stub": "dev", "direction": "long", "symbol": "ETH/USDT", "size": "50" }`
-<br/>
 
 <!-- 
     - Short position and close opened Long position if any :

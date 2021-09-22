@@ -1,35 +1,15 @@
-export class ExchangeInstanceInitError extends Error {
-  constructor(message: string) {
-    super(message);
-  }
-}
+import { AbstractError } from './abstract.error';
 
-export class BalancesFetchError extends Error {
-  constructor(message: string) {
-    super(message);
-  }
-}
+export class ExchangeInstanceInitError extends AbstractError {}
 
-export class MarketsFetchError extends Error {
-  constructor(message: string) {
-    super(message);
-  }
-}
+export class BalancesFetchError extends AbstractError {}
 
-export class TickerFetchError extends Error {
-  constructor(message: string) {
-    super(message);
-  }
-}
+export class MarketsFetchError extends AbstractError {}
 
-export class PositionsFetchError extends Error {
-  constructor(message: string) {
-    super(message);
-  }
-}
+export class TickerFetchError extends AbstractError {}
 
-export class ConversionError extends Error {
-  constructor(message: string) {
-    super(message);
-  }
-}
+export class BalanceMissingError extends Error {}
+
+export class PositionsFetchError extends AbstractError {}
+
+export class ConversionError extends AbstractError {}

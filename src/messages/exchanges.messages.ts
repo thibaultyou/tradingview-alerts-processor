@@ -22,6 +22,17 @@ export const TICKER_BALANCE_READ_SUCCESS = (
     )}`
   );
 
+export const TICKER_BALANCE_MISSING_ERROR = (
+  exchange: ExchangeId,
+  accountId: string,
+  symbol: string
+): string =>
+  exchangesMessageWrapper(
+    `${getExchangeName(
+      exchange
+    )}/${accountId} - ${symbol} ticker balance missing (may be 0).`
+  );
+
 export const TICKER_BALANCE_READ_ERROR = (
   exchange: ExchangeId,
   accountId: string,
@@ -31,7 +42,7 @@ export const TICKER_BALANCE_READ_ERROR = (
   exchangesMessageWrapper(
     `${getExchangeName(
       exchange
-    )}/${accountId} - Unable to fetch ${symbol} ticker balance (may be 0)${
+    )}/${accountId} - Unable to fetch ${symbol} ticker balance${
       err ? ' -> ' + err : ''
     }.`
   );

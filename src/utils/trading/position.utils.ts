@@ -15,6 +15,7 @@ export const getPositionSize = (
   return Number(size);
 };
 
+// TODO rename to something more explicit
 export const filterPosition = (
   positions: FuturesPosition[],
   exchangeId: ExchangeId,
@@ -28,6 +29,7 @@ export const filterPosition = (
   return positions.filter(predicate).pop();
 };
 
+// TODO rename to something more explicit
 export const filterPositions = (
   positions: FuturesPosition[],
   exchangeId: ExchangeId

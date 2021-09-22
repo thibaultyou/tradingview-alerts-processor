@@ -31,7 +31,7 @@ export const ACCOUNT_READ_SUCCESS = (accountId: string): string =>
   );
 
 export const ACCOUNTS_READ_SUCCESS = (): string =>
-  accountsMessageWrapper(`Accounts successfully readed.`);
+  accountsMessageWrapper(`Accounts successfully read.`);
 
 export const ACCOUNT_READ_ERROR = (accountId: string, err?: string): string =>
   accountsMessageWrapper(
