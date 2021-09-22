@@ -111,12 +111,41 @@ describe('Redis database service', () => {
     });
   });
 
-  describe('write', () => {
-    it.todo('should create entry');
+  describe('create', () => {
+    it('should create entry and return value', async () => {
+      const key = 'aKey';
+      const value = ['value1', 'value2'];
+      const storedValue = JSON.stringify(value);
 
-    it.todo('should return entry');
+      const mockSet = jest.fn();
+      const mockClientCreator = () => {
+        const mockInstance = {} as WrappedNodeRedisClient;
+        mockInstance.set = mockSet;
+        return mockInstance;
+      };
 
-    it.todo('should throw error');
+      const service = new RedisDatabaseService(mockClientCreator);
+      const result = await service.create(key, value);
+      expect(mockSet).toHaveBeenCalledWith(key, storedValue);
+      expect(result).toStrictEqual(value);
+    });
+
+    it('should throw error', async () => {
+      const key = 'aKey';
+      const value = ['value1', 'value2'];
+
+      const mockSet = jest.fn(() => {
+        throw new Error();
+      });
+      const mockClientCreator = () => {
+        const mockInstance = {} as WrappedNodeRedisClient;
+        mockInstance.set = mockSet;
+        return mockInstance;
+      };
+
+      const service = new RedisDatabaseService(mockClientCreator);
+      await expect(service.create(key, value)).rejects.toThrow();
+    });
   });
 
   describe('update', () => {
