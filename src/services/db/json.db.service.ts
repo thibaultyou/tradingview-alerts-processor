@@ -27,12 +27,8 @@ import {
 } from '../../errors/db.errors';
 import { IDatabase } from '../../interfaces/db.interfaces';
 
-function defaultJsonDbClient(): JsonDB {
-  return new JsonDB(
-    new Config(JSON_DATABASE_NAME, true, true, JSON_DATABASE_ROOT_PATH)
-  );
-}
-const defaultJsonDbClient = (): JsonDB => new JsonDB(
+const defaultJsonDbClient = (): JsonDB =>
+  new JsonDB(
     new Config(JSON_DATABASE_NAME, true, true, JSON_DATABASE_ROOT_PATH)
   );
 export class JSONDatabaseService implements IDatabase {

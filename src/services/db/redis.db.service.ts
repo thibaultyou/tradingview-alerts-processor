@@ -27,14 +27,8 @@ import { IDatabase } from '../../interfaces/db.interfaces';
 const PORT = process.env.REDIS_PORT || REDIS_PORT;
 const HOST = process.env.REDIS_HOST || REDIS_HOST;
 
-function defaultRedisDbClient(): WrappedNodeRedisClient {
-  return createNodeRedisClient(
-    new RedisClient({ port: Number(PORT), host: HOST })
-  );
-}
-const defaultRedisDbClient = (): WrappedNodeRedisClient => createNodeRedisClient(
-    new RedisClient({ port: Number(PORT), host: HOST })
-  );
+const defaultRedisDbClient = (): WrappedNodeRedisClient =>
+  createNodeRedisClient(new RedisClient({ port: Number(PORT), host: HOST }));
 export class RedisDatabaseService implements IDatabase {
   private instance: WrappedNodeRedisClient;
 

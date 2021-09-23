@@ -6,7 +6,7 @@ import { Database } from '../../types/db.types';
 const DATABASE = process.env.DATABASE_TYPE || DatabaseId.JSON;
 
 export class DatabaseService {
-  // Might it make sense to make this abstract?
+  // TODO: Make this abstract
   private static instance: Database;
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function
