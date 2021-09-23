@@ -32,7 +32,9 @@ function defaultRedisDbClient(): WrappedNodeRedisClient {
     new RedisClient({ port: Number(PORT), host: HOST })
   );
 }
-
+const defaultRedisDbClient = (): WrappedNodeRedisClient => createNodeRedisClient(
+    new RedisClient({ port: Number(PORT), host: HOST })
+  );
 export class RedisDatabaseService implements IDatabase {
   private instance: WrappedNodeRedisClient;
 

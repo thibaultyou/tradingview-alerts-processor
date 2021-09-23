@@ -32,7 +32,9 @@ function defaultJsonDbClient(): JsonDB {
     new Config(JSON_DATABASE_NAME, true, true, JSON_DATABASE_ROOT_PATH)
   );
 }
-
+const defaultJsonDbClient = (): JsonDB => new JsonDB(
+    new Config(JSON_DATABASE_NAME, true, true, JSON_DATABASE_ROOT_PATH)
+  );
 export class JSONDatabaseService implements IDatabase {
   private instance: JsonDB;
 
