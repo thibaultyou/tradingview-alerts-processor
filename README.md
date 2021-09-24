@@ -24,7 +24,7 @@ then you can [configure exchanges api keys](docs/install/1c_Keys.md).
 
 ### 🚀 Usage
 
-You can use the bot with :
+You can use the bot by interacting with its [API](docs/api/API.md). Examples include :
 
 - [Tradingview alerts / webhooks system](docs/2_Alerts.md)
 - [HTTP requests](docs/3_Commands.md)
