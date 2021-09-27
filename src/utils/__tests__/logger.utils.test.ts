@@ -1,5 +1,13 @@
 import { mockRequest, mockResponse } from '../../tests/tests.utils';
-import { loggingMiddleware, messageWrapper } from '../logger.utils';
+import {
+  consoleLoggerOptions,
+  debugLogFileLoggerOptions,
+  defaultLoggerFormat,
+  errorLogFileLoggerOptions,
+  loggingMiddleware,
+  messageWrapper,
+  tradesLogFileLoggerOptions
+} from '../logger.utils';
 
 describe('Logger utils', () => {
   describe('loggingMiddleware', () => {
@@ -11,27 +19,73 @@ describe('Logger utils', () => {
   });
 
   describe('defaultLoggerFormat', () => {
-    it.todo('should combine default logging formats');
+    it('should combine default logging formats', () => {
+      expect(defaultLoggerFormat).toEqual(
+        expect.objectContaining({
+          Format: expect.any(Function),
+          options: expect.any(Object)
+        })
+      );
+    });
   });
 
   describe('consoleLoggerOptions', () => {
-    it.todo('should combine console logging formats');
+    it('should combine console logging formats', () => {
+      expect(consoleLoggerOptions).toEqual(
+        expect.objectContaining({
+          format: expect.objectContaining({
+            Format: expect.any(Function)
+          })
+        })
+      );
+    });
 
-    it.todo('should set console logging level');
+    it('should set console logging level', () => {
+      expect(consoleLoggerOptions.level).toStrictEqual(
+        expect.stringMatching(new RegExp(/^(info|debug)$/))
+      );
+    });
 
-    it.todo('should return console logger options');
+    it('should return console logger options', () => {
+      expect(consoleLoggerOptions).toEqual(
+        expect.objectContaining({
+          format: expect.objectContaining({
+            options: expect.any(Object)
+          })
+        })
+      );
+    });
   });
 
   describe('errorLogFileLoggerOptions', () => {
-    it.todo('should return error file logger options');
+    it('should return error file logger options', () => {
+      expect(errorLogFileLoggerOptions).toEqual(
+        expect.objectContaining({
+          level: 'error',
+          filename: 'logs/error.log'
+        })
+      );
+    });
   });
 
   describe('debugLogFileLoggerOptions', () => {
-    it.todo('should return debug file logger options');
+    it('should return debug file logger options', () => {
+      expect(debugLogFileLoggerOptions).toEqual(
+        expect.objectContaining({
+          filename: 'logs/debug.log'
+        })
+      );
+    });
   });
 
   describe('tradesLogFileLoggerOptions', () => {
-    it.todo('should return trades file logger options');
+    it('should return trades file logger options', () => {
+      expect(tradesLogFileLoggerOptions).toEqual(
+        expect.objectContaining({
+          filename: 'logs/trades.log'
+        })
+      );
+    });
   });
 
   describe('messageWrapper', () => {
