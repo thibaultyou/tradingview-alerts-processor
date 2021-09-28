@@ -1,9 +1,15 @@
+import { getSpotQuote, getSpotSymbol } from '../symbol.utils';
+
 describe('Symbol utils', () => {
   describe('getSpotSymbol', () => {
-    it.todo('should return symbol');
+    it('should return symbol', () => {
+      expect(getSpotSymbol('X/Y')).toEqual('X');
+    });
   });
 
   describe('getSpotQuote', () => {
-    it.todo('should return quote');
+    it('should return quote', () => {
+      expect(getSpotQuote('X/Y')).toEqual('Y');
+    });
   });
 });
