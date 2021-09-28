@@ -1,11 +1,37 @@
+import { Ticker } from 'ccxt';
+import { ExchangeId } from '../../../constants/exchanges.constants';
+import { getTickerPrice } from '../ticker.utils';
+
 describe('Ticker utils', () => {
   describe('getTickerPrice', () => {
-    it.todo('should return Binance price');
+    const mockTicker = {} as Ticker;
 
-    it.todo('should return KuCoin price');
+    beforeEach(() => {
+      mockTicker.last = 11;
+      mockTicker.info = {
+        lastPrice: 12,
+        price: 13
+      };
+    });
 
-    it.todo('should return Kraken price');
+    it('should return Binance price', () => {
+      expect(getTickerPrice(mockTicker, ExchangeId.Binance)).toEqual(12);
+      expect(getTickerPrice(mockTicker, ExchangeId.BinanceUS)).toEqual(12);
+      expect(getTickerPrice(mockTicker, ExchangeId.BinanceFuturesUSD)).toEqual(
+        12
+      );
+    });
 
-    it.todo('should return FTX price');
+    it('should return KuCoin price', () => {
+      expect(getTickerPrice(mockTicker, ExchangeId.KuCoin)).toEqual(11);
+    });
+
+    it('should return Kraken price', () => {
+      expect(getTickerPrice(mockTicker, ExchangeId.Kraken)).toEqual(11);
+    });
+
+    it('should return FTX price', () => {
+      expect(getTickerPrice(mockTicker, ExchangeId.FTX)).toEqual(13);
+    });
   });
 });
