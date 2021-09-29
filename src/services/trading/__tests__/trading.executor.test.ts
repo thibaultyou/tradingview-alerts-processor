@@ -18,11 +18,11 @@ jest.useFakeTimers();
 describe('Trading executor', () => {
   beforeEach(() => {
     if (executor) {
-      executor.stop()
+      executor.stop();
     }
     executor = new TradingExecutor(sampleExchangeId);
-    jest.clearAllMocks()
-    jest.clearAllTimers()
+    jest.clearAllMocks();
+    jest.clearAllTimers();
   });
 
   describe('constructor', () => {
@@ -61,8 +61,8 @@ describe('Trading executor', () => {
 
     it('should process trades', () => {
       const spy = jest
-      .spyOn(executor, 'processTrade')
-      .mockImplementation(() => null);
+        .spyOn(executor, 'processTrade')
+        .mockImplementation(() => null);
       executor.start();
       executor.addTrade(sampleAccount, sampleTrade);
       executor.addTrade(sampleAccount, sampleTrade);
@@ -73,15 +73,19 @@ describe('Trading executor', () => {
 
     it('should add a delay between trades', () => {
       const spy = jest
-      .spyOn(executor, 'processTrade')
-      .mockImplementation(() => null);
+        .spyOn(executor, 'processTrade')
+        .mockImplementation(() => null);
       executor.start();
       executor.addTrade(sampleAccount, sampleTrade);
       expect(spy).toBeCalledTimes(0);
-      jest.advanceTimersByTime(DELAY_BETWEEN_TRADES[executor.getExchangeService().exchangeId] + 50);
+      jest.advanceTimersByTime(
+        DELAY_BETWEEN_TRADES[executor.getExchangeService().exchangeId] + 50
+      );
       expect(spy).toBeCalledTimes(1);
       executor.addTrade(sampleAccount, sampleTrade);
-      jest.advanceTimersByTime(DELAY_BETWEEN_TRADES[executor.getExchangeService().exchangeId] + 50);
+      jest.advanceTimersByTime(
+        DELAY_BETWEEN_TRADES[executor.getExchangeService().exchangeId] + 50
+      );
       expect(spy).toBeCalledTimes(2);
     });
   });
@@ -103,7 +107,7 @@ describe('Trading executor', () => {
 
   describe('addTrade', () => {
     // TODO not sure that we need this one since adding the trade infos to the queue should not throw
-    it.todo('should throw on error')
+    it.todo('should throw on error');
 
     it('should return success', () => {
       expect(executor.addTrade(sampleAccount, sampleTrade)).toBeTruthy();
@@ -113,39 +117,39 @@ describe('Trading executor', () => {
   describe('processTrade', () => {
     it('should process long / short / buy / sell orders', async () => {
       const spy = jest
-      .spyOn(executor.getExchangeService(), 'createOrder')
-      .mockImplementation(() => null);
+        .spyOn(executor.getExchangeService(), 'createOrder')
+        .mockImplementation(() => null);
       jest
-      .spyOn(executor.getExchangeService(), 'createCloseOrder')
-      .mockImplementation(() => null);
-      await executor.processTrade(sampleLongOrder)
-      await executor.processTrade(sampleShortOrder)
-      await executor.processTrade(sampleBuyOrder)
-      await executor.processTrade(sampleSellOrder)
-      await executor.processTrade(sampleCloseOrder)
-      expect(spy).toHaveBeenCalledTimes(4)
+        .spyOn(executor.getExchangeService(), 'createCloseOrder')
+        .mockImplementation(() => null);
+      await executor.processTrade(sampleLongOrder);
+      await executor.processTrade(sampleShortOrder);
+      await executor.processTrade(sampleBuyOrder);
+      await executor.processTrade(sampleSellOrder);
+      await executor.processTrade(sampleCloseOrder);
+      expect(spy).toHaveBeenCalledTimes(4);
     });
 
     it('should process close order', async () => {
       const spy = jest
-      .spyOn(executor.getExchangeService(), 'createCloseOrder')
-      .mockImplementation(() => null);
+        .spyOn(executor.getExchangeService(), 'createCloseOrder')
+        .mockImplementation(() => null);
       jest
-      .spyOn(executor.getExchangeService(), 'createOrder')
-      .mockImplementation(() => null);
-      await executor.processTrade(sampleCloseOrder)
-      expect(spy).toHaveBeenCalledTimes(1)
+        .spyOn(executor.getExchangeService(), 'createOrder')
+        .mockImplementation(() => null);
+      await executor.processTrade(sampleCloseOrder);
+      expect(spy).toHaveBeenCalledTimes(1);
     });
 
     it('should return processed order', async () => {
-      const mock = {test: 'test'} as any
+      const mock = { test: 'test' } as any;
       jest
-      .spyOn(executor.getExchangeService(), 'createCloseOrder')
-      .mockImplementation(() => mock);
+        .spyOn(executor.getExchangeService(), 'createCloseOrder')
+        .mockImplementation(() => mock);
       jest
-      .spyOn(executor.getExchangeService(), 'createOrder')
-      .mockImplementation(() => null);
-      const res = await executor.processTrade(sampleCloseOrder)
+        .spyOn(executor.getExchangeService(), 'createOrder')
+        .mockImplementation(() => null);
+      const res = await executor.processTrade(sampleCloseOrder);
       expect(res).toEqual(mock);
     });
   });

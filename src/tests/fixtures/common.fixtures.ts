@@ -56,16 +56,23 @@ export const sampleTrade: Trade = {
   symbol: 'BTC-PERP'
 };
 
-export const sampleBaseOrder : ITradeInfo = {account : sampleAccount, id: uuidv4(), trade: sampleTrade }
+export const sampleBaseOrder: ITradeInfo = {
+  account: sampleAccount,
+  id: uuidv4(),
+  trade: sampleTrade
+};
 
-export const getSampleOrder = (side: Side): ITradeInfo => ({ ...sampleBaseOrder, trade: { ...sampleBaseOrder.trade, direction: side}})
+export const getSampleOrder = (side: Side): ITradeInfo => ({
+  ...sampleBaseOrder,
+  trade: { ...sampleBaseOrder.trade, direction: side }
+});
 
-export const sampleLongOrder : ITradeInfo = getSampleOrder(Side.Long)
+export const sampleLongOrder: ITradeInfo = getSampleOrder(Side.Long);
 
-export const sampleShortOrder : ITradeInfo = getSampleOrder(Side.Short)
+export const sampleShortOrder: ITradeInfo = getSampleOrder(Side.Short);
 
-export const sampleBuyOrder : ITradeInfo = getSampleOrder(Side.Buy)
+export const sampleBuyOrder: ITradeInfo = getSampleOrder(Side.Buy);
 
-export const sampleSellOrder : ITradeInfo = getSampleOrder(Side.Sell)
+export const sampleSellOrder: ITradeInfo = getSampleOrder(Side.Sell);
 
-export const sampleCloseOrder : ITradeInfo = getSampleOrder(Side.Close)
+export const sampleCloseOrder: ITradeInfo = getSampleOrder(Side.Close);
