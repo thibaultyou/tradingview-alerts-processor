@@ -1,13 +1,36 @@
+import { sampleExchangeId } from '../../../tests/fixtures/common.fixtures';
+import { TradingService } from '../trading.service';
+
 describe('Trading service', () => {
   describe('getTradeExecutor', () => {
-    it.todo('should return executor');
+    beforeEach(() => {
+      TradingService.executors.clear();
+    });
 
-    it.todo('should init executor');
+    it('should return executor', () => {
+      const executor = TradingService.getTradeExecutor(sampleExchangeId);
+      expect(executor).not.toBeNull();
+    });
 
-    it.todo('should add executor to cache');
+    it('should add executor to cache', () => {
+      expect(TradingService.executors.size).toStrictEqual(0);
+      TradingService.getTradeExecutor(sampleExchangeId);
+      expect(TradingService.executors.size).toStrictEqual(1);
+    });
 
-    it.todo('should start executor');
+    it('should start executor', () => {
+      TradingService.getTradeExecutor(sampleExchangeId);
+      expect(
+        TradingService.getTradeExecutor(sampleExchangeId).getStatus()
+      ).toBeTruthy();
+    });
 
-    it.todo('should not init executor if already started');
+    it('should not init executor if already started', () => {
+      const executor = TradingService.getTradeExecutor(sampleExchangeId);
+      const spy = jest.spyOn(executor, 'start').mockImplementation(() => null);
+      expect(spy).toBeCalledTimes(0);
+      TradingService.getTradeExecutor(sampleExchangeId);
+      expect(spy).toBeCalledTimes(0);
+    });
   });
 });
