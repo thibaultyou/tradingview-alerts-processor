@@ -24,7 +24,7 @@ then you can [configure exchanges api keys](docs/install/1c_Keys.md).
 
 ### 🚀 Usage
 
-You can use the bot with :
+You can use the bot by interacting with its [API](docs/api/API.md). Examples include :
 
 - [Tradingview alerts / webhooks system](docs/2_Alerts.md)
 - [HTTP requests](docs/3_Commands.md)
@@ -63,3 +63,15 @@ Feel free to submit [Github issues](https://github.com/thibaultyou/tradingview-a
 Best way to show your support to this tool is by hitting the star button [![Stars](https://img.shields.io/github/stars/thibaultyou/tradingview-alerts-processor?style=social)](https://github.com/thibaultyou/tradingview-alerts-processor/stargazers), you can also [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/thibaultyou).
 
 You can join us on the Jackrabbit Discord server [![Discord](https://img.shields.io/discord/664206005881536512)](https://discord.gg/mNMVWXpAGd) where I'll be happy to answer questions there, you'll also find great strategies to use with this tool.
+
+### ⚗️ Local development
+
+If you want to run it locally for testing/development purposes you need [NodeJS](https://nodejs.org/en/download/) installed on your machine.
+
+After cloning the repository, run `npm install` to get the necessary dependencies.
+
+To run tests, run `npm run test`.
+
+To run locally, either run `npm run start`, if using VS Code, press F5 or click Run > Start Debugging. You have the option to attach a debugger to an already-running process.
+
+If you want to update the API, please use [Postman](https://www.postman.com/downloads/) to update provided collection then refresh documentation with [docgen](https://github.com/thedevsaddam/docgen) using `npm run api:doc`.

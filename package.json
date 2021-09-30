@@ -21,7 +21,10 @@
     "docker:dev": "sudo docker-compose -f docker-compose.dev.yml build && sudo docker-compose -f docker-compose.dev.yml up",
     "docker:build": "sudo docker build --no-cache -t madamefleur/tradingview-alerts-processor .",
     "docker:push": "sudo docker push madamefleur/tradingview-alerts-processor",
-    "docker:prod": "npm run docker:build && npm run docker:push"
+    "docker:prod": "npm run docker:build && npm run docker:push",
+    "api:doc:html": "docgen build -i ./docs/api/collection.json -o ./docs/api/API.html",
+    "api:doc:md": "docgen build -i ./docs/api/collection.json -o ./docs/api/API.md -m",
+    "api:doc": "npm run api:doc:html && npm run api:doc:md"
   },
   "pre-commit": [
     "lint:fix",

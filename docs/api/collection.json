@@ -1,0 +1,658 @@
+{
+	"info": {
+		"_postman_id": "f8d1dec1-8be3-4314-851e-53a2fa98180f",
+		"name": "TradingView Alerts Processor",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Accounts",
+			"item": [
+				{
+					"name": "Add account",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"stub\": \"{{account_alias}}\",\r\n    \"exchange\": \"{{exchange_id}}\",\r\n    \"apiKey\": \"{{exchange_api_key}}\",\r\n    \"secret\": \"{{exchange_api_secret}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{server_ip}}/accounts",
+							"host": [
+								"{{server_ip}}"
+							],
+							"path": [
+								"accounts"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Main account",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "charset",
+										"value": "utf-8",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"stub\": \"{{account_alias}}\",\r\n    \"exchange\": \"{{exchange_id}}\",\r\n    \"apiKey\": \"{{exchange_api_key}}\",\r\n    \"secret\": \"{{exchange_api_secret}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{server_ip}}/accounts",
+									"host": [
+										"{{server_ip}}"
+									],
+									"path": [
+										"accounts"
+									]
+								}
+							},
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": ""
+						},
+						{
+							"name": "FTX subaccount",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "charset",
+										"value": "utf-8",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"stub\": \"{{account_alias}}\",\r\n    \"subaccount\": \"{{subaccount_alias}}\",\r\n    \"exchange\": \"ftx\",\r\n    \"apiKey\": \"{{exchange_api_key}}\",\r\n    \"secret\": \"{{exchange_api_secret}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{server_ip}}/accounts",
+									"host": [
+										"{{server_ip}}"
+									],
+									"path": [
+										"accounts"
+									]
+								}
+							},
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": ""
+						},
+						{
+							"name": "KuCoin account",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "charset",
+										"value": "utf-8",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"stub\": \"{{account_alias}}\",\r\n    \"exchange\": \"kucoin\",\r\n    \"apiKey\": \"{{exchange_api_key}}\",\r\n    \"secret\": \"{{exchange_api_secret}}\",\r\n    \"passphrase\": \"{{exchange_api_passphrase}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{server_ip}}/accounts",
+									"host": [
+										"{{server_ip}}"
+									],
+									"path": [
+										"accounts"
+									]
+								}
+							},
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": ""
+						}
+					]
+				},
+				{
+					"name": "Get account",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{server_ip}}/accounts",
+							"host": [
+								"{{server_ip}}"
+							],
+							"path": [
+								"accounts"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List configured accounts",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{server_ip}}/accounts",
+							"host": [
+								"{{server_ip}}"
+							],
+							"path": [
+								"accounts"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Remove account",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{server_ip}}/accounts/{{account_alias}}",
+							"host": [
+								"{{server_ip}}"
+							],
+							"path": [
+								"accounts",
+								"{{account_alias}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Balances",
+			"item": [
+				{
+					"name": "List account balances",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{server_ip}}/balances/{{account_alias}}",
+							"host": [
+								"{{server_ip}}"
+							],
+							"path": [
+								"balances",
+								"{{account_alias}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List balances on all configured accounts",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{server_ip}}/balances",
+							"host": [
+								"{{server_ip}}"
+							],
+							"path": [
+								"balances"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Markets",
+			"item": [
+				{
+					"name": "List available markets",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{server_ip}}/markets/{{exchange_id}}",
+							"host": [
+								"{{server_ip}}"
+							],
+							"path": [
+								"markets",
+								"{{exchange_id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Trades",
+			"item": [
+				{
+					"name": "Open a position",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"stub\": \"test\",\r\n    \"symbol\": \"ETH-PERP\",\r\n    \"size\": \"11\",\r\n    \"direction\": \"short\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{server_ip}}/trades",
+							"host": [
+								"{{server_ip}}"
+							],
+							"path": [
+								"trades"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Long position",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "charset",
+										"value": "utf-8",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"stub\": \"test\",\r\n    \"symbol\": \"ETH-PERP\",\r\n    \"size\": \"11\",\r\n    \"direction\": \"long\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{server_ip}}/trades",
+									"host": [
+										"{{server_ip}}"
+									],
+									"path": [
+										"trades"
+									]
+								}
+							},
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": ""
+						},
+						{
+							"name": "Short position",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "charset",
+										"value": "utf-8",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"stub\": \"test\",\r\n    \"symbol\": \"ETH-PERP\",\r\n    \"size\": \"11\",\r\n    \"direction\": \"short\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{server_ip}}/trades",
+									"host": [
+										"{{server_ip}}"
+									],
+									"path": [
+										"trades"
+									]
+								}
+							},
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": ""
+						},
+						{
+							"name": "Long position with XX% of available collateral (Futures) or available balance (Spot)",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "charset",
+										"value": "utf-8",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"stub\": \"test\",\r\n    \"symbol\": \"ETH-PERP\",\r\n    \"size\": \"5%\",\r\n    \"direction\": \"long\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{server_ip}}/trades",
+									"host": [
+										"{{server_ip}}"
+									],
+									"path": [
+										"trades"
+									]
+								}
+							},
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": ""
+						},
+						{
+							"name": "Short position with XX% of available collateral (Futures) or available balance (Spot)",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "charset",
+										"value": "utf-8",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"stub\": \"test\",\r\n    \"symbol\": \"ETH-PERP\",\r\n    \"size\": \"5%\",\r\n    \"direction\": \"short\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{server_ip}}/trades",
+									"host": [
+										"{{server_ip}}"
+									],
+									"path": [
+										"trades"
+									]
+								}
+							},
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": ""
+						}
+					]
+				},
+				{
+					"name": "Close a position",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{server_ip}}/trades",
+							"host": [
+								"{{server_ip}}"
+							],
+							"path": [
+								"trades"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Close 100% of a position",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "charset",
+										"value": "utf-8",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{server_ip}}/trades",
+									"host": [
+										"{{server_ip}}"
+									],
+									"path": [
+										"trades"
+									]
+								}
+							},
+							"_postman_previewlanguage": "Text",
+							"header": [],
+							"cookie": [],
+							"body": ""
+						},
+						{
+							"name": "Close XX% of a position",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "charset",
+										"value": "utf-8",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"stub\": \"test\",\r\n    \"symbol\": \"ETH-PERP\",\r\n    \"direction\": \"close\",\r\n    \"size\": \"33%\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{server_ip}}/trades",
+									"host": [
+										"{{server_ip}}"
+									],
+									"path": [
+										"trades"
+									]
+								}
+							},
+							"_postman_previewlanguage": "Text",
+							"header": [],
+							"cookie": [],
+							"body": ""
+						}
+					]
+				},
+				{
+					"name": "Process multiple trades at once",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "[\r\n    {\r\n        \"stub\": \"test\",\r\n        \"symbol\": \"ETH-PERP\",\r\n        \"size\": \"11\",\r\n        \"direction\": \"long\"\r\n    },\r\n    {\r\n        \"stub\": \"test\",\r\n        \"symbol\": \"BTC-PERP\",\r\n        \"size\": \"11\",\r\n        \"direction\": \"long\"\r\n    }\r\n]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{server_ip}}/trades",
+							"host": [
+								"{{server_ip}}"
+							],
+							"path": [
+								"trades"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Health",
+			"item": [
+				{
+					"name": "Check server health",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{server_ip}}/health",
+							"host": [
+								"{{server_ip}}"
+							],
+							"path": [
+								"health"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "server_ip",
+			"value": "YOUR.STATIC.IP.ADDRESS"
+		},
+		{
+			"key": "account_alias",
+			"value": "MAIN"
+		},
+		{
+			"key": "subaccount_alias",
+			"value": "",
+			"disabled": true
+		},
+		{
+			"key": "exchange_id",
+			"value": "ftx"
+		},
+		{
+			"key": "exchange_api_key",
+			"value": "YOUR_API_KEY"
+		},
+		{
+			"key": "exchange_api_secret",
+			"value": "YOUR_API_SECRET"
+		},
+		{
+			"key": "exchange_api_passphrase",
+			"value": "YOUR_KUCOIN_PASSPHRASE",
+			"disabled": true
+		}
+	]
+}
