@@ -40,14 +40,14 @@ export const initExchangeService = (
   switch (exchangeId) {
     case ExchangeId.Binance:
       return new BinanceSpotExchangeService();
-    case ExchangeId.BinanceUS:
-      return new BinanceUSSpotExchangeService();
     case ExchangeId.BinanceFuturesUSD:
       return new BinanceFuturesUSDMExchangeService();
-    case ExchangeId.KuCoin:
-      return new KuCoinExchangeService();
+    case ExchangeId.BinanceUS:
+      return new BinanceUSSpotExchangeService();
     case ExchangeId.Kraken:
       return new KrakenExchangeService();
+    case ExchangeId.KuCoin:
+      return new KuCoinExchangeService();
     case ExchangeId.FTX:
     default:
       return new FTXExchangeService();
