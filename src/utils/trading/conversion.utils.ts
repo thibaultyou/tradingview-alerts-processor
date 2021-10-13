@@ -12,7 +12,7 @@ import { getTickerPrice } from './ticker.utils';
 
 export const getRelativeOrderSize = (balance: number, size: string): number => {
   const percent = Number(size.replace(/%/g, ''));
-  if (percent <= 0 || percent > 100) {
+  if (percent <= 0) {
     error(TRADE_ERROR_SIZE(size));
     throw new OrderSizeError(TRADE_ERROR_SIZE(size));
   }

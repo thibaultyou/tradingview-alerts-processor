@@ -41,7 +41,7 @@ import {
   OpenPositionError,
   OrderSizeError
 } from '../../../errors/trading.errors';
-import { Side } from '../../../constants/trading.constants';
+import { Side, TradingMode } from '../../../constants/trading.constants';
 import {
   IBalance,
   ISession
@@ -79,11 +79,11 @@ export abstract class BaseExchangeService {
     trade: Trade
   ): Promise<IOrderOptions>;
 
-  // abstract handleReverseOrder(
-  //   account: Account,
-  //   ticker: Ticker,
-  //   trade: Trade
-  // ): Promise<void>;
+  abstract handleReverseOrder(
+    account: Account,
+    ticker: Ticker,
+    trade: Trade
+  ): Promise<boolean>;
 
   // abstract handleOverflow(
   //   account: Account,
@@ -230,23 +230,6 @@ export abstract class BaseExchangeService {
     return availableFunds;
   };
 
-  // handleOrderModes = async (
-  //   account: Account,
-  //   ticker: Ticker,
-  //   trade: Trade
-  // ): Promise<boolean> => {
-  //   const { mode } = trade;
-  //   if (mode === TradingMode.Reverse) {
-  //     await this.handleReverseOrder(account, ticker, trade);
-  //   } else if (mode === TradingMode.Overflow) {
-  //     const isOverflowing = await this.handleOverflow(account, ticker, trade);
-  //     if (isOverflowing) {
-  //       return false; // on overflow we only close position
-  //     }
-  //   }
-  //   return true;
-  // };
-
   getOpenOrderOptions = async (
     account: Account,
     ticker: Ticker,
@@ -267,6 +250,7 @@ export abstract class BaseExchangeService {
           await this.handleMaxBudget(account, ticker, trade, funds);
         }
       }
+
       // if (isSpotExchange(ticker, this.exchangeId) && orderSize > funds) {
       //   // TODO create dedicated error
       //   throw new Error('Insufficient funds');
@@ -284,29 +268,37 @@ export abstract class BaseExchangeService {
     }
   };
 
+  handleOrderModes = async (
+    account: Account,
+    ticker: Ticker,
+    trade: Trade
+  ): Promise<boolean> => {
+    const { mode } = trade;
+    let isAllowed = true;
+    if (mode === TradingMode.Reverse && this.exchangeId === ExchangeId.FTX) {
+      isAllowed = await this.handleReverseOrder(account, ticker, trade);
+    }
+    return isAllowed;
+  };
+
   createOrder = async (account: Account, trade: Trade): Promise<Order> => {
     await this.refreshSession(account);
     const { symbol, direction } = trade;
     const accountId = getAccountId(account);
+    const side = getSide(direction);
     try {
       const ticker = await this.getTicker(symbol);
-      // const isOrderAllowed = await this.handleOrderModes(
-      //   account,
-      //   ticker,
-      //   trade
-      // );
-      // if (isOrderAllowed) {
-      // TODO refacto
-      // close on sell spot order
-      if (
-        getSide(direction) === Side.Sell &&
-        isSpotExchange(ticker, this.exchangeId)
-      ) {
-        return await this.createCloseOrder(account, trade, ticker);
-      } else {
+      const isOrderAllowed = await this.handleOrderModes(
+        account,
+        ticker,
+        trade
+      );
+      if (isOrderAllowed) {
+        if (isSpotExchange(ticker, this.exchangeId) && side === Side.Sell) {
+          return await this.createCloseOrder(account, trade, ticker);
+        }
         return await this.createOpenOrder(account, trade, ticker);
       }
-      // }
     } catch (err) {
       error(CREATE_ORDER_ERROR(this.exchangeId, accountId, trade), err);
       throw new CreateOrderError(

@@ -101,4 +101,11 @@ export class BinanceFuturesUSDMExchangeService extends FuturesExchangeService {
   //   }
   //   return false;
   // };
+  handleReverseOrder(
+    _account: Account,
+    _ticker: Ticker,
+    _trade: Trade
+  ): Promise<boolean> {
+    throw new Error('Method not implemented.');
+  }
 }
