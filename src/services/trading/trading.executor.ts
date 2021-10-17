@@ -43,7 +43,7 @@ export class TradingExecutor {
 
   getStatus = (): boolean => this.isStarted;
 
-  start = (): void => {
+  start = (): boolean => {
     if (!this.isStarted) {
       this.isStarted = true;
       debug(TRADE_SERVICE_START(this.id));
@@ -53,9 +53,10 @@ export class TradingExecutor {
           await this.processTrade(tradeInfo);
         }
       }, DELAY_BETWEEN_TRADES[this.id]);
-    } else {
-      debug(TRADE_SERVICE_ALREADY_STARTED(this.id));
+      return true;
     }
+    debug(TRADE_SERVICE_ALREADY_STARTED(this.id));
+    return false;
   };
 
   stop = (): void => {
@@ -68,9 +69,10 @@ export class TradingExecutor {
     }
   };
 
-  addTrade = async (account: Account, trade: Trade): Promise<boolean> => {
+  addTrade = (account: Account, trade: Trade): boolean => {
     const { stub, exchange } = account;
     const { symbol, direction } = trade;
+    // TODO remove try / catch ?
     try {
       debug(TRADE_SERVICE_ADD(exchange));
       const info: ITradeInfo = {
