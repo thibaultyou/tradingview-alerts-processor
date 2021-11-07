@@ -11,7 +11,7 @@
     - Long position :
 
         ```json
-        { "stub": "dev", "direction": "long", "symbol": "ETH-PERP", "size": "50" }
+        { "stub": "dev", "direction": "long", "symbol": "ETH-PERP", "size": "50", "chart": "unique_chart_url", "TCycles": "1", "TBuys": "2" }
         ```
 
     - Short position :
