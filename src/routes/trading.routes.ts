@@ -108,33 +108,60 @@ export const postTrade = async (req: Request, res: Response): Promise<void> => {
 
 async function checkForDuplicate(trade: any): Promise<boolean> {
   const db = DatabaseService.getDatabaseInstance();
-  const { stub, symbol, TCycles, TBuys } = trade;
+  const { stub, symbol, chart, TCycles, TBuys } = trade;
   let existingEntry;
-  try {
-    existingEntry = await db.read(
-      `${stub}/orders/${symbol}/${TCycles}/${TBuys}`
-    ); // TODO: ensure chart is distinct, too
-  } catch (error) {
-    // specify error type
-    existingEntry = null;
-  }
-  if (!existingEntry) {
-    // if no previous total buys
+  if (TCycles && TBuys && chart) {
+    deleteOldRecords(stub, symbol, chart, TCycles);
     try {
-      // await // TODO: Consider whether worth awaiting the result (at cost of delayed trade execution)
-      db.create(
-        `${stub}/orders/${symbol}/${TCycles}/${TBuys}`,
-        trade.direction
-      );
+      existingEntry = await db.read(
+        `${stub}/orders/${symbol}/${chart}/${TCycles}/${TBuys}`
+      ); // TODO: ensure chart is distinct, too
     } catch (error) {
-      console.log(error);
+      // specify error type
+      existingEntry = null;
     }
-    return false;
+    if (!existingEntry) {
+      // if no previous total buys
+      try {
+        // await // TODO: Consider whether worth awaiting the result (at cost of delayed trade execution)
+        db.create(
+          `${stub}/orders/${symbol}/${chart}/${TCycles}/${TBuys}`,
+          trade.direction
+        );
+      } catch (error) {
+        console.log(error);
+      }
+      return false;
+    } else {
+      console.log('Duplicate trade');
+      return true;
+    }
   } else {
-    console.log('Duplicate trade');
-    return true;
+    console.debug('No TCycles or TBuys');
+    return false;
   }
   // TODO: clear ones from a 2+ cycles back
+}
+
+/**
+ * Delete all records older than 2 cycles. (Keep 1 previous cycle in case requests arrive out of order)
+ * @param stub
+ * @param symbol
+ * @param chart
+ * @param TCycles
+ */
+async function deleteOldRecords(
+  stub: string,
+  symbol: string,
+  chart: string,
+  TCycles: number
+) {
+  const db = DatabaseService.getDatabaseInstance();
+  try {
+    await db.delete(`${stub}/orders/${symbol}/${chart}/${TCycles - 2}`);
+  } catch (error) {
+    console.log(error);
+  }
 }
 
 export const tradingRouter = router.post(
