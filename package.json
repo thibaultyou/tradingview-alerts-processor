@@ -74,6 +74,7 @@
     "@types/node": "16.10.3",
     "@types/redis": "2.8.32",
     "@types/uuid": "8.3.1",
+    "@types/validator": "^13.7.1",
     "@typescript-eslint/eslint-plugin": "4.33.0",
     "@typescript-eslint/parser": "4.33.0",
     "concurrently": "6.3.0",
