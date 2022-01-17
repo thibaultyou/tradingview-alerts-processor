@@ -59,7 +59,7 @@
     "ccxt": "1.57.82",
     "class-transformer": "0.4.0",
     "class-transformer-validator": "0.9.1",
-    "class-validator": "0.13.1",
+    "class-validator": "0.13.2",
     "express": "4.17.1",
     "handy-redis": "2.3.1",
     "node-json-db": "1.4.1",
