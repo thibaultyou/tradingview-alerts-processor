@@ -1,7 +1,7 @@
 {
   "name": "tradingview-alerts-processor",
-  "version": "1.0.0",
-  "description": "Minimalist service desgined to execute TradingView webhooks and process them to cryptocurrencies exchanges.",
+  "version": "1.0.1",
+  "description": "Minimalist service designed to execute TradingView webhooks and process them on cryptocurrencies exchanges.",
   "main": "server.js",
   "author": "Thibault YOU",
   "license": "MIT",
