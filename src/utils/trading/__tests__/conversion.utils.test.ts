@@ -17,9 +17,6 @@ describe('Conversion utils', () => {
 
     it('should throw if range is incorrect', () => {
       expect(() => getRelativeOrderSize(70, '0%')).toThrowError(OrderSizeError);
-      expect(() => getRelativeOrderSize(70, '100.0000000001')).toThrowError(
-        OrderSizeError
-      );
       expect(() => getRelativeOrderSize(70, '-0.001%')).toThrowError(
         OrderSizeError
       );
